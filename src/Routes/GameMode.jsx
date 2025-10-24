@@ -362,16 +362,12 @@ const GameMode = () => {
                 >
                   Back
                 </Button>
-                <Button
-                  variant="success"
-                  onClick={() => alert("Game Started!")}
-                >
+                <Button variant="success" onClick={() => setStep(5)}>
                   Start Game
                 </Button>
               </div>
             </div>
 
-            {/* PLAYER SELECTION MODAL */}
             {/* PLAYER SELECTION MODAL */}
             <Modal
               show={showModal}
@@ -446,6 +442,95 @@ const GameMode = () => {
                 </div>
               </Modal.Body>
             </Modal>
+          </div>
+        )}
+        {step === 5 && (
+          <div className="p-5 border rounded-4 bg-light shadow">
+            <div className="text-center mb-4">
+              <h2 className="fw-bold text-success">Game In Progress</h2>
+              <p className="text-muted mb-4">
+                {course} • {holeType === "18" ? "18 Holes" : "9 Holes"} •{" "}
+                {gameFormat}
+              </p>
+            </div>
+
+            {/* PLAYERS OVERVIEW */}
+            <div className="d-flex justify-content-center flex-wrap gap-3 mb-4">
+              {players
+                .filter((p) => p && typeof p === "object")
+                .map((p, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 border rounded bg-white shadow-sm d-flex align-items-center"
+                    style={{ width: "230px" }}
+                  >
+                    <img
+                      src={p.image}
+                      alt={p.name}
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        marginRight: "1rem",
+                      }}
+                    />
+                    <div className="text-start">
+                      <h6 className="fw-bold mb-0">{p.name}</h6>
+                      <small className="text-muted">
+                        HC: {p.handicap} | Tee: {p.tee}
+                      </small>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* SCORE TABLE */}
+            <div className="table-responsive">
+              <table className="table table-bordered align-middle text-center bg-white shadow-sm">
+                <thead className="table-success">
+                  <tr>
+                    <th>Hole</th>
+                    {players
+                      .filter((p) => p && typeof p === "object")
+                      .map((p, idx) => (
+                        <th key={idx}>{p.name}</th>
+                      ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...Array(holeType === "18" ? 18 : 9)].map((_, idx) => (
+                    <tr key={idx}>
+                      <td>Hole {idx + 1}</td>
+                      {players
+                        .filter((p) => p && typeof p === "object")
+                        .map((_, j) => (
+                          <td key={j}>
+                            <input
+                              type="number"
+                              min="1"
+                              className="form-control text-center"
+                              style={{ maxWidth: "80px", margin: "0 auto" }}
+                            />
+                          </td>
+                        ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ACTIONS */}
+            <div className="text-center mt-4">
+              <Button
+                variant="secondary"
+                onClick={() => setStep(4)}
+                className="me-2"
+              >
+                Back
+              </Button>
+              <Button variant="primary">Save Scores</Button>
+            </div>
           </div>
         )}
       </Container>
