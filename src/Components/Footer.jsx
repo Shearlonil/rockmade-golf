@@ -1,54 +1,110 @@
+import React from "react";
+import {
+  Flag,
+  Mail,
+  Phone,
+  MapPin,
+  Instagram,
+  Twitter,
+  Facebook,
+  Linkedin,
+} from "lucide-react";
+import { Wrapper } from "../Styles/Footer";
+
 const Footer = () => {
+  const quickLinks = [
+    { label: "Features", id: "features" },
+    { label: "Gallery", id: "gallery" },
+    { label: "Testimonials", id: "testimonials" },
+    { label: "Ambassadors", id: "ambassadors" },
+    { label: "Pricing", id: "pricing" },
+  ];
+
   return (
-    <>
-      <div
-        className="p-5 mt-5"
-        style={{ backgroundColor: "var(--primary-color)" }}
+    <Wrapper>
+      <footer
+        className="bg-dark text-white py-5"
+        style={{ backgroundColor: "var(--footer-bg)" }}
       >
-        <div className="container text-white">
+        <div className="container">
           <div className="row">
-            <div className="col-12 col-md-6">
-              <h3
-                className="fw-bold"
-                style={{ color: "var(--tertiary-color)" }}
-              >
-                Links
-              </h3>
-              <div className="d-flex gap-3">
-                <span className="">Home</span>
-                <span className="">About</span>
-                <span className="">Schedule</span>
-                <span className="">Pricing</span>
-                <span className="">Contact</span>
-                <span></span>
+            {/* Logo + Description */}
+            <div className="col-md-3 mb-4">
+              <div className="d-flex align-items-center mb-3">
+                <Flag
+                  className="text-primary me-2"
+                  style={{ width: 32, height: 32 }}
+                />
+                <span className="fw-bold fs-5">RockMade Golf</span>
               </div>
-            </div>
-            <div className="col-12 col-md-3">
-              <h3
-                className="fw-bold"
-                style={{ color: "var(--tertiary-color)" }}
-              >
-                Hava a question?
-              </h3>
-              <div>090-080-0760</div>
-              <div>hello@company.com</div>
-            </div>
-            <div className="col-12 col-md-3">
-              <h3
-                className="fw-bold"
-                style={{ color: "var(--tertiary-color)" }}
-              >
-                Location
-              </h3>
-              <p>
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Totam,
-                quis. Fugit impedit commodi perferendis.
+              <p className="text-muted small">
+                The premier golf membership for serious players.
               </p>
             </div>
+
+            {/* Quick Links */}
+            <div className="col-md-3 mb-4">
+              <h5>Quick Links</h5>
+              <ul className="list-unstyled">
+                {quickLinks.map((l) => (
+                  <li key={l.id}>
+                    <a
+                      href={`#${l.id}`}
+                      className="text-muted btn btn-link p-0 text-start footer-link"
+                    >
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div className="col-md-3 mb-4">
+              <h5>Contact</h5>
+              <ul className="list-unstyled text-muted small">
+                <li className="d-flex align-items-center mb-2">
+                  <Mail className="me-2" style={{ width: 16, height: 16 }} />
+                  membership@golfmatepro.com
+                </li>
+                <li className="d-flex align-items-center mb-2">
+                  <Phone className="me-2" style={{ width: 16, height: 16 }} />
+                  1-800-GOLF-PRO
+                </li>
+                <li className="d-flex align-items-center">
+                  <MapPin className="me-2" style={{ width: 16, height: 16 }} />
+                  Augusta, GA 30901
+                </li>
+              </ul>
+            </div>
+
+            {/* Social Media */}
+            <div className="col-md-3">
+              <h5>Follow Us</h5>
+              <div className="d-flex gap-3">
+                <a href="#" className="text-muted social-icon">
+                  <Instagram style={{ width: 24, height: 24 }} />
+                </a>
+                <a href="#" className="text-muted social-icon">
+                  <Twitter style={{ width: 24, height: 24 }} />
+                </a>
+                <a href="#" className="text-muted social-icon">
+                  <Facebook style={{ width: 24, height: 24 }} />
+                </a>
+                <a href="#" className="text-muted social-icon">
+                  <Linkedin style={{ width: 24, height: 24 }} />
+                </a>
+              </div>
+            </div>
           </div>
+
+          <hr className="my-4 border-secondary" />
+          <p className="text-center text-muted small mb-0">
+            © 2025 GolfMate Pro. All rights reserved.
+          </p>
         </div>
-      </div>
-    </>
+      </footer>
+    </Wrapper>
   );
 };
 
