@@ -4,28 +4,21 @@ export const Wrapper = styled.div`
   /*---------------------------------------
   FOOTER              
 -----------------------------------------*/
-  /*  */
-
-  .navbar-expand-lg .navbar-nav .nav-link {
-    border-radius: var(--border-radius-large);
-    margin: 10px;
-    padding: 10px 20px;
+  /* FOOTER LINK HOVER */
+  .footer-link {
+    color: #adb5bd !important;
+    transition: color 0.3s ease;
+  }
+  .footer-link:hover {
+    color: var(--secondary-color) !important;
   }
 
-  .navbar-nav .nav-link {
-    display: inline-block;
-    color: var(--white-color);
-    font-size: var(--p-font-size);
-    font-weight: var(--font-weight-normal);
-    position: relative;
-    padding-top: 15px;
-    padding-bottom: 15px;
-
-    :active {
-      color: var(--secondary-color);
-    }
-    :hover {
-      color: var(--secondary-color);
-    }
+  /* SOCIAL ICON HOVER */
+  .social-icon {
+    transition: color 0.3s ease, transform 0.2s ease;
+  }
+  .social-icon:hover {
+    color: var(--secondary-color) !important;
+    transform: translateY(-2px);
   }
 `;
