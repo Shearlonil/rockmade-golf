@@ -8,13 +8,6 @@ import {
   Users,
   Star,
   Award,
-  Instagram,
-  Twitter,
-  Facebook,
-  Linkedin,
-  Mail,
-  Phone,
-  MapPin,
   Check,
   ArrowRight,
   Flag,
@@ -37,6 +30,7 @@ const Carousel = ({ children }) => {
     </div>
   );
 };
+
 const CarouselItem = ({ children }) => (
   <div className="flex-shrink-0" style={{ width: "100%", padding: "0 0.5rem" }}>
     {children}
@@ -56,10 +50,6 @@ export default function MembershipPage() {
     if (statsRef.current) observer.observe(statsRef.current);
     return () => observer.disconnect();
   }, []);
-
-  const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  };
 
   const features = [
     {
@@ -100,35 +90,30 @@ export default function MembershipPage() {
       tier: "Gold",
       avatar: "MC",
       content: "GolfMate Pro transformed my game and my network.",
-      rating: 5,
     },
     {
       name: "Sarah Williams",
       tier: "Silver",
       avatar: "SW",
       content: "The exclusive tournaments are incredible.",
-      rating: 5,
     },
     {
       name: "David Rodriguez",
       tier: "Gold",
       avatar: "DR",
       content: "Best investment in my golf journey.",
-      rating: 5,
     },
     {
       name: "Emma Thompson",
       tier: "Bronze",
       avatar: "ET",
       content: "Even as a Bronze member I get amazing courses.",
-      rating: 5,
     },
     {
       name: "James Patterson",
       tier: "Gold",
       avatar: "JP",
       content: "Improved my handicap by 4 strokes.",
-      rating: 5,
     },
   ];
 
@@ -193,6 +178,52 @@ export default function MembershipPage() {
       ],
     },
   };
+
+  const galleryItems = [
+    {
+      id: 1,
+      src: IMAGES.image1,
+      title: "Championship Tournament",
+      caption: "Annual Masters Qualifier",
+    },
+    {
+      id: 2,
+      src: IMAGES.image2,
+      title: "Pro-Am Event",
+      caption: "Playing with PGA Pros",
+    },
+    {
+      id: 3,
+      src: IMAGES.image3,
+      title: "Sunrise Session",
+      caption: "Early Morning at Pebble Beach",
+    },
+    {
+      id: 4,
+      src: IMAGES.image4,
+      title: "Member Networking",
+      caption: "Business on the Fairway",
+    },
+    {
+      id: 5,
+      src: IMAGES.image5,
+      title: "Coaching Clinic",
+      caption: "Swing Analysis Session",
+    },
+    {
+      id: 6,
+      src: IMAGES.image6,
+      title: "Victory Celebration",
+      caption: "Gold Member Awards",
+    },
+  ];
+
+  const stats = [
+    { num: 1200, label: "Active Members", suffix: "+" },
+    { num: 45, label: "Annual Tournaments", suffix: "" },
+    { num: 150, label: "Partner Courses", suffix: "+" },
+    { num: 98, label: "Member Satisfaction", suffix: "%" },
+  ];
 
   return (
     <>
@@ -285,7 +316,7 @@ export default function MembershipPage() {
         </div>
       </section>
 
-      {/* GALLERY – PURE CSS HOVER */}
+      {/* GALLERY */}
       <section id="gallery" className="py-5">
         <div className="container">
           <div className="text-center mb-5">
@@ -295,29 +326,17 @@ export default function MembershipPage() {
             </p>
           </div>
           <div className="row g-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+            {galleryItems.map((item) => (
               <motion.div
-                key={i}
+                key={item.id}
                 className="col-md-6 col-lg-4"
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="gallery-item position-relative overflow-hidden rounded shadow-sm h-100">
                   <img
-                    src={`https://images.unsplash.com/photo-${
-                      i === 1
-                        ? "1587174484923"
-                        : i === 2
-                        ? "1506900943219"
-                        : i === 3
-                        ? "1598123351"
-                        : i === 4
-                        ? "1534603079"
-                        : i === 5
-                        ? "1581097399"
-                        : "161417252"
-                    }-2d0ace49f1a9?q=80&w=800`}
+                    src={item.src}
                     className="img-fluid w-100 h-100"
-                    alt={`Gallery ${i}`}
+                    alt={item.title}
                     style={{
                       objectFit: "cover",
                       transition: "transform 0.5s ease",
@@ -332,32 +351,8 @@ export default function MembershipPage() {
                       transition: "opacity 0.3s ease",
                     }}
                   >
-                    <h5 className="mb-1">
-                      {i === 1
-                        ? "Championship Tournament"
-                        : i === 2
-                        ? "Pro-Am Event"
-                        : i === 3
-                        ? "Sunrise Session"
-                        : i === 4
-                        ? "Member Networking"
-                        : i === 5
-                        ? "Coaching Clinic"
-                        : "Victory Celebration"}
-                    </h5>
-                    <p className="mb-0 small">
-                      {i === 1
-                        ? "Annual Masters Qualifier"
-                        : i === 2
-                        ? "Playing with PGA Pros"
-                        : i === 3
-                        ? "Early Morning at Pebble Beach"
-                        : i === 4
-                        ? "Business on the Fairway"
-                        : i === 5
-                        ? "Swing Analysis Session"
-                        : "Gold Member Awards"}
-                    </p>
+                    <h5 className="mb-1">{item.title}</h5>
+                    <p className="mb-0 small">{item.caption}</p>
                   </div>
                 </div>
               </motion.div>
@@ -397,7 +392,7 @@ export default function MembershipPage() {
                           </div>
                         </div>
                         <div>
-                          {[...Array(t.rating)].map((_, s) => (
+                          {[...Array(5)].map((_, s) => (
                             <Star
                               key={s}
                               className="text-warning"
@@ -468,12 +463,7 @@ export default function MembershipPage() {
       >
         <div className="container">
           <div className="row text-center">
-            {[
-              { num: 1200, label: "Active Members", suffix: "+" },
-              { num: 45, label: "Annual Tournaments", suffix: "" },
-              { num: 150, label: "Partner Courses", suffix: "+" },
-              { num: 98, label: "Member Satisfaction", suffix: "%" },
-            ].map((s, i) => (
+            {stats.map((s, i) => (
               <div key={i} className="col-6 col-md-3">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -527,72 +517,78 @@ export default function MembershipPage() {
             </div>
           </div>
           <div className="row g-4">
-            {Object.entries(pricing).map(([tier, p], i) => (
-              <motion.div
-                key={tier}
-                className="col-md-4"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <div
-                  className={`card h-100 shadow-sm ${
-                    p.popular ? "border-primary border-3" : ""
-                  }`}
+            {Object.entries(pricing).map(([tier, p], i) => {
+              const monthlyPrice = isYearly
+                ? Math.round(p.yearly / 12)
+                : p.monthly;
+              return (
+                <motion.div
+                  key={tier}
+                  className="col-md-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
                 >
-                  {p.popular && (
-                    <div className="position-absolute top-0 start-50 translate-middle-x">
-                      <span className="badge bg-primary">MOST POPULAR</span>
-                    </div>
-                  )}
                   <div
-                    className="card-body d-flex flex-column"
-                    style={{ paddingTop: p.popular ? "2.5rem" : "1.5rem" }}
+                    className={`card h-100 shadow-sm ${
+                      p.popular ? "border-primary border-3" : ""
+                    }`}
                   >
-                    <h4 className="card-title text-capitalize text-center">
-                      {tier}
-                    </h4>
-                    <div className="text-center mb-4">
-                      <span className="display-5 fw-bold">
-                        ${isYearly ? Math.round(p.yearly / 12) : p.monthly}
-                      </span>
-                      <span className="text-muted">
-                        /{isYearly ? "month" : "month"}
-                      </span>
-                      {isYearly && (
-                        <p className="small text-muted mb-0">
-                          billed annually (${Math.round(p.yearly)})
-                        </p>
-                      )}
-                    </div>
-                    <ul className="list-unstyled flex-grow-1 mb-4">
-                      {p.features.map((f, idx) => (
-                        <li key={idx} className="d-flex align-items-start mb-2">
-                          <Check
-                            className="text-success me-2 mt-1"
-                            style={{ width: 18, height: 18 }}
-                          />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <a
-                      href="#contact"
-                      className={`btn w-100 ${
-                        p.popular ? "donate-btn text-white" : "custom-btn"
-                      }`}
+                    {p.popular && (
+                      <div className="position-absolute top-0 start-50 translate-middle-x">
+                        <span className="badge bg-primary">MOST POPULAR</span>
+                      </div>
+                    )}
+                    <div
+                      className="card-body d-flex flex-column"
+                      style={{ paddingTop: p.popular ? "2.5rem" : "1.5rem" }}
                     >
-                      Get Started{" "}
-                      <ArrowRight
-                        className="ms-1"
-                        style={{ width: 16, height: 16 }}
-                      />
-                    </a>
+                      <h4 className="card-title text-capitalize text-center">
+                        {tier}
+                      </h4>
+                      <div className="text-center mb-4">
+                        <span className="display-5 fw-bold">
+                          ${monthlyPrice}
+                        </span>
+                        <span className="text-muted"> /month</span>
+                        {isYearly && (
+                          <p className="small text-muted mb-0">
+                            billed annually (${Math.round(p.yearly)})
+                          </p>
+                        )}
+                      </div>
+                      <ul className="list-unstyled flex-grow-1 mb-4">
+                        {p.features.map((f, idx) => (
+                          <li
+                            key={idx}
+                            className="d-flex align-items-start mb-2"
+                          >
+                            <Check
+                              className="text-success me-2 mt-1"
+                              style={{ width: 18, height: 18 }}
+                            />
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <a
+                        href="#contact"
+                        className={`btn w-100 ${
+                          p.popular ? "donate-btn text-white" : "custom-btn"
+                        }`}
+                      >
+                        Get Started{" "}
+                        <ArrowRight
+                          className="ms-1"
+                          style={{ width: 16, height: 16 }}
+                        />
+                      </a>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
