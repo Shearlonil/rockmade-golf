@@ -11,8 +11,9 @@ import {
   ButtonGroup,
 } from "react-bootstrap";
 import { GameModeCard } from "../Styles/HomeStyle";
-import IMAGES from "../assets/images";
+// import IMAGES from "../assets/images";
 import HeroComp from "../Components/HeroComp";
+import IMAGES from "../assets/images";
 
 const GameMode = () => {
   const [step, setStep] = useState(1);
