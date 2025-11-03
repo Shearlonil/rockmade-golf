@@ -1,33 +1,38 @@
-/* navbarStyle.css */
-.sticky-wrapper {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  margin-top: 51px;
+/* Add to your existing file */
+
+/* Login/Sign Up Button Styles */
+.navbar .btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
 }
 
-.sticky-wrapper.is-sticky .navbar {
-  background-color: var(--dark-color);
+.navbar .btn-outline-primary {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
 }
 
-/* Default: Light background → dark text */
-.navbar-nav .nav-link {
-  color: #212529 !important; /* Dark gray */
-  font-size: var(--p-font-size);
-  font-weight: var(--font-weight-normal);
-  padding: 10px 20px;
-  border-radius: var(--border-radius-large);
+.navbar .btn-primary:hover,
+.navbar .btn-outline-primary:hover {
+  background-color: var(--hover-color) !important;
+  border-color: var(--hover-color) !important;
+  color: white !important;
 }
 
-/* When sticky (scrolled) → white text */
-.sticky-wrapper.is-sticky .navbar-nav .nav-link {
-  color: var(--white-color) !important;
+/* Sticky overrides for buttons */
+.sticky-wrapper.is-sticky .btn-primary,
+.sticky-wrapper.is-sticky .btn-outline-primary {
+  color: white !important;
 }
 
-/* Hover & Active */
-.navbar-nav .nav-link.active,
-.navbar-nav .nav-link:hover,
-.sticky-wrapper.is-sticky .navbar-nav .nav-link:hover {
-  color: var(--secondary-color) !important;
+.sticky-wrapper.is-sticky .btn-outline-primary {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Mobile in collapse */
+@media (max-width: 991.98px) {
+  .navbar-collapse .btn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
 }

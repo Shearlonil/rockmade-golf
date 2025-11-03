@@ -80,12 +80,29 @@ function OffcanvasExample() {
               >
                 Membership
               </Nav.Link>
+
+              {/* Login/Sign Up Buttons - Desktop */}
+              <Nav.Link
+                as={NavLink}
+                to="/login"
+                className="nav-link btn btn-outline-primary ms-2 px-3 py-2"
+              >
+                Login
+              </Nav.Link>
+
+              <Nav.Link
+                as={NavLink}
+                to="/signup"
+                className="nav-link btn btn-primary ms-1 px-3 py-2"
+              >
+                Sign Up
+              </Nav.Link>
             </Nav>
 
             {/* Desktop donate button */}
             <a
               href="ticket.html"
-              className="btn custom-btn d-none d-lg-block text-white"
+              className="btn custom-btn d-none d-lg-block text-white ms-2"
             >
               Donate
             </a>

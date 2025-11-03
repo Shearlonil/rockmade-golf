@@ -10,6 +10,8 @@ import Memberships from "./Routes/Memberships.jsx";
 import GameMode from "./Routes/GameMode.jsx";
 import GameSetupWizard from "./test.jsx";
 import Footer from "./Components/Footer.jsx";
+import LoginPage from "./Routes/LoginPage.jsx";
+import SignUpPage from "./Routes/SignupPage.jsx";
 
 function App() {
   return (
@@ -21,15 +23,17 @@ function App() {
         <Route index path="memberships" element={<Memberships />} />
         <Route index path="gameMode" element={<GameMode />} />
 
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
         <Route
           path="golfCourseRegistration"
           element={<GolfCourseRegistration />}
         />
 
         {/* test pages */}
-        <Route path="gamemodetest" element={<GameSetupWizard />} />
+        {/* <Route path="gamemodetest" element={<GameSetupWizard />} />
         <Route path="homepage" element={<HomePage />} />
-        <Route path="secondHomepage" element={<HomePageTwo />} />
+        <Route path="secondHomepage" element={<HomePageTwo />} /> */}
       </Routes>
       <Footer />
       {/* <Footer /> */}
