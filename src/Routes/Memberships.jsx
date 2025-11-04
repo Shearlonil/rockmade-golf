@@ -2,23 +2,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import {
-  Trophy,
-  Clock,
-  Users,
-  Star,
-  Award,
-  Check,
-  ArrowRight,
-  Flag,
-  Target,
-  Shield,
-  Zap,
-} from "lucide-react";
+import { HiArrowRight, HiBolt } from "react-icons/hi2";
 import CountUp from "react-countup";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import IMAGES from "../assets/images";
+import { BiBullseye } from "react-icons/bi";
+import { HiShieldCheck, HiUsers } from "react-icons/hi";
 
 const Carousel = ({ children }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [
@@ -63,22 +53,22 @@ export default function MembershipPage() {
       desc: "Book up to 14 days in advance at premium courses.",
     },
     {
-      Icon: Target,
+      Icon: BiBullseye,
       title: "Pro Coaching",
       desc: "Personalized training with PGA-certified instructors.",
     },
     {
-      Icon: Users,
+      Icon: HiUsers,
       title: "Elite Network",
       desc: "Connect with influential golfers and business leaders.",
     },
     {
-      Icon: Shield,
+      Icon: HiShieldCheck,
       title: "Premium Insurance",
       desc: "Full coverage for equipment, travel, and tournaments.",
     },
     {
-      Icon: Zap,
+      Icon: HiBolt,
       title: "VIP Experiences",
       desc: "Pro-am events, player meet-ups, behind-the-scenes tours.",
     },
@@ -89,7 +79,7 @@ export default function MembershipPage() {
       name: "Michael Chen",
       tier: "Gold",
       avatar: "MC",
-      content: "GolfMate Pro transformed my game and my network.",
+      content: "RockMade Golf transformed my game and my network.",
     },
     {
       name: "Sarah Williams",
@@ -263,7 +253,7 @@ export default function MembershipPage() {
                 className="btn donate-btn btn-lg me-3 text-white"
               >
                 Join Now{" "}
-                <ArrowRight
+                <HiArrowRight
                   className="ms-1"
                   style={{ width: 20, height: 20 }}
                 />
@@ -322,7 +312,7 @@ export default function MembershipPage() {
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold">Member Lifestyle</h2>
             <p className="lead text-muted">
-              Experience the GolfMate Pro difference through our members' eyes
+              Experience the RockMade Golf difference through our members' eyes
             </p>
           </div>
           <div className="row g-4">
@@ -432,7 +422,7 @@ export default function MembershipPage() {
               >
                 <div className="card text-center h-100 shadow-sm">
                   <div className="bg-primary bg-gradient text-white p-5">
-                    <Award style={{ width: 64, height: 64 }} />
+                    <Trophy style={{ width: 64, height: 64 }} />
                   </div>
                   <div
                     className="card-body pt-0"
@@ -608,7 +598,7 @@ export default function MembershipPage() {
               Ready to Elevate Your Game?
             </h2>
             <p className="lead mb-5">
-              Join GolfMate Pro today and start playing like a champion
+              Join RockMade Golf today and start playing like a champion
               tomorrow.
             </p>
             <div>

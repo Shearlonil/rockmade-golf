@@ -75,9 +75,15 @@ const SignUpPage = () => {
             >
               <div className="card-body p-5">
                 <div className="text-center mb-4">
-                  <Flag className="text-primary mb-3" size={48} />
+                  <img
+                    src={IMAGES.logo}
+                    className="text-primary mb-3"
+                    width={98}
+                  />{" "}
                   <h2 className="fw-bold mb-1">Join the Club</h2>
-                  <p className="text-muted">Create your GolfMate Pro account</p>
+                  <p className="text-muted">
+                    Create your RockMade Golf account
+                  </p>
                 </div>
 
                 <form onSubmit={handleSubmit}>
