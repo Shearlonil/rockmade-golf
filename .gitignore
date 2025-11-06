@@ -1,7 +1,8 @@
-./src/test.css
-./src/test.jsx
-./src/test2.jsx
-./src/test3.jsx
+# Test files
+src/test.css
+src/test.jsx
+src/test2.jsx
+src/test3.jsx
 
 # Logs
 logs
