@@ -1,14 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   RiUserLine,
   RiMailLine,
   RiCalendarLine,
-  // RiGolfLine,
-  RiFlagLine,
   RiBuildingLine,
-  RiEyeLine,
-  RiEyeOffLine,
   RiGolfBallLine,
 } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";

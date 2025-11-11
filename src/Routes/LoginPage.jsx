@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Lock, Flag, Mail, Eye, EyeOff } from "lucide-react";
+import {
+  RiMailLine,
+  RiLockLine,
+  RiEyeLine,
+  RiEyeOffLine,
+} from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import IMAGES from "../assets/images";
 
@@ -83,7 +88,7 @@ const LoginPage = () => {
                     <label className="form-label fw-bold">Email Address</label>
                     <div className="input-group">
                       <span className="input-group-text bg-light">
-                        <Mail size={18} />
+                        <RiMailLine size={18} />
                       </span>
                       <input
                         type="email"
@@ -100,7 +105,7 @@ const LoginPage = () => {
                     <label className="form-label fw-bold">Password</label>
                     <div className="input-group">
                       <span className="input-group-text bg-light">
-                        <Lock size={18} />
+                        <RiLockLine size={18} />
                       </span>
                       <input
                         type={showPassword ? "text" : "password"}
@@ -116,9 +121,9 @@ const LoginPage = () => {
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff size={18} />
+                          <RiEyeOffLine size={18} />
                         ) : (
-                          <Eye size={18} />
+                          <RiEyeLine size={18} />
                         )}
                       </button>
                     </div>
@@ -146,7 +151,7 @@ const LoginPage = () => {
                     </a>
                   </div>
 
-                  <button type="submit" className="btn custom-btn w-100 mb-3">
+                  <button type="submit" className="btn golf-btn w-100 mb-3">
                     Sign In
                   </button>
 

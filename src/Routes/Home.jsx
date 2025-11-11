@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { BiArrowToRight } from "react-icons/bi";
@@ -304,11 +303,12 @@ const Home = () => {
                     <Card.Title className="fw-bold">{title}</Card.Title>
                     <Card.Text className="flex-grow-1 small">
                       {Object.entries(details).map(([key, value]) => (
-                        <div key={key}>
+                        <span key={key} className="d-block">
                           <strong>{capitalizeFirstLetter(key)}:</strong> {value}
-                        </div>
+                        </span>
                       ))}
                     </Card.Text>
+
                     <Button
                       variant="outline-primary rounded-3 px-4"
                       onClick={() => navigate("/tournaments")}
@@ -340,7 +340,7 @@ const Home = () => {
               Get started in three simple steps.
             </p>
           </div>
-          <Row className="g-4">
+          <Row className="g-4 pb-3">
             <Col md={4}>
               <div
                 className="text-center p-4 rounded-3 colorful-border"
@@ -408,7 +408,7 @@ const Home = () => {
               ({ player_name, handicapIndex, country, image }, index) => (
                 <Col key={index} md={4} className="mb-4">
                   <AnimatedCard>
-                    <div className="text-center">
+                    <div className="text-center py-2">
                       <img
                         src={image}
                         alt={player_name}
@@ -437,7 +437,7 @@ const Home = () => {
         </Container>
       </motion.section>
 
-      {/* SECTION 7 – About Side-by-Side */}
+      {/* SECTION 7 */}
       <motion.section
         initial={{ opacity: 0, x: -50 }}
         whileInView={{ opacity: 1, x: 0 }}

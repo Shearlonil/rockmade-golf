@@ -1,14 +1,25 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { HiArrowRight, HiBolt } from "react-icons/hi2";
+import {
+  HiArrowRight,
+  HiArrowRightCircle,
+  HiBolt,
+  HiOutlineTrophy,
+} from "react-icons/hi2";
 import CountUp from "react-countup";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import IMAGES from "../assets/images";
 import { BiBullseye } from "react-icons/bi";
-import { HiShieldCheck, HiUsers } from "react-icons/hi";
+import {
+  HiCheck,
+  HiClock,
+  HiShieldCheck,
+  HiStar,
+  HiUsers,
+} from "react-icons/hi";
 
 const Carousel = ({ children }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [
@@ -43,12 +54,12 @@ export default function MembershipPage() {
 
   const features = [
     {
-      Icon: Trophy,
+      Icon: HiOutlineTrophy,
       title: "Exclusive Tournaments",
       desc: "Compete in members-only events with prestigious prizes.",
     },
     {
-      Icon: Clock,
+      Icon: HiClock,
       title: "Priority Tee Times",
       desc: "Book up to 14 days in advance at premium courses.",
     },
@@ -383,7 +394,7 @@ export default function MembershipPage() {
                         </div>
                         <div>
                           {[...Array(5)].map((_, s) => (
-                            <Star
+                            <HiStar
                               key={s}
                               className="text-warning"
                               style={{ width: 16, height: 16 }}
@@ -422,11 +433,11 @@ export default function MembershipPage() {
               >
                 <div className="card text-center h-100 shadow-sm">
                   <div className="bg-primary bg-gradient text-white p-5">
-                    <Trophy style={{ width: 64, height: 64 }} />
+                    <HiOutlineTrophy style={{ width: 64, height: 64 }} />
                   </div>
                   <div
                     className="card-body pt-0"
-                    style={{ marginTop: "-40px" }}
+                    style={{ marginTop: "-30px" }}
                   >
                     <h5 className="card-title">{a.name}</h5>
                     <p className="text-muted">{a.role}</p>
@@ -521,7 +532,7 @@ export default function MembershipPage() {
                   transition={{ delay: i * 0.1 }}
                 >
                   <div
-                    className={`card h-100 shadow-sm ${
+                    className={`card h-100 shadow-sm p-2 ${
                       p.popular ? "border-primary border-3" : ""
                     }`}
                   >
@@ -554,7 +565,7 @@ export default function MembershipPage() {
                             key={idx}
                             className="d-flex align-items-start mb-2"
                           >
-                            <Check
+                            <HiCheck
                               className="text-success me-2 mt-1"
                               style={{ width: 18, height: 18 }}
                             />
@@ -569,7 +580,7 @@ export default function MembershipPage() {
                         }`}
                       >
                         Get Started{" "}
-                        <ArrowRight
+                        <HiArrowRight
                           className="ms-1"
                           style={{ width: 16, height: 16 }}
                         />
@@ -604,11 +615,11 @@ export default function MembershipPage() {
             <div>
               <a
                 href="#pricing"
-                className="btn donate-btn btn-lg me-3 text-white"
+                className="btn donate-btn btn-lg my-1 me-3 text-white"
               >
-                Start Your Journey <ArrowRight className="ms-1" />
+                Start Your Journey <HiArrowRight className="ms-1" />
               </a>
-              <a href="#contact" className="btn custom-btn btn-lg">
+              <a href="#contact" className="btn custom-btn btn-lg my-1">
                 Schedule a Call
               </a>
             </div>
