@@ -9,12 +9,19 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 import { BrowserRouter } from "react-router-dom";
 import GlobalStyle from "./Styles/GlobalStyles.js";
+import { AuthProvider } from './app-context/auth-user-context';
+import Footer from "./Components/Footer.jsx";
+import NavBar from "./Components/Navbar/NavBar.jsx";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <BrowserRouter>
-      <GlobalStyle />
-      <App />
-    </BrowserRouter>
-  </StrictMode>
+    <StrictMode>
+        <BrowserRouter>
+            <GlobalStyle />
+            <AuthProvider>
+				<NavBar />
+                <App />
+                <Footer />
+            </AuthProvider>
+          </BrowserRouter>
+    </StrictMode>
 );

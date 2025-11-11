@@ -7,6 +7,7 @@ import {
   RiMailLine,
   RiLockLine,
   RiEyeLine,
+  RiPhoneLine,
   RiEyeOffLine,
 } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
