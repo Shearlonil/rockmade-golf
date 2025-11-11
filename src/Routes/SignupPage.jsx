@@ -2,7 +2,13 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Lock, Flag, Phone, Eye, EyeOff } from "lucide-react";
+import {
+  RiUserLine,
+  RiMailLine,
+  RiLockLine,
+  RiEyeLine,
+  RiEyeOffLine,
+} from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import IMAGES from "../assets/images";
 
@@ -97,7 +103,7 @@ const SignUpPage = () => {
                     <label className="form-label fw-bold">Full Name</label>
                     <div className="input-group">
                       <span className="input-group-text bg-light">
-                        <User size={18} />
+                        <RiUserLine size={18} />
                       </span>
                       <input
                         type="text"
@@ -115,7 +121,7 @@ const SignUpPage = () => {
                     <label className="form-label fw-bold">Email Address</label>
                     <div className="input-group">
                       <span className="input-group-text bg-light">
-                        <Mail size={18} />
+                        <RiMailLine size={18} />
                       </span>
                       <input
                         type="email"
@@ -133,7 +139,7 @@ const SignUpPage = () => {
                     <label className="form-label fw-bold">Phone Number</label>
                     <div className="input-group">
                       <span className="input-group-text bg-light">
-                        <Phone size={18} />
+                        <RiPhoneLine size={18} />
                       </span>
                       <input
                         type="tel"
@@ -150,7 +156,7 @@ const SignUpPage = () => {
                     <label className="form-label fw-bold">Password</label>
                     <div className="input-group">
                       <span className="input-group-text bg-light">
-                        <Lock size={18} />
+                        <RiLockLine size={18} />
                       </span>
                       <input
                         type={showPassword ? "text" : "password"}
@@ -167,9 +173,9 @@ const SignUpPage = () => {
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff size={18} />
+                          <RiEyeOffLine size={18} />
                         ) : (
-                          <Eye size={18} />
+                          <RiEyeLine size={18} />
                         )}
                       </button>
                     </div>
@@ -181,7 +187,7 @@ const SignUpPage = () => {
                     </label>
                     <div className="input-group">
                       <span className="input-group-text bg-light">
-                        <Lock size={18} />
+                        <RiLockLine size={18} />
                       </span>
                       <input
                         type={showConfirmPassword ? "text" : "password"}
@@ -200,9 +206,9 @@ const SignUpPage = () => {
                         }
                       >
                         {showConfirmPassword ? (
-                          <EyeOff size={18} />
+                          <RiEyeOffLine size={18} />
                         ) : (
-                          <Eye size={18} />
+                          <RiEyeLine size={18} />
                         )}
                       </button>
                     </div>

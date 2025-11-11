@@ -1,8 +1,6 @@
-import React from "react";
 import { Container, Row, Col, Button, Card } from "react-bootstrap";
 import HeroComp from "../Components/HeroComp";
 import IMAGES from "../assets/images";
-import { BiCheckCircle } from "react-icons/bi";
 import { GiCheckMark } from "react-icons/gi";
 import { IoGolf } from "react-icons/io5";
 import { motion } from "framer-motion";

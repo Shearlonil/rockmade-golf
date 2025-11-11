@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Table, Form, Button } from "react-bootstrap";
 
 const ScoreTable = () => {

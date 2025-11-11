@@ -74,7 +74,7 @@ const Footer = () => {
                 </li>
                 <li className="d-flex align-items-center mb-2">
                   <HiPhone className="me-2" style={{ width: 16, height: 16 }} />
-                  1-800-GOLF-PRO
+                  1-800-ROCKMADE-GOLF
                 </li>
                 <li className="d-flex align-items-center">
                   <HiMapPin
