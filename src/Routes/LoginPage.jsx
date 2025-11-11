@@ -61,10 +61,14 @@ const LoginPage = () => {
             >
               <div className="card-body p-5">
                 <div className="text-center mb-4">
-                  <Flag className="text-primary mb-3" size={48} />
+                  <img
+                    src={IMAGES.logo}
+                    className="text-primary mb-3"
+                    width={98}
+                  />
                   <h2 className="fw-bold mb-1">Welcome Back</h2>
                   <p className="text-muted">
-                    Sign in to your GolfMate Pro account
+                    Sign in to your RockMade Golf account
                   </p>
                 </div>
 

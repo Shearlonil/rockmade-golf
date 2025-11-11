@@ -105,7 +105,7 @@ export default function MembershipPage() {
       name: "Michael Chen",
       tier: "Gold",
       avatar: "MC",
-      content: "GolfMate Pro transformed my game and my network.",
+      content: "RockMade Golf transformed my game and my network.",
       rating: 5,
     },
     {
@@ -225,7 +225,7 @@ export default function MembershipPage() {
               className="fw-bold fs-4"
               style={{ color: "var(--text-color)" }}
             >
-              GolfMate Pro
+              RockMade Golf
             </span>
           </a>
           <button
@@ -361,7 +361,7 @@ export default function MembershipPage() {
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold">Member Lifestyle</h2>
             <p className="lead text-muted">
-              Experience the GolfMate Pro difference through our members' eyes
+              Experience the RockMade Golf difference through our members' eyes
             </p>
           </div>
           <div className="row g-4">
@@ -681,7 +681,7 @@ export default function MembershipPage() {
               Ready to Elevate Your Game?
             </h2>
             <p className="lead mb-5">
-              Join GolfMate Pro today and start playing like a champion
+              Join RockMade Golf today and start playing like a champion
               tomorrow.
             </p>
             <div>
@@ -707,7 +707,7 @@ export default function MembershipPage() {
                   className="text-primary me-2"
                   style={{ width: 32, height: 32 }}
                 />
-                <span className="fw-bold fs-5">GolfMate Pro</span>
+                <span className="fw-bold fs-5">RockMade Golf</span>
               </div>
               <p className="text-muted small">
                 The premier golf membership for serious players.
@@ -733,7 +733,7 @@ export default function MembershipPage() {
               <ul className="list-unstyled text-muted small">
                 <li className="d-flex align-items-center mb-2">
                   <Mail className="me-2" style={{ width: 16, height: 16 }} />
-                  membership@golfmatepro.com
+                  membership@rockmadegolf.com
                 </li>
                 <li className="d-flex align-items-center mb-2">
                   <Phone className="me-2" style={{ width: 16, height: 16 }} />
@@ -765,7 +765,7 @@ export default function MembershipPage() {
           </div>
           <hr className="my-4 border-secondary" />
           <p className="text-center text-muted small mb-0">
-            © 2025 GolfMate Pro. All rights reserved.
+            © 2025 RockMade Golf. All rights reserved.
           </p>
         </div>
       </footer>

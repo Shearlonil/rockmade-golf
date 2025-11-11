@@ -105,6 +105,80 @@ const GlobalStyle = createGlobalStyle`
     z-index: 1;
   }
   .about-section .container { position: relative; z-index: 2; }
+/* About Page Tweaks */
+.about-text-wrap {
+  position: relative;
+}
+
+.about-image {
+  border-radius: 50px;
+  display: block;
+  width: 100%;
+}
+
+.about-text-icon {
+  background: var(--primary-color);
+  border-radius: 100%;
+  font-size: 1.25rem;
+  width: 70px;
+  height: 70px;
+  line-height: 70px;
+  text-align: center;
+  color: var(--white-color);
+}
+
+.about-text-info {
+  backdrop-filter: blur(5px) saturate(180%);
+  -webkit-backdrop-filter: blur(5px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.45);
+  border-radius: 50px;
+  border: 1px solid rgba(209, 213, 219, 0.3);
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  margin: 20px;
+  padding: 15px;
+  max-height: 80%;
+  color: var(--text-color);
+}
+
+.about-text-info h5 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.about-text-info p {
+  font-family: "Mulish", serif;
+  font-size: 0.875rem;
+}
+
+/* Core Values Cards */
+.card {
+  border-radius: 50px;
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* CTA Button */
+.custom-btn {
+  background: var(--secondary-color);
+  border-radius: 100px;
+  color: var(--white-color);
+  font-weight: var(--font-weight-bold);
+  padding: 12px 24px;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.custom-btn:hover {
+  background: var(--primary-color);
+  color: var(--white-color);
+}
 
   /* Font Classes */
   .space-grotesk { font-family: "Space Grotesk", sans-serif !important; }

@@ -12,6 +12,7 @@ import GameSetupWizard from "./test.jsx";
 import Footer from "./Components/Footer.jsx";
 import LoginPage from "./Routes/LoginPage.jsx";
 import SignUpPage from "./Routes/SignupPage.jsx";
+import PlayerRegistrationPage from "./Routes/PlayerRegistrationPage.jsx";
 
 function App() {
   return (
@@ -29,10 +30,14 @@ function App() {
           path="golfCourseRegistration"
           element={<GolfCourseRegistration />}
         />
+        <Route
+          path="/playerRegistration"
+          element={<PlayerRegistrationPage />}
+        />
 
+        <Route path="homepage" element={<HomePage />} />
         {/* test pages */}
         {/* <Route path="gamemodetest" element={<GameSetupWizard />} />
-        <Route path="homepage" element={<HomePage />} />
         <Route path="secondHomepage" element={<HomePageTwo />} /> */}
       </Routes>
       <Footer />

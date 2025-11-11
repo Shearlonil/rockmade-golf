@@ -73,6 +73,16 @@ function OffcanvasExample() {
 
               <Nav.Link
                 as={NavLink}
+                to="/playerRegistration"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
+              >
+                Player Registration
+              </Nav.Link>
+
+              <Nav.Link
+                as={NavLink}
                 to="/memberships"
                 className={({ isActive }) =>
                   isActive ? "nav-link active" : "nav-link"
