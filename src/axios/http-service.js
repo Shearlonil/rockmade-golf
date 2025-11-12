@@ -1,5 +1,4 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 import AppConstants from "../Utils/AppConstants";
 
 /*
@@ -19,14 +18,15 @@ import AppConstants from "../Utils/AppConstants";
     axios.post(url, data, config)
 */
 
-axios.defaults.baseURL = "http://localhost:8082";
+axios.defaults.baseURL = "http://localhost:2025";
+// axios.defaults.baseURL = "https://www.tapafricanow.com";
 // axios.defaults.baseURL = "http://192.168.0.163:5173";
 // axios.defaults.baseURL = "http://192.168.88.59:8082";
 
 // ref: https://stackoverflow.com/questions/43002444/make-axios-send-cookies-in-its-requests-automatically
 axios.defaults.withCredentials = true;
 
-axios.interceptors.response.use(null, (error) => {
+axios.interceptors.response.use(response => response, (error) => {
     const expectedError =
         error.response &&
         error.response.status >= 400 &&
@@ -43,7 +43,6 @@ axios.interceptors.response.use(null, (error) => {
 });
 
 axios.interceptors.request.use((config) => {
-    //  const token = Cookies.get("authorization");
     const token = localStorage.getItem(AppConstants.jwtStorageTitle);
     config.headers.authorization = token ? `Bearer ${token}` : "";
     config.headers['X-TENANT-ID'] = 'inventree';

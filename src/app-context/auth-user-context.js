@@ -19,11 +19,18 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     // call this function when you want to authenticate the user
-    const login = async (loginDetails) => {
-        const response = await httpService.post("/login", loginDetails);
+    const clientLogin = async (loginDetails) => {
+        const response = await httpService.post('/auth/client', loginDetails);
         //  remove the token prefix from the token for jwtDecode to decode the token
-        // const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
-        const jwt = response.headers[AppConstants.jwtStorageTitle];
+        const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
+        setJwtToken(jwt);
+    };
+
+    // call this function when you want to authenticate the user
+    const staffLogin = async (loginDetails) => {
+        const response = await httpService.post('/auth/staff', loginDetails);
+        //  remove the token prefix from the token for jwtDecode to decode the token
+        const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtToken(jwt);
     };
 
@@ -86,7 +93,8 @@ export const AuthProvider = ({ children }) => {
 
     const value = useMemo(
         () => ({
-            login,
+            clientLogin,
+            staffLogin,
             handleRefresh,
             authUser,
             decodedJwtToken,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
     RiMailLine,
@@ -11,22 +11,23 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
+import { Button, Form } from "react-bootstrap";
 
 import IMAGES from "../assets/images";
 import { useAuth } from "../app-context/auth-user-context";
 import ErrorMessage from '../Components/ErrorMessage';
-import { Form } from "react-bootstrap";
+import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
+import handleErrMsg from '../Utils/error-handler';
 
 const LoginPage = () => {
     const navigate = useNavigate();
 
-    const { login, authUser, getCurrentYear } = useAuth();
+    const { clientLogin, authUser } = useAuth();
     const user = authUser();
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState("");
+
+	const [isLoggingIn, setIsLoggingIn] = useState(false);
 
 	const schema = yup.object().shape({
 		email: yup
@@ -48,15 +49,22 @@ const LoginPage = () => {
         resolver: yupResolver(schema),
     });
 
-    const onSubmit = (e) => {
-        if (!email || !password) {
-          setError("Please fill in all fields.");
-          return;
+    useEffect(() => {
+        if (user) {
+          navigate("/");
         }
-        // Simulate login (replace with API call)
-        console.log("Logging in:", { email });
-        setError("");
-        navigate("/dashboard"); // Redirect after login
+    }, []);
+
+    const onSubmit = async (data) => {
+        try {
+            setIsLoggingIn(true);
+            await clientLogin(data);
+            setIsLoggingIn(false);
+            navigate("/");
+        } catch (ex) {
+            setIsLoggingIn(false);
+            toast.error(handleErrMsg(ex).msg);
+        }
     };
 
     return (
@@ -100,10 +108,7 @@ const LoginPage = () => {
                                             <input 
                                                 type="email" 
                                                 className="form-control"  
-                                                placeholder="Enter your email" 
-                                                value={email}  
-                                                onChange={(e) => setEmail(e.target.value)} 
-                                                required 
+                                                placeholder="Enter your email"
                                                 {...register("email")}
                                             />
                                         </div>
@@ -120,9 +125,6 @@ const LoginPage = () => {
                                                 type={showPassword ? "text" : "password"}
                                                 className="form-control"
                                                 placeholder="Enter your password"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                required
                                                 {...register("pw")}
                                             />
                                             <button type="button" className="btn btn-outline-secondary" onClick={() => setShowPassword(!showPassword)}  >
@@ -137,27 +139,15 @@ const LoginPage = () => {
                                     </div>
 
                                     <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <div className="form-check">
-                                            <input
-                                              className="form-check-input"
-                                              type="checkbox"
-                                              id="remember"
-                                            />
-                                            <label
-                                              className="form-check-label small"
-                                              htmlFor="remember"
-                                            >
-                                              Remember me
-                                            </label>
-                                        </div>
                                         <a href="#forgot"  className="text-primary text-decoration-none small" >
                                             Forgot Password?
                                         </a>
                                     </div>
 
-                                    <button type="submit" className="btn golf-btn w-100 mb-3" onClick={handleSubmit(onSubmit)}>
-                                        Sign In
-                                    </button>
+                                    <Button type="submit" className="btn custom-btn w-100 mb-3" onClick={handleSubmit(onSubmit)} disabled={isLoggingIn}>
+                                        { isLoggingIn && <ThreeDotLoading color="#fbfafaff" size="medium" textColor="#f78419" /> }
+                                        {!isLoggingIn && `Sign In` }
+                                    </Button>
 
                                     <div className="text-center">
                                         <p className="mb-0 text-muted small">

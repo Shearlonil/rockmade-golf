@@ -14,6 +14,7 @@ export default class User {
                 sex: whom.sex,
                 regDate: whom.regDate,
                 hcp: whom.hcp,
+                sub: whom.sub,
                 roles: whom.roles, // specifies 'E' or 'S'. Not available for staff 
             });
         }
@@ -42,6 +43,10 @@ export default class User {
     get email() { return _userProps.get(this).email }
     
     set email(email) { _userProps.get(this).email = email }
+
+    get sub() { return _userProps.get(this).sub }
+    
+    set sub(sub) { _userProps.get(this).sub = sub }
 
     get phone() { return _userProps.get(this).phone }
     

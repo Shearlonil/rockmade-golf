@@ -8,7 +8,7 @@ import LoginPage from "./Routes/LoginPage.jsx";
 import SignUpPage from "./Routes/SignupPage.jsx";
 import PlayerRegistrationPage from "./Routes/PlayerRegistrationPage.jsx";
 import ScoreTable from './Routes/ScoreTable';
-import { ToastContainer } from "react-bootstrap";
+import { ToastContainer } from "react-toastify";
 
 function App() {
     return (
