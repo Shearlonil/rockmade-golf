@@ -9,7 +9,8 @@ import {
     ToggleButton,
     ButtonGroup,
 } from "react-bootstrap";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import Select from "react-select";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate, useLocation } from "react-router-dom";
 import { isAfter } from 'date-fns';
@@ -19,6 +20,9 @@ import HeroComp from "../Components/HeroComp";
 import IMAGES from "../assets/images";
 import { useAuth } from "../app-context/auth-user-context";
 import crypt from "../Utils/crypto-decoder";
+import courseController from "../api-controllers/course-controller";
+import ErrorMessage from "../Components/ErrorMessage";
+import { course_selection_schema, invoice_disc_schema, customer_selection_schema } from "../Utils/yup-schema-validator/game-creation-schema";
 
 const GameMode = () => {
     const controller = new AbortController();
@@ -27,10 +31,16 @@ const GameMode = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { clientLogin, authUser } = useAuth();
+    const { authUser } = useAuth();
     const user = authUser();
 
     const [step, setStep] = useState(1);
+    
+    const [networkRequest, setNetworkRequest] = useState(false);
+	const [golfCourseOptions, setGolfCourseOptions] = useState([]);
+	const [golfCoursesLoading, setGolfCoursesLoading] = useState(true);
+	const [holeOptions, setHoleOptions] = useState([]);
+	const [holesLoading, setHolesLoading] = useState(true);
 
     // ---------- Replace this with your real logged-in user ----------
     const currentUser = {
@@ -81,6 +91,20 @@ const GameMode = () => {
         },
     ];
 
+	const {
+		register: courseSelectionRegister,
+		handleSubmit: handleGolfCourseSelectionSubmit,
+		control: courseSelectionControl,
+		setValue: courseSelectionSetValue,
+		reset: courseSelectionReset,
+		formState: { errors: golfCourseSelectionErrors },
+	} = useForm({
+		resolver: yupResolver(course_selection_schema),
+		defaultValues: {
+			course: null,
+		},
+	});
+
     const courses = [
         "Ijebu Golf Club",
         "Lagos Golf Course",
@@ -128,6 +152,7 @@ const GameMode = () => {
             // navigate to sub page
             navigate('/memberships')
         }
+        initialize();
         // ensure scores has correct holeCount and player slots
         setScores((prev) => {
             const newScores = players.map((_, pIdx) => {
@@ -146,6 +171,25 @@ const GameMode = () => {
             controller.abort();
         };
     }, [holeType, players, location.pathname]);
+
+    const initialize = async () => {
+        try {
+            setNetworkRequest(true);
+            const response = await courseController.fetchAllActive();
+            setGolfCourseOptions(response.data.map(course => ({label: course.name, value: course})));
+            setGolfCoursesLoading(false);
+
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || courseController.getAxios().isCancel(error)) {
+                // Request was intentionally aborted, handle silently
+                console.log('API call cancelled due to route change.');
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    }
 
     // helpers
     const openPlayerModal = (slot) => {
@@ -180,6 +224,26 @@ const GameMode = () => {
             copy[playerIdx][holeIdx] = v === "" ? "" : String(v);
             return copy;
         });
+    };
+
+    //  Handle golf course selection change
+    const handleGolfCourseChange = (selectedCourse) => {
+        const arr = [];
+        if(selectedCourse.no_of_holes === 18){
+            let full = {label: 'Full 18', value: 1};
+            let front = {label: 'Front 9', value: 2};
+            let back = {label: 'Back 9', value: 3};
+            arr.splice(0, 0, full, front, back);
+        }else {
+            arr.push({label: 'Front 9', value: 2});
+        }
+        setHoleOptions(arr);
+        setHolesLoading(false);
+    };
+
+	const submitCourse = (data) => {
+        setCourse(data);
+        setStep(3);
     };
 
     const saveScores = () => {
@@ -262,29 +326,53 @@ const GameMode = () => {
                             <Form className="mb-3">
                                 <Form.Group className="mb-3">
                                     <Form.Label>Choose Course</Form.Label>
-                                    <Form.Select value={course} onChange={(e) => setCourse(e.target.value)} >
-                                        <option value="">Select Course</option>
-                                        {courses.map((location, idx) => (
-                                          <option key={idx} value={location}>
-                                            {location}
-                                          </option>
-                                        ))}
-                                    </Form.Select>
+                                    <Controller
+                                        name="course"
+                                        control={courseSelectionControl}
+                                        render={({ field: { onChange, value } }) => (
+                                            <Select
+                                                required
+                                                name="course"
+                                                placeholder="Select Golf Course..."
+                                                className="text-dark col-12 col-md-12"
+                                                isLoading={golfCoursesLoading}
+                                                options={golfCourseOptions}
+                                                value={value}
+                                                onChange={(val) => {
+                                                    onChange(val);
+                                                    handleGolfCourseChange(val);
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                    <ErrorMessage source={golfCourseSelectionErrors.course} />
                                 </Form.Group>
 
                                 <Form.Group>
-                                    <Form.Label>Choose Hole Type</Form.Label>
-                                    <Form.Select value={holeType} onChange={(e) => setHoleType(e.target.value)} >
-                                        <option value="18">Full 18 Holes</option>
-                                        <option value="9-front">Front 9</option>
-                                        <option value="9-back">Back 9</option>
-                                    </Form.Select>
+                                    <Form.Label>How many holes are you playing?</Form.Label>
+                                    <Controller
+                                        name="hole_mode"
+                                        control={courseSelectionControl}
+                                        render={({ field: { onChange, value } }) => (
+                                            <Select
+                                                required
+                                                name="hole_mode"
+                                                placeholder="Number of holes..."
+                                                className="text-dark col-12 col-md-12"
+                                                isLoading={holesLoading}
+                                                options={holeOptions}
+                                                value={value}
+                                                onChange={(val) => { onChange(val) }}
+                                            />
+                                        )}
+                                    />
+                                    <ErrorMessage source={golfCourseSelectionErrors.hole_mode} />
                                 </Form.Group>
                             </Form>
-                            <Button variant="secondary" onClick={() => setStep(1)} className="me-2" >
+                            <Button variant="secondary" onClick={() => setStep(1)} className="me-2 btn-danger" >
                                 Back
                             </Button>
-                            <Button disabled={!course} onClick={() => setStep(3)}>
+                            <Button onClick={handleGolfCourseSelectionSubmit(submitCourse)} className="me-2 btn-primary">
                                 Next
                             </Button>
                         </div>
@@ -292,448 +380,362 @@ const GameMode = () => {
                 )}
 
                 {step === 3 && (
-                  <div className="p-5 border rounded-4 bg-light shadow mb-5">
-                    <div>
-                      <h2 className="mb-4 text-center">Game Setup</h2>
-                      <Form>
-                        {/* Game Format */}
-                        <Form.Group className="mb-3">
-                          <Form.Label>Game Format</Form.Label>
-                          <Form.Select
-                            value={gameFormat}
-                            onChange={(e) => setGameFormat(e.target.value)}
-                          >
-                            <option>Stroke Play</option>
-                            <option>Stableford</option>
-                          </Form.Select>
-                        </Form.Group>
+                    <div className="p-5 border rounded-4 bg-light shadow mb-5">
+                        <div>
+                            <h2 className="mb-4 text-center">Game Setup</h2>
+                            <Form>
+                                {/* Game Format */}
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Game Format</Form.Label>
+                                    <Form.Select value={gameFormat} onChange={(e) => setGameFormat(e.target.value)}>
+                                        <option>Stroke Play</option>
+                                        <option>Stableford</option>
+                                    </Form.Select>
+                                </Form.Group>
 
-                        {/* Features per Hole */}
-                        <Form.Group className="mb-3">
-                          <Form.Label>Assign Features Per Hole</Form.Label>
-                          <div
-                            className="border p-3 rounded bg-white"
-                            style={{
-                              maxHeight: "500px",
-                              overflowY: "auto",
-                              display: "grid",
-                              gridTemplateColumns:
-                                "repeat(auto-fill, minmax(220px, 1fr))",
-                              gap: "1rem",
-                            }}
-                          >
-                            {[...Array(holeCount)].map((_, idx) => {
-                              const holeNumber = idx + 1;
-                              return (
-                                <div
-                                  key={idx}
-                                  className="p-3 border rounded bg-light"
-                                  style={{ minWidth: "200px" }}
-                                >
-                                  <h6 className="fw-bold text-center">
-                                    Hole {holeNumber}
-                                  </h6>
-                                  {specialFeatures.map((f, i) => {
-                                    const checkboxId = `hole-${holeNumber}-feat-${i}`;
-                                    return (
-                                      <Form.Check
-                                        key={i}
-                                        id={checkboxId}
-                                        type="checkbox"
-                                        label={f}
-                                        checked={(features[holeNumber] || []).includes(
-                                          f
-                                        )}
-                                        onChange={() => {
-                                          setFeatures((prev) => {
-                                            const updated = { ...(prev || {}) };
-                                            const holeArr = updated[holeNumber]
-                                              ? [...updated[holeNumber]]
-                                              : [];
-                                            if (holeArr.includes(f)) {
-                                              updated[holeNumber] = holeArr.filter(
-                                                (x) => x !== f
-                                              );
-                                            } else {
-                                              updated[holeNumber] = [...holeArr, f];
-                                            }
-                                            return updated;
-                                          });
+                                {/* Features per Hole */}
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Assign Features Per Hole</Form.Label>
+                                    <div className="border p-3 rounded bg-white"
+                                        style={{
+                                            maxHeight: "500px",
+                                            overflowY: "auto",
+                                            display: "grid",
+                                            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                                            gap: "1rem",
                                         }}
-                                      />
-                                    );
-                                  })}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </Form.Group>
-                      </Form>
+                                    >
+                                        {[...Array(holeCount)].map((_, idx) => {
+                                            const holeNumber = idx + 1;
+                                            return (
+                                                <div key={idx} className="p-3 border rounded bg-light" style={{ minWidth: "200px" }}>
+                                                    <h6 className="fw-bold text-center">
+                                                        Hole {holeNumber}
+                                                    </h6>
+                                                    {specialFeatures.map((f, i) => {
+                                                        const checkboxId = `hole-${holeNumber}-feat-${i}`;
+                                                        return (
+                                                            <Form.Check key={i} id={checkboxId} type="checkbox" label={f} checked={(features[holeNumber] || []).includes(f)}
+                                                                onChange={() => {
+                                                                    setFeatures((prev) => {
+                                                                        const updated = { ...(prev || {}) };
+                                                                        const holeArr = updated[holeNumber]
+                                                                            ? [...updated[holeNumber]]
+                                                                            : [];
+                                                                        if (holeArr.includes(f)) {
+                                                                            updated[holeNumber] = holeArr.filter(
+                                                                              (x) => x !== f
+                                                                            );
+                                                                        } else {
+                                                                            updated[holeNumber] = [...holeArr, f];
+                                                                        }
+                                                                        return updated;
+                                                                    });
+                                                                }}
+                                                            />
+                                                        );
+                                                    })}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </Form.Group>
+                            </Form>
 
-                      <div className="text-center">
-                        <Button
-                          variant="secondary"
-                          onClick={() => setStep(2)}
-                          className="me-2"
-                        >
-                          Back
-                        </Button>
-                        <Button onClick={() => setStep(4)}>Next</Button>
-                      </div>
+                            <div className="text-center">
+                                <Button variant="secondary" onClick={() => setStep(2)} className="me-2" >
+                                    Back
+                                </Button>
+                                <Button onClick={() => setStep(4)}>Next</Button>
+                            </div>
+                        </div>
                     </div>
-                  </div>
                 )}
 
                 {step === 4 && (
-                  <div className="p-5 border rounded-4 bg-light shadow mb-5">
-                    <div className="text-center">
-                      <h2 className="mb-4">Add Players</h2>
+                    <div className="p-5 border rounded-4 bg-light shadow mb-5">
+                        <div className="text-center">
+                            <h2 className="mb-4">Add Players</h2>
 
-                      {/* PLAYER GRID */}
-                      <div className="mb-4">
-                        <h5 className="text-start fw-bold mb-3">Group 1</h5>
+                            {/* PLAYER GRID */}
+                            <div className="mb-4">
+                                <h5 className="text-start fw-bold mb-3">Group 1</h5>
 
-                        <div
-                          className="player-grid"
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns:
-                              "repeat(auto-fill, minmax(160px, 1fr))",
-                            gap: "1rem",
-                          }}
-                        >
-                          {players.map((player, idx) => (
-                            <div
-                              key={idx}
-                              className="position-relative p-3 border rounded bg-white d-flex flex-column align-items-center justify-content-center shadow-sm"
-                              style={{
-                                minHeight: "150px",
-                                cursor: idx === 0 ? "default" : "pointer",
-                              }}
-                              onClick={() => {
-                                if (idx !== 0) {
-                                  setSelectedSlot(idx);
-                                  setShowModal(true);
-                                }
-                              }}
-                            >
-                              {/* Unselect button (except maybe prevent unselecting host without confirmation) */}
-                              {player && idx !== 0 && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    unselectPlayer(idx);
-                                  }}
-                                  className="btn btn-sm btn-outline-danger position-absolute"
-                                  style={{ top: 8, right: 8 }}
+                                <div className="player-grid"
+                                    style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                                        gap: "1rem",
+                                    }}
                                 >
-                                  Remove
-                                </button>
-                              )}
+                                    {players.map((player, idx) => (
+                                        <div key={idx}
+                                            className="position-relative p-3 border rounded bg-white d-flex flex-column align-items-center justify-content-center shadow-sm"
+                                            style={{
+                                                minHeight: "150px",
+                                                cursor: idx === 0 ? "default" : "pointer",
+                                            }}
+                                            onClick={() => {
+                                              if (idx !== 0) {
+                                                  setSelectedSlot(idx);
+                                                  setShowModal(true);
+                                              }
+                                            }}
+                                        >
+                                            {/* Unselect button (except maybe prevent unselecting host without confirmation) */}
+                                            {player && idx !== 0 && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        unselectPlayer(idx);
+                                                    }}
+                                                    className="btn btn-sm btn-outline-danger position-absolute"
+                                                    style={{ top: 8, right: 8 }}
+                                                >
+                                                    Remove
+                                                </button>
+                                            )}
 
-                              {player ? (
-                                <>
-                                  <img
-                                    src={player.image}
-                                    alt={player.name}
-                                    style={{
-                                      width: "60px",
-                                      height: "60px",
-                                      borderRadius: "50%",
-                                      objectFit: "cover",
-                                      marginBottom: "0.5rem",
-                                    }}
-                                  />
-                                  <h6 className="fw-bold">{player.name}</h6>
-                                  <small className="text-muted">
-                                    HC: {player.handicap} | Tee: {player.tee}
-                                  </small>
-                                </>
-                              ) : (
-                                <div className="text-center text-muted">
-                                  <div
-                                    style={{
-                                      width: "50px",
-                                      height: "50px",
-                                      borderRadius: "50%",
-                                      background: "#e9ecef",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      fontSize: "24px",
-                                      margin: "0 auto 0.5rem",
-                                    }}
-                                  >
-                                    +
-                                  </div>
-                                  <span>Add Player</span>
+                                            {player ? (
+                                                <>
+                                                    <img
+                                                        src={player.image}
+                                                        alt={player.name}
+                                                        style={{
+                                                            width: "60px",
+                                                            height: "60px",
+                                                            borderRadius: "50%",
+                                                            objectFit: "cover",
+                                                            marginBottom: "0.5rem",
+                                                        }}
+                                                    />
+                                                    <h6 className="fw-bold">{player.name}</h6>
+                                                    <small className="text-muted">
+                                                        HC: {player.handicap} | Tee: {player.tee}
+                                                    </small>
+                                                </>
+                                            ) : (
+                                                <div className="text-center text-muted">
+                                                    <div
+                                                        style={{
+                                                            width: "50px",
+                                                            height: "50px",
+                                                            borderRadius: "50%",
+                                                            background: "#e9ecef",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            fontSize: "24px",
+                                                            margin: "0 auto 0.5rem",
+                                                        }}
+                                                    >
+                                                        +
+                                                    </div>
+                                                    <span>Add Player</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                              )}
                             </div>
-                          ))}
-                        </div>
-                      </div>
 
-                      {/* NAVIGATION */}
-                      <div className="mt-4">
-                        <Button
-                          variant="secondary"
-                          onClick={() => setStep(3)}
-                          className="me-2"
+                            {/* NAVIGATION */}
+                            <div className="mt-4">
+                                <Button variant="secondary" onClick={() => setStep(3)} className="me-2" >
+                                    Back
+                                </Button>
+                                <Button variant="success" onClick={() => setStep(5)}>
+                                    Start Game
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* PLAYER SELECTION MODAL */}
+                        <Modal show={showModal}
+                            onHide={() => {
+                                setShowModal(false);
+                                setSelectedSlot(null);
+                            }}
+                            centered
                         >
-                          Back
-                        </Button>
-                        <Button variant="success" onClick={() => setStep(5)}>
-                          Start Game
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* PLAYER SELECTION MODAL */}
-                    <Modal
-                      show={showModal}
-                      onHide={() => {
-                        setShowModal(false);
-                        setSelectedSlot(null);
-                      }}
-                      centered
-                    >
-                      <Modal.Header closeButton>
-                        <Modal.Title>Select a Player</Modal.Title>
-                      </Modal.Header>
-                      <Modal.Body>
-                        <div className="d-flex flex-column gap-2">
-                          {registeredPlayers.map((rp, i) => {
-                            const alreadyPicked = players.some(
-                              (p) => p && p.name === rp.name
-                            );
-                            return (
-                              <div
-                                key={i}
-                                className={`p-3 border rounded d-flex align-items-center shadow-sm ${
-                                  alreadyPicked
-                                    ? "bg-dark-subtle text-muted"
-                                    : "hover-bg-light"
-                                }`}
-                                style={{
-                                  cursor: alreadyPicked ? "not-allowed" : "pointer",
-                                }}
-                                onClick={() => {
-                                  if (selectedSlot === null || alreadyPicked) return;
-                                  selectPlayerForSlot(selectedSlot, rp);
-                                  setShowModal(false);
-                                  setSelectedSlot(null);
-                                }}
-                              >
-                                <img
-                                  src={rp.image}
-                                  alt={rp.name}
-                                  style={{
-                                    width: 50,
-                                    height: 50,
-                                    borderRadius: "50%",
-                                    objectFit: "cover",
-                                    marginRight: "1rem",
-                                    opacity: alreadyPicked ? 0.5 : 1,
-                                  }}
-                                />
-                                <div className="flex-grow-1">
-                                  <h6 className="fw-bold mb-0">{rp.name}</h6>
-                                  <small className="text-muted">
-                                    HC: {rp.handicap} | Tee: {rp.tee}
-                                  </small>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Select a Player</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <div className="d-flex flex-column gap-2">
+                                    {registeredPlayers.map((rp, i) => {
+                                        const alreadyPicked = players.some((p) => p && p.name === rp.name);
+                                        return (
+                                            <div key={i}
+                                                className={`p-3 border rounded d-flex align-items-center shadow-sm ${alreadyPicked? "bg-dark-subtle text-muted" : "hover-bg-light"}`}
+                                                style={{ cursor: alreadyPicked ? "not-allowed" : "pointer",}}
+                                                onClick={() => {
+                                                    if (selectedSlot === null || alreadyPicked) return;
+                                                    selectPlayerForSlot(selectedSlot, rp);
+                                                    setShowModal(false);
+                                                    setSelectedSlot(null);
+                                                }}
+                                            >
+                                                <img src={rp.image} alt={rp.name}
+                                                    style={{
+                                                        width: 50,
+                                                        height: 50,
+                                                        borderRadius: "50%",
+                                                        objectFit: "cover",
+                                                        marginRight: "1rem",
+                                                        opacity: alreadyPicked ? 0.5 : 1,
+                                                    }}
+                                                />
+                                                <div className="flex-grow-1">
+                                                    <h6 className="fw-bold mb-0">{rp.name}</h6>
+                                                    <small className="text-muted">
+                                                        HC: {rp.handicap} | Tee: {rp.tee}
+                                                    </small>
+                                                </div>
+                                                {alreadyPicked && (
+                                                    <span className="badge bg-success" style={{ fontSize: 12 }}>
+                                                      ✓ Selected
+                                                    </span>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                                {alreadyPicked && (
-                                  <span
-                                    className="badge bg-success"
-                                    style={{ fontSize: 12 }}
-                                  >
-                                    ✓ Selected
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </Modal.Body>
-                    </Modal>
-                  </div>
+                            </Modal.Body>
+                        </Modal>
+                    </div>
                 )}
 
                 {/* ---------- STEP 5: Live Game / Single Editable Table ---------- */}
                 {step === 5 && (
-                  <div className="p-5 border rounded-4 bg-light shadow">
-                    <div className="text-center mb-3">
-                      <h2 className="fw-bold text-success">Game In Progress</h2>
-                      <p className="text-muted mb-2">
-                        {course} • {holeCount} Holes • {gameFormat}
-                      </p>
+                    <div className="p-5 border rounded-4 bg-light shadow">
+                        <div className="text-center mb-3">
+                            <h2 className="fw-bold text-success">Game In Progress</h2>
+                            <p className="text-muted mb-2">
+                                {course} • {holeCount} Holes • {gameFormat}
+                            </p>
 
-                      {/* edit mode toggle */}
-                      <div className="d-flex justify-content-center align-items-center gap-3">
-                        <small className="text-muted">Edit mode:</small>
-                        <ButtonGroup>
-                          <ToggleButton
-                            id="toggle-own"
-                            type="radio"
-                            variant={
-                              editMode === "own"
-                                ? "outline-primary"
-                                : "outline-secondary"
-                            }
-                            checked={editMode === "own"}
-                            onChange={() => setEditMode("own")}
-                          >
-                            Own Only
-                          </ToggleButton>
-                          <ToggleButton
-                            id="toggle-all"
-                            type="radio"
-                            variant={
-                              editMode === "all"
-                                ? "outline-primary"
-                                : "outline-secondary"
-                            }
-                            checked={editMode === "all"}
-                            onChange={() => setEditMode("all")}
-                          >
-                            All Players
-                          </ToggleButton>
-                        </ButtonGroup>
-                      </div>
-                    </div>
-
-                    {/* PLAYERS OVERVIEW */}
-                    <div className="d-flex justify-content-center flex-wrap gap-3 mb-4">
-                      {players
-                        .filter((p) => p)
-                        .map((p, idx) => (
-                          <div
-                            key={idx}
-                            className="p-3 border rounded bg-white shadow-sm d-flex align-items-center"
-                            style={{ width: 230 }}
-                          >
-                            <img
-                              src={p.image}
-                              alt={p.name}
-                              style={{
-                                width: 50,
-                                height: 50,
-                                borderRadius: "50%",
-                                objectFit: "cover",
-                                marginRight: "1rem",
-                              }}
-                            />
-                            <div className="text-start">
-                              <h6 className="fw-bold mb-0">{p.name}</h6>
-                              <small className="text-muted">
-                                HC: {p.handicap} | Tee: {p.tee}
-                              </small>
+                            {/* edit mode toggle */}
+                            <div className="d-flex justify-content-center align-items-center gap-3">
+                                <small className="text-muted">Edit mode:</small>
+                                <ButtonGroup>
+                                    <ToggleButton id="toggle-own" type="radio" checked={editMode === "own"} onChange={() => setEditMode("own")}
+                                        variant={ editMode === "own" ? "outline-primary" : "outline-secondary" }
+                                    >
+                                        Own Only
+                                    </ToggleButton>
+                                    <ToggleButton id="toggle-all" type="radio" checked={editMode === "all"} onChange={() => setEditMode("all")}
+                                      variant={ editMode === "all" ? "outline-primary" : "outline-secondary" }
+                                    >
+                                        All Players
+                                    </ToggleButton>
+                                </ButtonGroup>
                             </div>
-                          </div>
-                        ))}
-                    </div>
+                        </div>
 
-                    {/* SINGLE LIVE SCORE TABLE */}
-                    <div className="table-responsive">
-                      <table className="table table-bordered align-middle text-center bg-white shadow-sm">
-                        <thead className="table-success">
-                          <tr>
-                            <th>Hole</th>
+                        {/* PLAYERS OVERVIEW */}
+                        <div className="d-flex justify-content-center flex-wrap gap-3 mb-4">
                             {players
-                              .filter((p) => p)
-                              .map((p, idx) => (
-                                <th key={idx}>{p.name}</th>
-                              ))}
-                            <th>Hole Par / Features</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Array.from({ length: holeCount }).map((_, holeIdx) => (
-                            <tr key={holeIdx}>
-                              <td>Hole {holeIdx + 1}</td>
+                                .filter((p) => p)
+                                .map((p, idx) => (
+                                    <div key={idx} className="p-3 border rounded bg-white shadow-sm d-flex align-items-center" style={{ width: 230 }} >
+                                        <img src={p.image} alt={p.name}
+                                            style={{
+                                                width: 50,
+                                                height: 50,
+                                                borderRadius: "50%",
+                                                objectFit: "cover",
+                                                marginRight: "1rem",
+                                            }}
+                                        />
+                                        <div className="text-start">
+                                            <h6 className="fw-bold mb-0">{p.name}</h6>
+                                            <small className="text-muted">
+                                                HC: {p.handicap} | Tee: {p.tee}
+                                            </small>
+                                        </div>
+                                    </div>
+                              ))
+                            }
+                        </div>
 
-                              {/* each player column (editable per permission) */}
-                              {players.map((p, playerIdx) => {
-                                if (!p) return <td key={playerIdx}>—</td>;
+                        {/* SINGLE LIVE SCORE TABLE */}
+                        <div className="table-responsive">
+                            <table className="table table-bordered align-middle text-center bg-white shadow-sm">
+                                <thead className="table-success">
+                                    <tr>
+                                        <th>Hole</th>
+                                        {players.filter((p) => p).map((p, idx) => (<th key={idx}>{p.name}</th> ))}
+                                        <th>Hole Par / Features</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Array.from({ length: holeCount }).map((_, holeIdx) => (
+                                        <tr key={holeIdx}>
+                                            <td>Hole {holeIdx + 1}</td>
 
-                                const viewerIsThisPlayer =
-                                  playerIdx === viewerSlotIndex;
-                                const canEdit =
-                                  editMode === "all" || viewerIsThisPlayer;
+                                            {/* each player column (editable per permission) */}
+                                            {players.map((p, playerIdx) => {
+                                                if (!p) return <td key={playerIdx}>—</td>;
 
-                                return (
-                                  <td key={playerIdx}>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={
-                                        scores[playerIdx]
-                                          ? scores[playerIdx][holeIdx]
-                                          : ""
-                                      }
-                                      onChange={(e) =>
-                                        handleScoreChange(
-                                          playerIdx,
-                                          holeIdx,
-                                          e.target.value
-                                        )
-                                      }
-                                      className="form-control text-center"
-                                      style={{ maxWidth: 90, margin: "0 auto" }}
-                                      disabled={!canEdit}
-                                    />
-                                  </td>
-                                );
-                              })}
+                                                const viewerIsThisPlayer = playerIdx === viewerSlotIndex;
+                                                const canEdit = editMode === "all" || viewerIsThisPlayer;
 
-                              {/* hole features column (optional display) */}
-                              <td style={{ textAlign: "left" }}>
-                                {features[holeIdx + 1] ? (
-                                  features[holeIdx + 1].join(", ")
-                                ) : (
-                                  <small className="text-muted">—</small>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
+                                                return (
+                                                    <td key={playerIdx}>
+                                                        <input type="number" min="0"
+                                                            value={ scores[playerIdx] ? scores[playerIdx][holeIdx] : "" }
+                                                            onChange={(e) =>
+                                                                handleScoreChange(
+                                                                    playerIdx,
+                                                                    holeIdx,
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                            className="form-control text-center"
+                                                            style={{ maxWidth: 90, margin: "0 auto" }}
+                                                            disabled={!canEdit}
+                                                        />
+                                                    </td>
+                                                );
+                                            })}
 
-                        {/* totals row */}
-                        <tfoot>
-                          <tr>
-                            <th>Total</th>
-                            {players.map((p, playerIdx) => {
-                              if (!p) return <th key={playerIdx}>—</th>;
-                              const total = (scores[playerIdx] || []).reduce(
-                                (s, v) => s + (parseInt(v) || 0),
-                                0
-                              );
-                              return <th key={playerIdx}>{total}</th>;
-                            })}
-                            <th />
-                          </tr>
-                        </tfoot>
-                      </table>
+                                            {/* hole features column (optional display) */}
+                                            <td style={{ textAlign: "left" }}>
+                                                {features[holeIdx + 1] ? ( features[holeIdx + 1].join(", ") ) : ( <small className="text-muted">—</small>)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+
+                                {/* totals row */}
+                                <tfoot>
+                                    <tr>
+                                        <th>Total</th>
+                                        {players.map((p, playerIdx) => {
+                                            if (!p) return <th key={playerIdx}>—</th>;
+                                            const total = (scores[playerIdx] || []).reduce((s, v) => s + (parseInt(v) || 0),0);
+                                            return <th key={playerIdx}>{total}</th>;
+                                        })}
+                                        <th />
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        {/* ACTIONS */}
+                        <div className="text-center mt-4">
+                            <Button variant="secondary" onClick={() => setStep(4)} className="me-2" >
+                                Back
+                            </Button>
+                            <Button variant="warning" onClick={resetScores} className="me-2">
+                                Reset
+                            </Button>
+                            <Button variant="primary" onClick={saveScores}>
+                                Save Scores
+                            </Button>
+                        </div>
                     </div>
-
-                    {/* ACTIONS */}
-                    <div className="text-center mt-4">
-                      <Button
-                        variant="secondary"
-                        onClick={() => setStep(4)}
-                        className="me-2"
-                      >
-                        Back
-                      </Button>
-                      <Button variant="warning" onClick={resetScores} className="me-2">
-                        Reset
-                      </Button>
-                      <Button variant="primary" onClick={saveScores}>
-                        Save Scores
-                      </Button>
-                    </div>
-                  </div>
                 )}
             </Container>
         </>

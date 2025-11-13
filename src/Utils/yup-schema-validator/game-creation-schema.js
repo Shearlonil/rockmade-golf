@@ -7,27 +7,9 @@ const cashier_invoice_search_schema = yup.object().shape({
 		.required("Invoice id is required"),
 });
 
-const product_selection_schema = yup.object().shape({
-	product: yup.object().required("Select a product"),
-	item_disc: yup
-		.number()
-		.nullable()
-		.min(0, 'Item Discount cannot be less than 0')
-		.required("Item Discount must be at least 0"),
-	qty: yup
-		.number()
-		.positive('Quantity cannot be less than 1')
-		.nullable()
-		.required("Quantity is required"),
-
-	qty_type: yup
-		.string()
-		.required("Select an option")
-		.oneOf(["Pkg", "Unit"], "Invalid option selected"),
-	item_disc_type: yup
-		.string()
-		.required("Select an option")
-		.oneOf(["n", "perc"], "Invalid option selected"),
+const course_selection_schema = yup.object().shape({
+	course: yup.object().required("Select a Golf Course"),
+	hole_mode: yup.object().required("Select number of holes to play")
 });
 
 const invoice_disc_schema = yup.object().shape({
@@ -62,4 +44,4 @@ const customer_selection_schema = yup.object().shape({
 	print_receipt: yup.boolean(),
 });
 
-export { cashier_invoice_search_schema, product_selection_schema, customer_selection_schema, invoice_disc_schema };
+export { cashier_invoice_search_schema, course_selection_schema, customer_selection_schema, invoice_disc_schema };

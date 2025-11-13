@@ -11,7 +11,7 @@ import { BrowserRouter } from "react-router-dom";
 import GlobalStyle from "./Styles/GlobalStyles.js";
 import { AuthProvider } from './app-context/auth-user-context';
 import Footer from "./Components/Footer.jsx";
-import NavBar from "./Components/Navbar/NavBar.jsx";
+import NavBar from "./Components/NavBar.jsx";
 
 createRoot(document.getElementById("root")).render(
     <StrictMode>

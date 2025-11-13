@@ -26,18 +26,22 @@ axios.defaults.baseURL = "http://localhost:2025";
 // ref: https://stackoverflow.com/questions/43002444/make-axios-send-cookies-in-its-requests-automatically
 axios.defaults.withCredentials = true;
 
-axios.interceptors.response.use(response => response, (error) => {
-    const expectedError =
-        error.response &&
-        error.response.status >= 400 &&
-        error.response.status < 600;
-
-    if (!expectedError) {
-        error.response = {
-            data: {
-                message: error.message ? error.message : "An unexpected Error occured",
-            },
-        };
+axios.interceptors.response.use(response => response, async (error) => {
+    const originalRequest = error.config;
+    if (error.response.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true; // Mark the request as retried to avoid infinite loops.
+        try {
+            const response = await axios.get("/auth/refresh");
+            //  remove the token prefix from the token for jwtDecode to decode the token
+            const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
+            localStorage.setItem(AppConstants.jwtStorageTitle, jwt);
+            return await axios.request(originalRequest); // Retry the original request with the new access token.
+        } catch (ex) {
+            await axios.get("/auth/logout");
+            localStorage.setItem(AppConstants.jwtStorageTitle, null);
+            window.location.href = '/login';
+            return Promise.reject(refreshError);
+        }
     }
     return Promise.reject(error);
 });
@@ -83,6 +87,10 @@ function download(url) {
     });
 }
 
+function getAxios(){
+    return axios;
+}
+
 export default {
     get: axios.get,
     post: axios.post,
@@ -94,5 +102,6 @@ export default {
     postMapping,
     download,
     baseURL,
+    getAxios,
     printerAxios,
 };

@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
     // call this function to sign out logged in user
     const logout = async (route) => {
-        await httpService.get("/signout");
+        await httpService.get("/auth/logout");
         setJwtToken(null);
         if (route) {
             navigate(route, { replace: true });
