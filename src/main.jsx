@@ -6,6 +6,7 @@ import App from "./App.jsx";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import 'react-toastify/dist/ReactToastify.css';
+import "react-datetime/css/react-datetime.css";
 
 import { BrowserRouter } from "react-router-dom";
 import GlobalStyle from "./Styles/GlobalStyles.js";

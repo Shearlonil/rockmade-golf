@@ -29,6 +29,11 @@ axios.defaults.withCredentials = true;
 axios.interceptors.response.use(response => response, async (error) => {
     const originalRequest = error.config;
     if (error.response.status === 401 && !originalRequest._retry) {
+        /*
+            refs:
+            https://medium.com/@nandagopal05/using-axios-interceptors-to-automate-refreshing-access-tokens-c3c344737bcc
+            https://medium.com/@velja/token-refresh-with-axios-interceptors-for-a-seamless-authentication-experience-854b06064bde
+        */
         originalRequest._retry = true; // Mark the request as retried to avoid infinite loops.
         try {
             const response = await axios.get("/auth/refresh");

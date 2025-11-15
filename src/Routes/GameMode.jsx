@@ -11,9 +11,10 @@ import {
 } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 import Select from "react-select";
+import Datetime from 'react-datetime';
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate, useLocation } from "react-router-dom";
-import { isAfter } from 'date-fns';
+import { format, isAfter, subDays } from 'date-fns';
 
 import { GameModeCard } from "../Styles/HomeStyle";
 import HeroComp from "../Components/HeroComp";
@@ -23,6 +24,8 @@ import crypt from "../Utils/crypto-decoder";
 import courseController from "../api-controllers/course-controller";
 import ErrorMessage from "../Components/ErrorMessage";
 import { course_selection_schema, invoice_disc_schema, customer_selection_schema } from "../Utils/yup-schema-validator/game-creation-schema";
+import { gameModes } from "../Utils/data";
+import HolesContestsDialog from "../Components/DialogBoxes/HolesContestsDialog";
 
 const GameMode = () => {
     const controller = new AbortController();
@@ -41,25 +44,18 @@ const GameMode = () => {
 	const [golfCoursesLoading, setGolfCoursesLoading] = useState(true);
 	const [holeOptions, setHoleOptions] = useState([]);
 	const [holesLoading, setHolesLoading] = useState(true);
-
-    // ---------- Replace this with your real logged-in user ----------
-    const currentUser = {
-        name: "Obarinsola Olatunji",
-        image: IMAGES.player1,
-        handicap: "+2",
-        tee: "60",
-    };
-    // ----------------------------------------------------------------
-
+	const [holesContestData, setHolesContestData] = useState([]);
+    
     // Global states for selections
     const [gameMode, setGameMode] = useState("");
-    const [course, setCourse] = useState("");
+    const [course, setCourse] = useState({});
     const [holeType, setHoleType] = useState("18");
     const [gameFormat, setGameFormat] = useState("Stroke Play");
     const [features, setFeatures] = useState({});
+	const [showHolesContestsModal, setShowHolesContestsModal] = useState("");
 
     // players: slot contains either null or a player object {name,image,handicap,tee}
-    const [players, setPlayers] = useState([currentUser, null, null, null]); // 4 slots
+    const [players, setPlayers] = useState([user, null, null, null]); // 4 slots
     const [showModal, setShowModal] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState(null);
 
@@ -70,46 +66,23 @@ const GameMode = () => {
     // editMode: 'own' (default) or 'all' (host/scorekeeper)
     const [editMode, setEditMode] = useState("own");
 
-    // Example data
-    const gameModes = [
-        {
-            id: 2,
-            name: "Member Game",
-            desc: "Perfect for casual play or practice. Invite friends or join a friendly round at registered golf courses near you.",
-            image: IMAGES.image3,
-        },
-        {
-            id: 1,
-            name: "Tournament Game",
-            desc: "Compete in structured competitions and climb the leaderboard.",
-            image: IMAGES.image5,
-        },
-        {
-            name: "Versus Game",
-            desc: "Perfect for casual play or practice. Invite friends or join a friendly round at registered golf courses near you.",
-            image: IMAGES.image2,
-        },
-    ];
+    const yesterday = subDays(new Date(), 1); // Subtracts 1 day from today to use as past dates
+    const disablePastDt = current => current.isAfter(yesterday);
 
 	const {
-		register: courseSelectionRegister,
+		register,
 		handleSubmit: handleGolfCourseSelectionSubmit,
 		control: courseSelectionControl,
-		setValue: courseSelectionSetValue,
 		reset: courseSelectionReset,
+		setValue,
 		formState: { errors: golfCourseSelectionErrors },
 	} = useForm({
 		resolver: yupResolver(course_selection_schema),
 		defaultValues: {
 			course: null,
+            startDate: new Date(),
 		},
 	});
-
-    const courses = [
-        "Ijebu Golf Club",
-        "Lagos Golf Course",
-        "Ibadan View Course",
-    ];
 
     const specialFeatures = [
         "Port-Not-Port",
@@ -239,16 +212,38 @@ const GameMode = () => {
         }
         setHoleOptions(arr);
         setHolesLoading(false);
+        setValue("hole_mode", null);
+    };
+
+    const handleCloseModal = () => {
+        setShowHolesContestsModal(false);
     };
 
 	const submitCourse = (data) => {
         setCourse(data);
         setStep(3);
+        const arr = [];
+        data.course?.value?.Holes?.forEach(hole => {
+            hole.contest.forEach(contest => {
+                const c = arr.find(obj => obj.id === contest.id);
+                if(c){
+                    c.holes?.push({holeNo: hole.hole_no, id: hole.id});
+                }else {
+                    arr.push({
+                        id: contest.id,
+                        name: contest.name,
+                        holes: [{holeNo: hole.hole_no, id: hole.id}],
+                        selectedHoles: []
+                    });
+                }
+            })
+        });
+        setHolesContestData(arr);
+        console.log(arr);
     };
 
     const saveScores = () => {
         // implement persist to backend here
-        console.log("Saved scores:", scores);
         alert("Scores saved (console logged).");
     };
 
@@ -257,9 +252,7 @@ const GameMode = () => {
     };
 
     // helper: find current user's slot index in players (by name)
-    const viewerSlotIndex = players.findIndex(
-        (p) => p && p.name === currentUser.name
-    );
+    const viewerSlotIndex = players.findIndex((p) => p && p.name === user.name);
 
     // score table players to display (only those selected)
     const activePlayers = players
@@ -323,51 +316,99 @@ const GameMode = () => {
                                     </span>
                                 )}
                             </h2>
-                            <Form className="mb-3">
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Choose Course</Form.Label>
-                                    <Controller
-                                        name="course"
-                                        control={courseSelectionControl}
-                                        render={({ field: { onChange, value } }) => (
-                                            <Select
-                                                required
-                                                name="course"
-                                                placeholder="Select Golf Course..."
-                                                className="text-dark col-12 col-md-12"
-                                                isLoading={golfCoursesLoading}
-                                                options={golfCourseOptions}
-                                                value={value}
-                                                onChange={(val) => {
-                                                    onChange(val);
-                                                    handleGolfCourseChange(val);
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                    <ErrorMessage source={golfCourseSelectionErrors.course} />
-                                </Form.Group>
+                            <Form className="mb-5">
+                                <div className="d-flex row">
+                                    <Form.Group className="col-12 col-md-6">
+                                        <Form.Label className="fw-bold">Game Name</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Game Name"
+                                            {...register("game_name")}
+                                        />
+                                        <ErrorMessage source={golfCourseSelectionErrors.game_name} />
+                                    </Form.Group>
 
-                                <Form.Group>
-                                    <Form.Label>How many holes are you playing?</Form.Label>
-                                    <Controller
-                                        name="hole_mode"
-                                        control={courseSelectionControl}
-                                        render={({ field: { onChange, value } }) => (
-                                            <Select
-                                                required
-                                                name="hole_mode"
-                                                placeholder="Number of holes..."
-                                                className="text-dark col-12 col-md-12"
-                                                isLoading={holesLoading}
-                                                options={holeOptions}
-                                                value={value}
-                                                onChange={(val) => { onChange(val) }}
-                                            />
-                                        )}
-                                    />
-                                    <ErrorMessage source={golfCourseSelectionErrors.hole_mode} />
-                                </Form.Group>
+                                    <Form.Group className="col-12 col-md-6">
+                                        <Form.Label className="fw-bold">Game Date</Form.Label>
+                                        <Controller
+                                            name="startDate"
+                                            control={courseSelectionControl}
+                                            render={({ field }) => (
+                                                <Datetime
+                                                    {...field}
+                                                    timeFormat={false}
+                                                    closeOnSelect={true}
+                                                    dateFormat="DD/MM/YYYY"
+                                                    isValidDate={disablePastDt}
+                                                    inputProps={{
+                                                        placeholder: "Choose date",
+                                                        className: "form-control",
+                                                        readOnly: true, // Optional: makes input read-only
+                                                    }}
+                                                    value={field.value ? new Date(field.value) :  null}
+                                                    onChange={(date) => field.onChange(date ? date.toDate() : null) }
+                                                    /*	react-hook-form is unable to reset the value in the Datetime component because of the below bug.
+                                                        refs:
+                                                            *	https://stackoverflow.com/questions/46053202/how-to-clear-the-value-entered-in-react-datetime
+                                                            *	https://stackoverflow.com/questions/69536272/reactjs-clear-date-input-after-clicking-clear-button
+                                                        there's clearly a rendering bug in component if you try to pass a null or empty value in controlled component mode: 
+                                                        the internal input still got the former value entered with the calendar (uncontrolled ?) despite the fact that that.state.value
+                                                        or field.value is null : I've been able to "patch" it with the renderInput prop :*/
+                                                    renderInput={(props) => {
+                                                        return <input {...props} value={field.value ? props.value : ''} />
+                                                    }}
+                                                />
+                                            )}
+                                        />
+                                        <ErrorMessage source={golfCourseSelectionErrors.startDate} />
+                                    </Form.Group>
+                                </div>
+
+                                <div className="d-flex row mt-4">
+                                    <Form.Group className="col-12 col-md-6">
+                                        <Form.Label className="fw-bold">Choose Course</Form.Label>
+                                        <Controller
+                                            name="course"
+                                            control={courseSelectionControl}
+                                            render={({ field: { onChange, value } }) => (
+                                                <Select
+                                                    required
+                                                    name="course"
+                                                    placeholder="Select Golf Course..."
+                                                    className="text-dark"
+                                                    isLoading={golfCoursesLoading}
+                                                    options={golfCourseOptions}
+                                                    value={value}
+                                                    onChange={(val) => {
+                                                        onChange(val);
+                                                        handleGolfCourseChange(val);
+                                                    }}
+                                                />
+                                            )}
+                                        />
+                                        <ErrorMessage source={golfCourseSelectionErrors.course} />
+                                    </Form.Group>
+                                    <Form.Group className="col-12 col-md-6">
+                                        <Form.Label className="fw-bold">How many holes are you playing?</Form.Label>
+                                        <Controller
+                                            name="hole_mode"
+                                            control={courseSelectionControl}
+                                            render={({ field: { onChange, value } }) => (
+                                                <Select
+                                                    required
+                                                    name="hole_mode"
+                                                    placeholder="Number of holes..."
+                                                    className="text-dark"
+                                                    isLoading={holesLoading}
+                                                    options={holeOptions}
+                                                    value={value}
+                                                    onChange={(val) => { onChange(val) }}
+                                                />
+                                            )}
+                                        />
+                                        <ErrorMessage source={golfCourseSelectionErrors.hole_mode} />
+                                    </Form.Group>
+                                </div>
                             </Form>
                             <Button variant="secondary" onClick={() => setStep(1)} className="me-2 btn-danger" >
                                 Back
@@ -383,16 +424,29 @@ const GameMode = () => {
                     <div className="p-5 border rounded-4 bg-light shadow mb-5">
                         <div>
                             <h2 className="mb-4 text-center">Game Setup</h2>
-                            <Form>
-                                {/* Game Format */}
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Game Format</Form.Label>
-                                    <Form.Select value={gameFormat} onChange={(e) => setGameFormat(e.target.value)}>
-                                        <option>Stroke Play</option>
-                                        <option>Stableford</option>
-                                    </Form.Select>
-                                </Form.Group>
 
+                            <div className="row mt-4">
+                                <div className="col-12 col-md-6 d-flex flex-column">
+                                    <Form.Label className="fw-bold mt-0">Golf Course</Form.Label>
+                                    <Form.Label className="text-primary fw-bold h3">{course.course.label}</Form.Label>
+                                </div>
+                                <div className="col-12 col-md-6 d-flex flex-column">
+                                    <Form.Label className="fw-bold">Game Name</Form.Label>
+                                    <Form.Label className="text-primary fw-bold h3">{course.game_name}</Form.Label>
+                                </div>
+                            </div>
+
+                            <div className="row mt-4">
+                                <div className="col-12 col-md-6 d-flex flex-column">
+                                    <Form.Label className="fw-bold">Game Date</Form.Label>
+                                    <Form.Label className="text-primary fw-bold h3">{format(course.startDate, "yyyy-MM-dd")}</Form.Label>
+                                </div>
+                                <div className="col-12 col-md-6 d-flex flex-column">
+                                    <Form.Label className="fw-bold">Contests</Form.Label>
+                                    <Button className="btn-danger" onClick={() => setShowHolesContestsModal(true)}>Add Contests to spice up games</Button>
+                                </div>
+                            </div>
+                            <Form>
                                 {/* Features per Hole */}
                                 <Form.Group className="mb-3">
                                     <Form.Label>Assign Features Per Hole</Form.Label>
@@ -738,6 +792,11 @@ const GameMode = () => {
                     </div>
                 )}
             </Container>
+            <HolesContestsDialog
+                show={showHolesContestsModal}
+                handleClose={handleCloseModal}
+                data={holesContestData}
+            />
         </>
     );
 };

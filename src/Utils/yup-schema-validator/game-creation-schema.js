@@ -8,6 +8,7 @@ const cashier_invoice_search_schema = yup.object().shape({
 });
 
 const course_selection_schema = yup.object().shape({
+	game_name: yup.string().required("Game name is required"),
 	course: yup.object().required("Select a Golf Course"),
 	hole_mode: yup.object().required("Select number of holes to play")
 });

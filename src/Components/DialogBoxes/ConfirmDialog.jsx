@@ -1,5 +1,3 @@
-// ConfirmModal.js
-import React from "react";
 import { Modal, Button } from "react-bootstrap";
 
 const ConfirmDialog = ({ show, handleClose, handleConfirm, message }) => {
