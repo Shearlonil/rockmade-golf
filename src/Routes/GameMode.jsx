@@ -227,20 +227,25 @@ const GameMode = () => {
             hole.contest.forEach(contest => {
                 const c = arr.find(obj => obj.id === contest.id);
                 if(c){
-                    c.holes?.push({holeNo: hole.hole_no, id: hole.id});
+                    c.holes?.push({holeNo: hole.hole_no, id: hole.id, canPick: true});
                 }else {
                     arr.push({
                         id: contest.id,
                         name: contest.name,
-                        holes: [{holeNo: hole.hole_no, id: hole.id}],
+                        holes: [{holeNo: hole.hole_no, id: hole.id, canPick: true}],
                         selectedHoles: []
                     });
                 }
             })
         });
         setHolesContestData(arr);
-        console.log(arr);
     };
+
+    const updateHolesContest = (data) => {
+        const arr = [];
+        data.filter(datum => datum.selectedHoles.length > 0).forEach(datum => arr.push({name: datum.name, holes: datum.selectedHoles}));
+        console.log(arr);
+    }
 
     const saveScores = () => {
         // implement persist to backend here
@@ -306,115 +311,115 @@ const GameMode = () => {
                 )}
 
                 {step === 2 && (
-                    <div className="p-5 border rounded-4 bg-light shadow mb-5">
-                        <div className="text-center">
-                            <h2 className="mb-4">
-                                Select Course & Hole Type{" "}
-                                {gameMode && (
-                                    <span className="badge text-bg-info">
-                                        <small>{gameMode}</small>
-                                    </span>
-                                )}
-                            </h2>
-                            <Form className="mb-5">
-                                <div className="d-flex row">
-                                    <Form.Group className="col-12 col-md-6">
-                                        <Form.Label className="fw-bold">Game Name</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="Game Name"
-                                            {...register("game_name")}
-                                        />
-                                        <ErrorMessage source={golfCourseSelectionErrors.game_name} />
-                                    </Form.Group>
+                    <div className="d-flex flex-column justify-content-center align-items-center text-center p-md-5 p-3 border rounded-4 bg-light shadow mb-5">
+                        <h2 className="mb-4">
+                            Select Course & Hole Type{" "}
+                            {gameMode && (
+                                <span className="badge text-bg-info">
+                                    <small>{gameMode}</small>
+                                </span>
+                            )}
+                        </h2>
+                        <Form className="mb-4 row d-flex justify-content-center">
+                            <div className="d-flex row">
+                                <Form.Group className="col-12 col-md-6 mb-3">
+                                    <Form.Label className="fw-bold">Game Name</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Game Name"
+                                        {...register("game_name")}
+                                    />
+                                    <ErrorMessage source={golfCourseSelectionErrors.game_name} />
+                                </Form.Group>
 
-                                    <Form.Group className="col-12 col-md-6">
-                                        <Form.Label className="fw-bold">Game Date</Form.Label>
-                                        <Controller
-                                            name="startDate"
-                                            control={courseSelectionControl}
-                                            render={({ field }) => (
-                                                <Datetime
-                                                    {...field}
-                                                    timeFormat={false}
-                                                    closeOnSelect={true}
-                                                    dateFormat="DD/MM/YYYY"
-                                                    isValidDate={disablePastDt}
-                                                    inputProps={{
-                                                        placeholder: "Choose date",
-                                                        className: "form-control",
-                                                        readOnly: true, // Optional: makes input read-only
-                                                    }}
-                                                    value={field.value ? new Date(field.value) :  null}
-                                                    onChange={(date) => field.onChange(date ? date.toDate() : null) }
-                                                    /*	react-hook-form is unable to reset the value in the Datetime component because of the below bug.
-                                                        refs:
-                                                            *	https://stackoverflow.com/questions/46053202/how-to-clear-the-value-entered-in-react-datetime
-                                                            *	https://stackoverflow.com/questions/69536272/reactjs-clear-date-input-after-clicking-clear-button
-                                                        there's clearly a rendering bug in component if you try to pass a null or empty value in controlled component mode: 
-                                                        the internal input still got the former value entered with the calendar (uncontrolled ?) despite the fact that that.state.value
-                                                        or field.value is null : I've been able to "patch" it with the renderInput prop :*/
-                                                    renderInput={(props) => {
-                                                        return <input {...props} value={field.value ? props.value : ''} />
-                                                    }}
-                                                />
-                                            )}
-                                        />
-                                        <ErrorMessage source={golfCourseSelectionErrors.startDate} />
-                                    </Form.Group>
-                                </div>
+                                <Form.Group className="col-12 col-md-6 mb-3">
+                                    <Form.Label className="fw-bold">Game Date</Form.Label>
+                                    <Controller
+                                        name="startDate"
+                                        control={courseSelectionControl}
+                                        render={({ field }) => (
+                                            <Datetime
+                                                {...field}
+                                                timeFormat={false}
+                                                closeOnSelect={true}
+                                                dateFormat="DD/MM/YYYY"
+                                                isValidDate={disablePastDt}
+                                                inputProps={{
+                                                    placeholder: "Choose date",
+                                                    className: "form-control",
+                                                    readOnly: true, // Optional: makes input read-only
+                                                }}
+                                                value={field.value ? new Date(field.value) :  null}
+                                                onChange={(date) => field.onChange(date ? date.toDate() : null) }
+                                                /*	react-hook-form is unable to reset the value in the Datetime component because of the below bug.
+                                                    refs:
+                                                        *	https://stackoverflow.com/questions/46053202/how-to-clear-the-value-entered-in-react-datetime
+                                                        *	https://stackoverflow.com/questions/69536272/reactjs-clear-date-input-after-clicking-clear-button
+                                                    there's clearly a rendering bug in component if you try to pass a null or empty value in controlled component mode: 
+                                                    the internal input still got the former value entered with the calendar (uncontrolled ?) despite the fact that that.state.value
+                                                    or field.value is null : I've been able to "patch" it with the renderInput prop :*/
+                                                renderInput={(props) => {
+                                                    return <input {...props} value={field.value ? props.value : ''} />
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                    <ErrorMessage source={golfCourseSelectionErrors.startDate} />
+                                </Form.Group>
+                            </div>
 
-                                <div className="d-flex row mt-4">
-                                    <Form.Group className="col-12 col-md-6">
-                                        <Form.Label className="fw-bold">Choose Course</Form.Label>
-                                        <Controller
-                                            name="course"
-                                            control={courseSelectionControl}
-                                            render={({ field: { onChange, value } }) => (
-                                                <Select
-                                                    required
-                                                    name="course"
-                                                    placeholder="Select Golf Course..."
-                                                    className="text-dark"
-                                                    isLoading={golfCoursesLoading}
-                                                    options={golfCourseOptions}
-                                                    value={value}
-                                                    onChange={(val) => {
-                                                        onChange(val);
-                                                        handleGolfCourseChange(val);
-                                                    }}
-                                                />
-                                            )}
-                                        />
-                                        <ErrorMessage source={golfCourseSelectionErrors.course} />
-                                    </Form.Group>
-                                    <Form.Group className="col-12 col-md-6">
-                                        <Form.Label className="fw-bold">How many holes are you playing?</Form.Label>
-                                        <Controller
-                                            name="hole_mode"
-                                            control={courseSelectionControl}
-                                            render={({ field: { onChange, value } }) => (
-                                                <Select
-                                                    required
-                                                    name="hole_mode"
-                                                    placeholder="Number of holes..."
-                                                    className="text-dark"
-                                                    isLoading={holesLoading}
-                                                    options={holeOptions}
-                                                    value={value}
-                                                    onChange={(val) => { onChange(val) }}
-                                                />
-                                            )}
-                                        />
-                                        <ErrorMessage source={golfCourseSelectionErrors.hole_mode} />
-                                    </Form.Group>
-                                </div>
-                            </Form>
-                            <Button variant="secondary" onClick={() => setStep(1)} className="me-2 btn-danger" >
-                                Back
-                            </Button>
-                            <Button onClick={handleGolfCourseSelectionSubmit(submitCourse)} className="me-2 btn-primary">
+                            <div className="d-flex row">
+                                <Form.Group className="col-12 col-md-6 mb-3">
+                                    <Form.Label className="fw-bold">Choose Course</Form.Label>
+                                    <Controller
+                                        name="course"
+                                        control={courseSelectionControl}
+                                        render={({ field: { onChange, value } }) => (
+                                            <Select
+                                                required
+                                                name="course"
+                                                placeholder="Select Golf Course..."
+                                                className="text-dark"
+                                                isLoading={golfCoursesLoading}
+                                                options={golfCourseOptions}
+                                                value={value}
+                                                onChange={(val) => {
+                                                    onChange(val);
+                                                    handleGolfCourseChange(val);
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                    <ErrorMessage source={golfCourseSelectionErrors.course} />
+                                </Form.Group>
+                                <Form.Group className="col-12 col-md-6 mb-3">
+                                    <Form.Label className="fw-bold">How many holes are you playing?</Form.Label>
+                                    <Controller
+                                        name="hole_mode"
+                                        control={courseSelectionControl}
+                                        render={({ field: { onChange, value } }) => (
+                                            <Select
+                                                required
+                                                name="hole_mode"
+                                                placeholder="Number of holes..."
+                                                className="text-dark"
+                                                isLoading={holesLoading}
+                                                options={holeOptions}
+                                                value={value}
+                                                onChange={(val) => { onChange(val) }}
+                                            />
+                                        )}
+                                    />
+                                    <ErrorMessage source={golfCourseSelectionErrors.hole_mode} />
+                                </Form.Group>
+                            </div>
+                        </Form>
+                        <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse mb-2">
+                            <Button onClick={handleGolfCourseSelectionSubmit(submitCourse)} className="me-2 btn-primary col-md-4 col-sm-12">
                                 Next
+                            </Button>
+                            <Button variant="secondary" onClick={() => setStep(1)} className="me-2 btn-danger col-md-4 col-sm-12" >
+                                Back
                             </Button>
                         </div>
                     </div>
@@ -422,86 +427,85 @@ const GameMode = () => {
 
                 {step === 3 && (
                     <div className="p-5 border rounded-4 bg-light shadow mb-5">
-                        <div>
-                            <h2 className="mb-4 text-center">Game Setup</h2>
+                        <h2 className="mb-4 text-center">{gameMode} Setup</h2>
 
-                            <div className="row mt-4">
-                                <div className="col-12 col-md-6 d-flex flex-column">
-                                    <Form.Label className="fw-bold mt-0">Golf Course</Form.Label>
-                                    <Form.Label className="text-primary fw-bold h3">{course.course.label}</Form.Label>
-                                </div>
-                                <div className="col-12 col-md-6 d-flex flex-column">
-                                    <Form.Label className="fw-bold">Game Name</Form.Label>
-                                    <Form.Label className="text-primary fw-bold h3">{course.game_name}</Form.Label>
-                                </div>
+                        <div className="row">
+                            <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                <Form.Label className="fw-bold">Golf Course</Form.Label>
+                                <Form.Label className="text-primary fw-bold h3">{course.course.label}</Form.Label>
                             </div>
+                            <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                <Form.Label className="fw-bold">Game Name</Form.Label>
+                                <Form.Label className="text-primary fw-bold h3">{course.game_name}</Form.Label>
+                            </div>
+                        </div>
 
-                            <div className="row mt-4">
-                                <div className="col-12 col-md-6 d-flex flex-column">
-                                    <Form.Label className="fw-bold">Game Date</Form.Label>
-                                    <Form.Label className="text-primary fw-bold h3">{format(course.startDate, "yyyy-MM-dd")}</Form.Label>
-                                </div>
-                                <div className="col-12 col-md-6 d-flex flex-column">
-                                    <Form.Label className="fw-bold">Contests</Form.Label>
-                                    <Button className="btn-danger" onClick={() => setShowHolesContestsModal(true)}>Add Contests to spice up games</Button>
-                                </div>
+                        <div className="row">
+                            <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                <Form.Label className="fw-bold">Game Date</Form.Label>
+                                <Form.Label className="text-primary fw-bold h3">{format(course.startDate, "yyyy-MM-dd")}</Form.Label>
                             </div>
-                            <Form>
-                                {/* Features per Hole */}
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Assign Features Per Hole</Form.Label>
-                                    <div className="border p-3 rounded bg-white"
-                                        style={{
-                                            maxHeight: "500px",
-                                            overflowY: "auto",
-                                            display: "grid",
-                                            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                                            gap: "1rem",
-                                        }}
-                                    >
-                                        {[...Array(holeCount)].map((_, idx) => {
-                                            const holeNumber = idx + 1;
-                                            return (
-                                                <div key={idx} className="p-3 border rounded bg-light" style={{ minWidth: "200px" }}>
-                                                    <h6 className="fw-bold text-center">
-                                                        Hole {holeNumber}
-                                                    </h6>
-                                                    {specialFeatures.map((f, i) => {
-                                                        const checkboxId = `hole-${holeNumber}-feat-${i}`;
-                                                        return (
-                                                            <Form.Check key={i} id={checkboxId} type="checkbox" label={f} checked={(features[holeNumber] || []).includes(f)}
-                                                                onChange={() => {
-                                                                    setFeatures((prev) => {
-                                                                        const updated = { ...(prev || {}) };
-                                                                        const holeArr = updated[holeNumber]
-                                                                            ? [...updated[holeNumber]]
-                                                                            : [];
-                                                                        if (holeArr.includes(f)) {
-                                                                            updated[holeNumber] = holeArr.filter(
-                                                                              (x) => x !== f
-                                                                            );
-                                                                        } else {
-                                                                            updated[holeNumber] = [...holeArr, f];
-                                                                        }
-                                                                        return updated;
-                                                                    });
-                                                                }}
-                                                            />
-                                                        );
-                                                    })}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </Form.Group>
-                            </Form>
-
-                            <div className="text-center">
-                                <Button variant="secondary" onClick={() => setStep(2)} className="me-2" >
-                                    Back
-                                </Button>
-                                <Button onClick={() => setStep(4)}>Next</Button>
+                            <div className="col-12 col-md-4 d-flex flex-column mt-3">
+                                <Form.Label className="fw-bold">Contests</Form.Label>
+                                <Button className="btn-success fw-bold" onClick={() => setShowHolesContestsModal(true)}>Add Contests to spice up games</Button>
                             </div>
+                        </div>
+                        <Form>
+                            {/* Features per Hole */}
+                            <Form.Group className="mb-3">
+                                <Form.Label>Assign Features Per Hole</Form.Label>
+                                <div className="border p-3 rounded bg-white"
+                                    style={{
+                                        maxHeight: "500px",
+                                        overflowY: "auto",
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                                        gap: "1rem",
+                                    }}
+                                >
+                                    {[...Array(holeCount)].map((_, idx) => {
+                                        const holeNumber = idx + 1;
+                                        return (
+                                            <div key={idx} className="p-3 border rounded bg-light" style={{ minWidth: "200px" }}>
+                                                <h6 className="fw-bold text-center">
+                                                    Hole {holeNumber}
+                                                </h6>
+                                                {specialFeatures.map((f, i) => {
+                                                    const checkboxId = `hole-${holeNumber}-feat-${i}`;
+                                                    return (
+                                                        <Form.Check key={i} id={checkboxId} type="checkbox" label={f} checked={(features[holeNumber] || []).includes(f)}
+                                                            onChange={() => {
+                                                                setFeatures((prev) => {
+                                                                    const updated = { ...(prev || {}) };
+                                                                    const holeArr = updated[holeNumber]
+                                                                        ? [...updated[holeNumber]]
+                                                                        : [];
+                                                                    if (holeArr.includes(f)) {
+                                                                        updated[holeNumber] = holeArr.filter(
+                                                                            (x) => x !== f
+                                                                        );
+                                                                    } else {
+                                                                        updated[holeNumber] = [...holeArr, f];
+                                                                    }
+                                                                    return updated;
+                                                                });
+                                                            }}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </Form.Group>
+                        </Form>
+                        <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse">
+                            <Button onClick={ () => setStep(4)} className="me-2 btn-primary col-md-4 col-sm-12">
+                                Next
+                            </Button>
+                            <Button variant="secondary" onClick={() => setStep(2)} className="me-2 btn-danger col-md-4 col-sm-12" >
+                                Back
+                            </Button>
                         </div>
                     </div>
                 )}
@@ -594,12 +598,12 @@ const GameMode = () => {
                             </div>
 
                             {/* NAVIGATION */}
-                            <div className="mt-4">
-                                <Button variant="secondary" onClick={() => setStep(3)} className="me-2" >
-                                    Back
-                                </Button>
-                                <Button variant="success" onClick={() => setStep(5)}>
+                            <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse">
+                                <Button onClick={ () => setStep(5)} className="me-2 btn-success col-md-4 col-sm-12">
                                     Start Game
+                                </Button>
+                                <Button variant="secondary" onClick={() => setStep(3)} className="me-2 btn-danger col-md-4 col-sm-12" >
+                                    Back
                                 </Button>
                             </div>
                         </div>
@@ -796,6 +800,7 @@ const GameMode = () => {
                 show={showHolesContestsModal}
                 handleClose={handleCloseModal}
                 data={holesContestData}
+                updateHolesContest={updateHolesContest}
             />
         </>
     );
