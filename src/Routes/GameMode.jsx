@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Button,
     Row,
@@ -10,6 +10,7 @@ import {
     ButtonGroup,
 } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import Select from "react-select";
 import Datetime from 'react-datetime';
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -23,13 +24,15 @@ import { useAuth } from "../app-context/auth-user-context";
 import crypt from "../Utils/crypto-decoder";
 import courseController from "../api-controllers/course-controller";
 import ErrorMessage from "../Components/ErrorMessage";
-import { course_selection_schema, invoice_disc_schema, customer_selection_schema } from "../Utils/yup-schema-validator/game-creation-schema";
+import { course_selection_schema } from "../Utils/yup-schema-validator/game-creation-schema";
 import { gameModes } from "../Utils/data";
 import HolesContestsDialog from "../Components/DialogBoxes/HolesContestsDialog";
+import handleErrMsg from '../Utils/error-handler';
+import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
+import gameController from "../api-controllers/game-controller";
 
 const GameMode = () => {
-    const controller = new AbortController();
-    const signal = controller.signal;
+    const controllerRef = useRef(new AbortController());
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -116,59 +119,58 @@ const GameMode = () => {
         },
     ];
 
-    // Keep scores array in sync if holeCount or players change
     useEffect(() => {
-        if(!user){
-            navigate("/");
-        }
-        if(isAfter(new Date(), new Date(crypt.decryptData(user?.sub)).setHours(23, 59, 59, 0))){
-            // navigate to sub page
-            navigate('/memberships')
-        }
-        initialize();
-        // ensure scores has correct holeCount and player slots
-        setScores((prev) => {
-            const newScores = players.map((_, pIdx) => {
-                const existing = prev[pIdx] || [];
-                // trim or extend existing to holeCount
-                const copy = existing.slice(0, holeCount);
-                while (copy.length < holeCount) copy.push("");
-                return copy;
-            });
-            return newScores;
-        });
-
-        return () => {
-            // This cleanup function runs when the component unmounts
-            // or when the dependencies of useEffect change (e.g., route change)
-            controller.abort();
-        };
-    }, [holeType, players, location.pathname]);
-
-    const initialize = async () => {
         try {
-            setNetworkRequest(true);
-            const response = await courseController.fetchAllActive();
-            setGolfCourseOptions(response.data.map(course => ({label: course.name, value: course})));
-            setGolfCoursesLoading(false);
-
-            setNetworkRequest(false);
+            if(!user){
+                navigate("/");
+            }
+            if(isAfter(new Date(), new Date(crypt.decryptData(user?.sub)).setHours(23, 59, 59, 0))){
+                // navigate to sub page
+                navigate('/memberships')
+            }
+            // Cancel any previous in-flight request
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
+            initialize();
+            // ensure scores has correct holeCount and player slots
+            setScores((prev) => {
+                const newScores = players.map((_, pIdx) => {
+                    const existing = prev[pIdx] || [];
+                    // trim or extend existing to holeCount
+                    const copy = existing.slice(0, holeCount);
+                    while (copy.length < holeCount) copy.push("");
+                    return copy;
+                });
+                return newScores;
+            });
         } catch (error) {
             if (error.name === 'AbortError' || courseController.getAxios().isCancel(error)) {
                 // Request was intentionally aborted, handle silently
-                console.log('API call cancelled due to route change.');
                 return;
             }
             setNetworkRequest(false);
             toast.error(handleErrMsg(error).msg);
         }
+
+        return () => {
+            // This cleanup function runs when the component unmounts
+            // or when the dependencies of useEffect change (e.g., route change)
+            controllerRef.current.abort();
+        };
+    }, [holeType, players, location.pathname]);
+
+    const initialize = async () => {
+        controllerRef.current = new AbortController();
+        setNetworkRequest(true);
+        const response = await courseController.fetchAllActive(controllerRef.current.signal);
+        setGolfCourseOptions(response.data.map(course => ({label: course.name, value: course})));
+        setGolfCoursesLoading(false);
+
+        setNetworkRequest(false);
     }
 
-    // helpers
-    const openPlayerModal = (slot) => {
-        setSelectedSlot(slot);
-        setShowModal(true);
-    };
+    const handleCloseModal = () => setShowHolesContestsModal(false);
 
     const selectPlayerForSlot = (slotIdx, playerObj) => {
         setPlayers((prev) => {
@@ -215,10 +217,6 @@ const GameMode = () => {
         setValue("hole_mode", null);
     };
 
-    const handleCloseModal = () => {
-        setShowHolesContestsModal(false);
-    };
-
 	const submitCourse = (data) => {
         setCourse(data);
         setStep(3);
@@ -243,9 +241,33 @@ const GameMode = () => {
 
     const updateHolesContest = (data) => {
         const arr = [];
-        data.filter(datum => datum.selectedHoles.length > 0).forEach(datum => arr.push({name: datum.name, holes: datum.selectedHoles}));
-        console.log(arr);
+        data.filter(datum => datum.selectedHoles.length > 0).forEach(datum => arr.push({id: datum.id, name: datum.name, holes: datum.selectedHoles}));
+        const c = {...course};
+        c.contests = arr;
+        setCourse(c);
     }
+
+    const createGame = async () => {
+        // console.log(course);
+        try {
+            // Cancel previous request if it exists
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
+            controllerRef.current = new AbortController();
+            setNetworkRequest(true);
+            await gameController.createGame(controllerRef.current.signal, course);
+            setStep(4);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || gameController.getAxios().isCancel(error)) {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
 
     const saveScores = () => {
         // implement persist to backend here
@@ -264,7 +286,6 @@ const GameMode = () => {
         .map((p, idx) => ({ p, idx }))
         .filter((x) => x.p);
 
-    // ---------- UI ----------------
     return (
         <>
             <HeroComp $heroImage={IMAGES.image4}>
@@ -445,13 +466,20 @@ const GameMode = () => {
                                 <Form.Label className="fw-bold">Game Date</Form.Label>
                                 <Form.Label className="text-primary fw-bold h3">{format(course.startDate, "yyyy-MM-dd")}</Form.Label>
                             </div>
-                            <div className="col-12 col-md-4 d-flex flex-column mt-3">
-                                <Form.Label className="fw-bold">Contests</Form.Label>
-                                <Button className="btn-success fw-bold" onClick={() => setShowHolesContestsModal(true)}>Add Contests to spice up games</Button>
+                            <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                <div className="d-flex gap-5">
+                                    <div className="d-flex flex-column">
+                                        <Form.Label className="fw-bold">Holes</Form.Label>
+                                        <Form.Label className="text-primary fw-bold h3">{course.hole_mode.label}</Form.Label>
+                                    </div>
+                                    <div className="d-flex flex-column">
+                                        <Form.Label className="fw-bold">Contests</Form.Label>
+                                        <Button className="btn-success fw-bold" onClick={() => setShowHolesContestsModal(true)}>Add Contests</Button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <Form>
-                            {/* Features per Hole */}
+                        {/* <Form>
                             <Form.Group className="mb-3">
                                 <Form.Label>Assign Features Per Hole</Form.Label>
                                 <div className="border p-3 rounded bg-white"
@@ -498,13 +526,15 @@ const GameMode = () => {
                                     })}
                                 </div>
                             </Form.Group>
-                        </Form>
-                        <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse">
-                            <Button onClick={ () => setStep(4)} className="me-2 btn-primary col-md-4 col-sm-12">
-                                Next
+                        </Form> */}
+                        <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse mt-4">
+                            <Button onClick={ createGame } className="me-2 btn-primary col-md-4 col-sm-12" disabled={networkRequest}>
+                                {!networkRequest && 'Next'}
+                                {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
                             </Button>
-                            <Button variant="secondary" onClick={() => setStep(2)} className="me-2 btn-danger col-md-4 col-sm-12" >
-                                Back
+                            <Button variant="secondary" onClick={() => setStep(2)} className="me-2 btn-danger col-md-4 col-sm-12" disabled={networkRequest} >
+                                {!networkRequest && 'Back'}
+                                {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
                             </Button>
                         </div>
                     </div>
@@ -800,6 +830,7 @@ const GameMode = () => {
                 show={showHolesContestsModal}
                 handleClose={handleCloseModal}
                 data={holesContestData}
+                course={course}
                 updateHolesContest={updateHolesContest}
             />
         </>

@@ -1,11 +1,11 @@
 import httpService from "../axios/http-service";
 
-const fetchAllActive = async () => {
-    return await httpService.get(`/courses/active/all`);
+const fetchAllActive = async (signal) => {
+    return await httpService.get(`/courses/active/all`, {signal});
 }
 
-const createCourse = async (data) => {
-    return await httpService.post(`/courses/create`, data);
+const createCourse = async (signal, data) => {
+    return await httpService.post(`/courses/create`, data, {signal});
 }
 
 const getAxios = () => {

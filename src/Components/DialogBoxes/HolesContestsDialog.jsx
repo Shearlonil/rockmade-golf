@@ -2,10 +2,29 @@ import { useState } from "react";
 import { Modal, Button, Accordion } from "react-bootstrap";
 import { toast } from "react-toastify";
 
-const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data }) => {
+const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data, course }) => {
     const [holesContestData, setHolesContestData] = useState([]);
 
     const modalLoaded = () => {
+        const arr = [...holesContestData];
+        course.contests?.forEach(contest => {
+            const c = arr.find(temp => temp.id === contest.id);
+            if(c) {
+                c.selectedHoles = [];
+                contest.holes.forEach(hole => {
+                    c.selectedHoles.push(hole);
+                    arr.filter(tempContest => tempContest.id !== contest.id).forEach(tempContest => {
+                        const tempArr = tempContest.holes.filter(h => h.holeNo === hole);
+                        if(tempArr.length > 0){
+                            tempArr[0].canPick = false
+                        }
+                    });
+                });
+                setHolesContestData(arr);
+            }else {
+                toast.error("An unexpected error occured. Can't update holes. Please refresh page");
+            }
+        });
 		setHolesContestData([...data]);
     };
 

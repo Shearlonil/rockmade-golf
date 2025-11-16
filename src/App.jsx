@@ -22,7 +22,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignUpPage />} />
                 <Route path="golfCourseRegistration" element={<GolfCourseRegistration />} />
-                <Route path="/playerRegistration"  element={<PlayerRegistrationPage />} />
+                <Route path="/register"  element={<PlayerRegistrationPage />} />
 
                 <Route path="score" element={<ScoreTable />} />
             </Routes>

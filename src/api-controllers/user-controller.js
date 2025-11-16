@@ -1,14 +1,8 @@
 import httpService from "../axios/http-service";
-
-const createGame = async (signal, data) => {
-    return await httpService.post(`/games/create`, data, {signal});
-}
-
 const getAxios = () => {
     return httpService.getAxios();
 }
 
 export default {
-    createGame,
     getAxios,
 }

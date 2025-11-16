@@ -21,16 +21,16 @@ const IMAGES = {
     player6: new URL("./Img/player6.jpeg", import.meta.url).href,
 
     ////////////// SVGs
-    svg_fans_SECONDARY: new URL("./svg/undraw_fans_SECONDARY.svg", import.meta.url).href,
-    svg_fans: new URL("./svg/undraw_fans.svg", import.meta.url).href,
-    svg_golf_SECONDARY: new URL("./svg/undraw_golf_SECONDARY.svg",import.meta.url ).href,
-    svg_golf: new URL("./svg/undraw_golf.svg", import.meta.url).href,
-    svg_idea: new URL("./svg/undraw_idea.svg", import.meta.url).href,
-    svg_online_community_SECONDARY: new URL("./svg/undraw_online-community_SECONDARY.svg",import.meta.url).href,
-    svg_playing_golf_SECONDARY: new URL("./svg/undraw_playing-golf_SECONDARY.svg", import.meta.url).href,
-    svg_playing_golf: new URL("./svg/undraw_playing-golf.svg", import.meta.url).href,
-    svg_team_SECONDARY: new URL("./svg/undraw_team_SECONDARY.svg", import.meta.url ).href,
-    svg_team: new URL("./svg/undraw_team.svg", import.meta.url).href,
+    svg_fans_SECONDARY: new URL("./Svg/undraw_fans_SECONDARY.svg", import.meta.url).href,
+    svg_fans: new URL("./Svg/undraw_fans.svg", import.meta.url).href,
+    svg_golf_SECONDARY: new URL("./Svg/undraw_golf_SECONDARY.svg",import.meta.url ).href,
+    svg_golf: new URL("./Svg/undraw_golf.svg", import.meta.url).href,
+    svg_idea: new URL("./Svg/undraw_idea.svg", import.meta.url).href,
+    svg_online_community_SECONDARY: new URL("./Svg/undraw_online-community_SECONDARY.svg",import.meta.url).href,
+    svg_playing_golf_SECONDARY: new URL("./Svg/undraw_playing-golf_SECONDARY.svg", import.meta.url).href,
+    svg_playing_golf: new URL("./Svg/undraw_playing-golf.svg", import.meta.url).href,
+    svg_team_SECONDARY: new URL("./Svg/undraw_team_SECONDARY.svg", import.meta.url ).href,
+    svg_team: new URL("./Svg/undraw_team.svg", import.meta.url).href,
 };
 
 export default IMAGES;

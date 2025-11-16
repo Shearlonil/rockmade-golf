@@ -28,7 +28,7 @@ axios.defaults.withCredentials = true;
 
 axios.interceptors.response.use(response => response, async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
         /*
             refs:
             https://medium.com/@nandagopal05/using-axios-interceptors-to-automate-refreshing-access-tokens-c3c344737bcc
@@ -42,6 +42,7 @@ axios.interceptors.response.use(response => response, async (error) => {
             localStorage.setItem(AppConstants.jwtStorageTitle, jwt);
             return await axios.request(originalRequest); // Retry the original request with the new access token.
         } catch (ex) {
+            console.log(ex);
             await axios.get("/auth/logout");
             localStorage.setItem(AppConstants.jwtStorageTitle, null);
             window.location.href = '/login';

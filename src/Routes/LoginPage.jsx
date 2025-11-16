@@ -152,7 +152,7 @@ const LoginPage = () => {
                                     <div className="text-center">
                                         <p className="mb-0 text-muted small">
                                             Don't have an account?{" "}
-                                            <a href="/signup" className="text-primary fw-bold">
+                                            <a href="/register" className="text-primary fw-bold">
                                                 Sign Up
                                             </a>
                                         </p>

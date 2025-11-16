@@ -20,11 +20,32 @@ const gameModes = [
     },
 ];
 
+const gender = [
+	{
+		label: 'Male',
+		value: "M"
+	},
+	{
+		label: 'Female',
+		value: "F"
+	}
+]
+
 export {
 	gameModes,
+	gender
 };
 
-/*	https://stackblitz.com/edit/disable-dates-datetime-react-app?file=src%2FApp.js
+/*	
+	AbortController
+	refs:
+	https://blog.logrocket.com/complete-guide-abortcontroller/
+	https://dev.to/rigalpatel001/the-easy-way-to-cancel-fetch-requests-when-you-dont-need-them-1d3g
+	https://medium.com/@ajayverma_5579/abortcontroller-how-to-cancel-ongoing-api-requests-b1df3251eec7
+
+	
+	DATE-FNS
+	https://stackblitz.com/edit/disable-dates-datetime-react-app?file=src%2FApp.js
 	// disable past dates
 	const yesterday = moment().subtract(1, 'day');
 	const disablePastDt = current => {
