@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Navbar, Nav, Container } from "react-bootstrap";
 
 import "../Styles/navbarStyle.css"; // custom styles
@@ -11,6 +11,7 @@ import handleErrMsg from "../Utils/error-handler";
 
 function OffcanvasExample() {
     const navigate = useNavigate();
+    const location = useLocation();
 
 	const { authUser, logout } = useAuth();
 	const user = authUser();
@@ -68,29 +69,33 @@ function OffcanvasExample() {
 
                     <Navbar.Collapse id="main-navbar">
                         <Nav className="ms-auto me-lg-5 align-items-lg-center">
-                            <Nav.Link as={NavLink} to="/" end className={({ isActive }) => isActive ? "nav-link active" : "nav-link" } >
+                            <Nav.Link as={NavLink} to="/" className={`${location.pathname === "/" && "nav-link activeLink nav-text" }`} >
                                 Home
                             </Nav.Link>
 
-                            <Nav.Link as={NavLink} to="/about" className={({ isActive }) => isActive ? "nav-link active" : "nav-link" } >
+                            <Nav.Link as={NavLink} to="/about" className={`${location.pathname === "/about" && "nav-link activeLink nav-text" }`} >
                                 About
                             </Nav.Link>
 
-                            <Nav.Link as={NavLink} to="/gameMode" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"} >
+                            <Nav.Link as={NavLink} to="/gameMode" className={`${location.pathname === "/gameMode" && "nav-link activeLink nav-text" }`} >
                                 Game Mode
                             </Nav.Link>
 
-                            <Nav.Link as={NavLink} to="/golfCourseRegistration" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"} >
+                            <Nav.Link as={NavLink} to="/golfCourseRegistration" className={`${location.pathname === "/golfCourseRegistration" && "nav-link activeLink nav-text" }`} >
                                 Course Registration
                             </Nav.Link>
 
-                            <Nav.Link as={NavLink} to="/register" className={({ isActive }) => isActive ? "nav-link active" : "nav-link" } >
+                            <Nav.Link as={NavLink} to="/register" className={`${location.pathname === "/register" && "nav-link activeLink nav-text" }`} >
                                 Player Registration
                             </Nav.Link>
 
-                            <Nav.Link as={NavLink} to="/memberships" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"} >
+                            <Nav.Link as={NavLink} to="/memberships" className={`${location.pathname === "/memberships" && "nav-link activeLink nav-text" }`} >
                                 Membership
                             </Nav.Link>
+
+							{user && <Nav.Link as={NavLink} to="/dashboard" className={`${location.pathname === "/dashboard" && "nav-link activeLink nav-text" }`} >
+								Dashboard
+							</Nav.Link>}
                         </Nav>
 
                         {/* Desktop login/logout buttons */}

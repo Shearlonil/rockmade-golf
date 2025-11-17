@@ -2,37 +2,42 @@
 
 /* Login/Sign Up Button Styles */
 .navbar .btn-primary {
-  background-color: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
-  color: white !important;
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
 }
 
 .navbar .btn-outline-primary {
-  border-color: var(--primary-color) !important;
-  color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
 }
 
 .navbar .btn-primary:hover,
 .navbar .btn-outline-primary:hover {
-  background-color: var(--hover-color) !important;
-  border-color: var(--hover-color) !important;
-  color: white !important;
+    background-color: var(--hover-color) !important;
+    border-color: var(--hover-color) !important;
+    color: white !important;
 }
 
 /* Sticky overrides for buttons */
 .sticky-wrapper.is-sticky .btn-primary,
 .sticky-wrapper.is-sticky .btn-outline-primary {
-  color: white !important;
+    color: white !important;
+}
+
+.nav-text {
+    color: #ff5b51 !important;
+    font-weight: bold;
 }
 
 .sticky-wrapper.is-sticky .btn-outline-primary {
-  border-color: rgba(255, 255, 255, 0.5) !important;
+    order-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 /* Mobile in collapse */
 @media (max-width: 991.98px) {
-  .navbar-collapse .btn {
-    width: 100%;
-    margin-top: 0.5rem;
-  }
+    .navbar-collapse .btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
 }

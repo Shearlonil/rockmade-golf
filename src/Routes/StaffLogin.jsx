@@ -19,10 +19,10 @@ import ErrorMessage from '../Components/ErrorMessage';
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
 import handleErrMsg from '../Utils/error-handler';
 
-const LoginPage = () => {
+const StaffLogin = () => {
     const navigate = useNavigate();
 
-    const { clientLogin, authUser } = useAuth();
+    const { staffLogin, authUser } = useAuth();
     const user = authUser();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -58,9 +58,9 @@ const LoginPage = () => {
     const onSubmit = async (data) => {
         try {
             setIsLoggingIn(true);
-            await clientLogin(data);
+            await staffLogin(data);
             setIsLoggingIn(false);
-            navigate("/dashboard");
+            navigate("/staff/dashboard");
         } catch (ex) {
             setIsLoggingIn(false);
             toast.error(handleErrMsg(ex).msg);
@@ -93,8 +93,8 @@ const LoginPage = () => {
                                 <div className="text-center mb-4">
                                     <img src={IMAGES.logo} className="text-primary mb-3" width={98} />
                                     <h2 className="fw-bold mb-1">Welcome Back</h2>
-                                    <p className="text-muted">
-                                      Sign in to your RockMade Golf account
+                                    <p className="text-muted fw-bold">
+                                        Sign in to your account as a staff
                                     </p>
                                 </div>
 
@@ -167,4 +167,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default StaffLogin;

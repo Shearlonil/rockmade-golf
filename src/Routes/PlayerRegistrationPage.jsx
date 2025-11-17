@@ -27,9 +27,15 @@ import { gender } from "../Utils/data";
 import handleErrMsg from "../Utils/error-handler";
 import userController from "../api-controllers/user-controller";
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
+import genericController from "../api-controllers/generic-controller";
+import { useAuth } from "../app-context/auth-user-context";
 
 const PlayerRegistrationPage = () => {
     const navigate = useNavigate();
+    const controllerRef = useRef(new AbortController());
+    
+    const { authUser } = useAuth();
+    const user = authUser();
 
 	const {
 		register,
@@ -50,34 +56,85 @@ const PlayerRegistrationPage = () => {
 		},
 	});
 
-    const [formData, setFormData] = useState({});
+    const [dp, setDp] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [networkRequest, setNetworkRequest] = useState(false);
 
     const emailRef = useRef();
 
-	// for vendors
+	// for countries
 	const [countryOptions, setCountryOptions] = useState([]);
 	const [countrysLoading, setCountrysLoading] = useState(true);
+	// for courses
+	const [courseOptions, setCourseOptions] = useState([]);
+	const [coursesLoading, setCoursesLoading] = useState(true);
     
     useEffect(() => {
         initialize();
-    })
 
-    const initialize = async () => {}
+        if (user) {
+          navigate("/dashboard");
+        }
 
-    const verifyEmail = () => {
+        return () => {
+            // This cleanup function runs when the component unmounts
+            // or when the dependencies of useEffect change (e.g., route change)
+            controllerRef.current.abort();
+        };
+    }, [])
+
+    const initialize = async () => {
+        try {
+            // Cancel any previous in-flight request
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
+            controllerRef.current = new AbortController();
+            const urls = [ '/countries/active/all', '/courses/onboarding/active/all' ];
+            const response = await genericController.performGetRequests(urls);
+            const { 0: cuontriesRequest, 1: coursesRequest } = response;
+
+            //	check if the request to fetch pkg doesn't fail before setting values to display
+            if(cuontriesRequest){
+                setCountrysLoading(false);
+                setCountryOptions(cuontriesRequest.data.map( country => ({label: country.name, value: country})));
+            }
+
+            //	check if the request to fetch vendors doesn't fail before setting values to display
+            if(coursesRequest){
+                setCoursesLoading(false);
+                setCourseOptions(coursesRequest.data.map( course => ({label: course.name, value: course})));
+            }
+        } catch (error) {
+            if (error.name === 'AbortError' || userController.getAxios().isCancel(error)) {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
+    const setImageURL = (file) => {
+        setDp(file);
+    }
+
+    const verifyEmail = async () => {
         // validate email
         try {
+            setNetworkRequest(true);
             emailSchema.validateSync(emailRef.current.value);
-            console.log(emailRef.current.value);
+			toast.info(`sending OTP to ${emailRef.current.value}.`);
+            await genericController.requestOTP(emailRef.current.value);
+			toast.info(`OTP sent to ${emailRef.current.email}. If not found in your inbox, please check you spam`);
+            setNetworkRequest(false);
         } catch (error) {
+            setNetworkRequest(false);
             toast.error(handleErrMsg(error.message).msg);
         }
     };
 
-    const onSubmit = (data) => {
+    const onSubmit = async (data) => {
         // validate email
         try {
             emailSchema.validateSync(emailRef.current.value);
@@ -87,7 +144,17 @@ const PlayerRegistrationPage = () => {
 
         // on successful email validation, engage server side
         try {
-            console.log(data);
+            // Cancel previous request if it exists
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
+            controllerRef.current = new AbortController();
+            setNetworkRequest(true);
+            data.email = emailRef.current.value;
+            data.file = dp;
+            await userController.onboard(controllerRef.current.signal, data);
+            setNetworkRequest(false);
+            navigate("/memberships");
         } catch (error) {
             if (error.name === 'AbortError' || userController.getAxios().isCancel(error)) {
                 // Request was intentionally aborted, handle silently
@@ -128,7 +195,7 @@ const PlayerRegistrationPage = () => {
 
                                 <Form>
                                     <div className="d-flex justify-content-center w-100 mb-4">
-                                        <DpUploader className='' />
+                                        <DpUploader setImageURL={setImageURL} />
                                     </div>
 
                                     <div className="row g-3 mb-3">
@@ -361,8 +428,8 @@ const PlayerRegistrationPage = () => {
                                                         name="home_club"
                                                         placeholder="Select Home Club..."
                                                         className="text-dark form-control"
-                                                        options={countryOptions}
-                                                        isLoading={countrysLoading}
+                                                        options={courseOptions}
+                                                        isLoading={coursesLoading}
                                                         onChange={(val) => onChange(val)}
                                                         value={value}
                                                     />
@@ -373,14 +440,14 @@ const PlayerRegistrationPage = () => {
                                     </div>
 
                                     <Button type="submit" className="btn custom-btn w-100 mb-3" onClick={handleSubmit(onSubmit)}>
-                                        {!networkRequest && <span><IoShieldCheckmarkSharp className="me-2" /> Register</span>}
+                                        {!networkRequest && <span><IoShieldCheckmarkSharp className="me-2" /> Register </span>}
                                         {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
                                     </Button>
 
                                     <div className="text-center">
                                         <p className="mb-0 text-muted small">
                                             Already registered?{" "}
-                                            <a href="/login" className="fw-bold text-primary">
+                                            <a className="fw-bold text-primary" onClick={() => navigate('/login')}>
                                                 Sign In
                                             </a>
                                         </p>

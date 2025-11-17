@@ -21,7 +21,7 @@ import { GameModeCard } from "../Styles/HomeStyle";
 import HeroComp from "../Components/HeroComp";
 import IMAGES from "../assets/images";
 import { useAuth } from "../app-context/auth-user-context";
-import crypt from "../Utils/crypto-decoder";
+import crypt from "../Utils/crypto-helper";
 import courseController from "../api-controllers/course-controller";
 import ErrorMessage from "../Components/ErrorMessage";
 import { course_selection_schema } from "../Utils/yup-schema-validator/game-creation-schema";
@@ -120,38 +120,29 @@ const GameMode = () => {
     ];
 
     useEffect(() => {
-        try {
-            if(!user){
-                navigate("/");
-            }
-            if(isAfter(new Date(), new Date(crypt.decryptData(user?.sub)).setHours(23, 59, 59, 0))){
-                // navigate to sub page
-                navigate('/memberships')
-            }
-            // Cancel any previous in-flight request
-            if (controllerRef.current) {
-                controllerRef.current.abort();
-            }
-            initialize();
-            // ensure scores has correct holeCount and player slots
-            setScores((prev) => {
-                const newScores = players.map((_, pIdx) => {
-                    const existing = prev[pIdx] || [];
-                    // trim or extend existing to holeCount
-                    const copy = existing.slice(0, holeCount);
-                    while (copy.length < holeCount) copy.push("");
-                    return copy;
-                });
-                return newScores;
-            });
-        } catch (error) {
-            if (error.name === 'AbortError' || courseController.getAxios().isCancel(error)) {
-                // Request was intentionally aborted, handle silently
-                return;
-            }
-            setNetworkRequest(false);
-            toast.error(handleErrMsg(error).msg);
+        if(!user){
+            navigate("/");
         }
+        if(isAfter(new Date(), new Date(crypt.decryptData(user?.sub)).setHours(23, 59, 59, 0))){
+            // navigate to sub page
+            navigate('/memberships')
+        }
+        // Cancel any previous in-flight request
+        if (controllerRef.current) {
+            controllerRef.current.abort();
+        }
+        initialize();
+        // ensure scores has correct holeCount and player slots
+        setScores((prev) => {
+            const newScores = players.map((_, pIdx) => {
+                const existing = prev[pIdx] || [];
+                // trim or extend existing to holeCount
+                const copy = existing.slice(0, holeCount);
+                while (copy.length < holeCount) copy.push("");
+                return copy;
+            });
+            return newScores;
+        });
 
         return () => {
             // This cleanup function runs when the component unmounts
@@ -161,13 +152,22 @@ const GameMode = () => {
     }, [holeType, players, location.pathname]);
 
     const initialize = async () => {
-        controllerRef.current = new AbortController();
-        setNetworkRequest(true);
-        const response = await courseController.fetchAllActive(controllerRef.current.signal);
-        setGolfCourseOptions(response.data.map(course => ({label: course.name, value: course})));
-        setGolfCoursesLoading(false);
+        try {
+            controllerRef.current = new AbortController();
+            setNetworkRequest(true);
+            const response = await courseController.fetchAllActive(controllerRef.current.signal);
+            setGolfCourseOptions(response.data.map(course => ({label: course.name, value: course})));
+            setGolfCoursesLoading(false);
 
-        setNetworkRequest(false);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || courseController.getAxios().isCancel(error)) {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
     }
 
     const handleCloseModal = () => setShowHolesContestsModal(false);
