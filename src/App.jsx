@@ -15,6 +15,7 @@ import { ProtectedRoute } from './Routes/ProtectedRoute';
 import ClientDashboard from "./Routes/client-dashboard/ClientDashboard.jsx";
 import StaffLogin from "./Routes/StaffLogin.jsx";
 import StaffDashboard from "./Routes/staff-dashboard/StaffDashboard.jsx";
+import GolfCourseCreation from "./Routes/GolfCourseCreation.jsx";
 
 function App() {
     return (
@@ -40,6 +41,7 @@ function App() {
                 </Route>
 
                 <Route path="score" element={<ScoreTable />} />
+				<Route path="/test" element={<GolfCourseCreation />} />
 				<Route path="*" element={<PageNotFound />} />
             </Routes>
 			<ToastContainer />

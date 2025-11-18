@@ -94,7 +94,7 @@ const LoginPage = () => {
                                     <img src={IMAGES.logo} className="text-primary mb-3" width={98} />
                                     <h2 className="fw-bold mb-1">Welcome Back</h2>
                                     <p className="text-muted">
-                                      Sign in to your RockMade Golf account
+                                        Sign in to your RockMade Golf account
                                     </p>
                                 </div>
 

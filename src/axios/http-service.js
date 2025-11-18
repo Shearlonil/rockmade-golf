@@ -42,7 +42,6 @@ axios.interceptors.response.use(response => response, async (error) => {
             localStorage.setItem(AppConstants.jwtStorageTitle, jwt);
             return await axios.request(originalRequest); // Retry the original request with the new access token.
         } catch (ex) {
-            console.log(ex);
             await axios.get("/auth/logout");
             localStorage.setItem(AppConstants.jwtStorageTitle, null);
             window.location.href = '/login';
@@ -55,7 +54,6 @@ axios.interceptors.response.use(response => response, async (error) => {
 axios.interceptors.request.use((config) => {
     const token = localStorage.getItem(AppConstants.jwtStorageTitle);
     config.headers.authorization = token ? `Bearer ${token}` : "";
-    config.headers['X-TENANT-ID'] = 'inventree';
     return config;
 });
 

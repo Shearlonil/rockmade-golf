@@ -30,7 +30,7 @@ export default function GolfCourseRegistration() {
     });
 
     useEffect(() => {
-        if(!user || !user.roles){
+        if(!user || !user.hasAuth(200)){
             navigate("/");
         }
     }, []);
@@ -80,8 +80,8 @@ export default function GolfCourseRegistration() {
     };
 
     return (
-        <Container className="mt-4">
-            <h2>Register a Golf Course</h2>
+        <Container className="mt-5" style={{minHeight: '50vh'}}>
+            <h2>Golf Course Creation</h2>
             <ProgressBar now={(step / 5) * 100} className="mb-3" />
 
             {step === 1 && (

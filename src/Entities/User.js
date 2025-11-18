@@ -10,7 +10,6 @@ export default class User {
                 lastName: whom.lname,
                 status: whom.status,
                 email: whom.email,
-                phone: whom.phone,
                 sex: whom.sex,
                 regDate: whom.regDate,
                 hcp: whom.hcp,
@@ -48,31 +47,26 @@ export default class User {
     
     set sub(sub) { _userProps.get(this).sub = sub }
 
-    get phone() { return _userProps.get(this).phone }
-    
-    set phone(phone) { _userProps.get(this).phone = phone }
-    
-    set accType(type) { _userProps.get(this).accType = type }
+    // set accType(type) { _userProps.get(this).accType = type }
 
-    get accType() { return _userProps.get(this).accType }
+    // get accType() { return _userProps.get(this).accType }
 
     get regDate() { return _userProps.get(this).regDate }
     
     set regDate(regDate) { _userProps.get(this).regDate = regDate }
     
     get authorities() {
-        return auths();
+        return auths(_userProps.get(this));
     }
 
     hasAuth(authCode){
-        return auths().includes(authCode);
+        return auths(_userProps.get(this)).includes(authCode);
     }
 }
 
-const auths = () => {
-    if(_userProps.roles){
-        //  split roles into arrays of authorities first
-        return _userProps.roles.split(',');
+const auths = (userProps) => {
+    if(userProps.roles){
+        return userProps.roles;
     }
     return [];
 }

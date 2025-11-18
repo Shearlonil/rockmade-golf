@@ -120,12 +120,11 @@ const GameMode = () => {
     ];
 
     useEffect(() => {
-        if(!user){
-            navigate("/");
-        }
-        if(isAfter(new Date(), new Date(crypt.decryptData(user?.sub)).setHours(23, 59, 59, 0))){
+        if(user && user.sub && isAfter(new Date(), new Date(crypt.decryptData(user.sub)).setHours(23, 59, 59, 0))){
             // navigate to sub page
             navigate('/memberships')
+        }else {
+            navigate("/");
         }
         // Cancel any previous in-flight request
         if (controllerRef.current) {
