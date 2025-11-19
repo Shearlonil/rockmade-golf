@@ -47,10 +47,6 @@ export default class User {
     
     set sub(sub) { _userProps.get(this).sub = sub }
 
-    // set accType(type) { _userProps.get(this).accType = type }
-
-    // get accType() { return _userProps.get(this).accType }
-
     get regDate() { return _userProps.get(this).regDate }
     
     set regDate(regDate) { _userProps.get(this).regDate = regDate }
