@@ -6,7 +6,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import Select from 'react-select';
-import { Button, Col, Form, ProgressBar, Row } from "react-bootstrap";
+import { Accordion, Button, Col, Form, ProgressBar, Row } from "react-bootstrap";
 
 import IMAGES from "../assets/images";
 import { useAuth } from "../app-context/auth-user-context";
@@ -14,6 +14,7 @@ import ErrorMessage from '../Components/ErrorMessage';
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
 import handleErrMsg from '../Utils/error-handler';
 import { dynamic18Fields, dynamic9Fields, holeMode } from "../Utils/data";
+import contestController from "../api-controllers/contest-controller";
 
 // Function to generate dynamic Yup schema
 const generateYupSchema = (fields) => {
@@ -43,14 +44,12 @@ const GolfCourseCreation = () => {
     const { authUser } = useAuth();
     const user = authUser();
 
+    const [networkRequest, setNetworkRequest] = useState(false);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({});
-
-    useEffect(() => {
-        if(!user || !user.hasAuth(200)){
-            navigate("/");
-        }
-    }, []);
+    const [contests, setContests] = useState([]);
+    const [holeContestOptions, setHoleContestOptions] = useState([]);
+    const [contestsLoading, setContestsLoading] = useState(true);
 
 	const schema = yup.object().shape({
 		name: yup.string().required("Course name is required"),
@@ -89,30 +88,91 @@ const GolfCourseCreation = () => {
         if(!user || !user.hasAuth(200)){
             navigate("/");
         }
-    }, []);
+
+        initialize();
+        return () => {
+            // This cleanup function runs when the component unmounts
+            // or when the dependencies of useEffect change (e.g., route change)
+            controllerRef.current.abort();
+        };
+    }, [location.pathname]);
+
+    const initialize = async () => {
+        try {
+            controllerRef.current = new AbortController();
+            setNetworkRequest(true);
+            const response = await contestController.fetchAllActive(controllerRef.current.signal);
+            setContestsLoading(false);
+            setContests(response.data.map(contest => ({label: contest.name, value: contest})));
+
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || contestController.getAxios().isCancel(error)) {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    }
 
     const onSubmitCourseDetails = async (data) => {
-        console.log(data);
         setFormData(data);
-        setStep(step + 1);
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        handleNext();
     };
 
     const onSubmit9HolesIdxPar = (data) => {
         buildHole(data)
-        setStep(step + 1);
+        handleNext();
     };
 
     const onSubmit18HolesIdxPar = (data) => {
         buildHole(data)
-        setStep(step + 1);
+        handleNext();
     };
 
-    const handleBack = () => setStep(step - 1);
+    const handleNext = () => setStep(step + 1);
+
+    const handleContestHoleChange = (contest_id, contest_name, data) => {
+        const f = {...formData};
+        const found = f.contests.filter(c => c.id === contest_id);
+        if(found.length > 0){
+            found[0].holes = data;
+        }else {
+            f.contests.push({id: contest_id, name: contest_name, holes: data});
+        }
+        setFormData(f);
+    };
+
+    const handleBack = () => {
+        setStep(step - 1);
+        formData.contests = [];
+    };
+
+    const handleSubmit = () => {
+        formData.holes.forEach(hole => {
+            for (const contest of formData.contests) {
+                const found = contest.holes.find(h => h.value === hole.hole_no);
+                if(found){
+                    // check if contests array already exists in hole
+                    if(hole.contests){
+                        hole.contests.push(contest.id);
+                    }else {
+                        hole.contests = [contest.id];
+                    }
+                }
+            }
+        })
+        const data = {
+            name: formData.name,
+            hole_count: formData.hole_mode.value,
+            location: formData.location,
+            holes: formData.holes,
+            contests: formData.contests,
+        };
+        console.log(data);
+        // alert("Form submitted:\n" + JSON.stringify(formData, null, 2));
+    };
 
     const buildHolesFormFields = () => {
         const objArr = [];
@@ -182,6 +242,7 @@ const GolfCourseCreation = () => {
     const buildHole = (data) => {
         const hcpArr = [];
         const parArr = [];
+        const holeContestsArr = [];
         for (const key in data) {
             if(key.startsWith('hcp')){
                 hcpArr.push({name: key, value: data[key], hole_no: key.slice(3) * 1});
@@ -194,18 +255,80 @@ const GolfCourseCreation = () => {
         parArr.sort((a, b) => a.hole_no - b.hole_no);
 
         if(hcpArr.length === parArr.length){
-            const holes = hcpArr.map((h, idx) => ({hole_no: h.hole_no, hcp: h.value, par: parArr[idx].value}));
+            const holes = hcpArr.map((h, idx) => {
+                holeContestsArr.push({label: h.hole_no, value: h.hole_no});
+                return {hole_no: h.hole_no, hcp: h.value, par: parArr[idx].value};
+            });
             const f = {...formData};
             f.holes = holes;
+            f.contests = [];
+            setHoleContestOptions(holeContestsArr);
             setFormData(f);
         }
-        console.log(formData);
     };
 
-    const handleSubmit = () => {
-        alert("Form submitted:\n" + JSON.stringify(formData, null, 2));
-        // TODO: Send to API
-    };
+	const buildAccordionItem = (contest, i) => {
+        return <Accordion.Item eventKey={i} key={i}>
+            <Accordion.Header>
+                <div className="d-flex flex-column">
+                    <span className="mb-2 h6 text-danger fw-bold">
+                        {contest.label}
+                    </span>
+                </div>
+            </Accordion.Header>
+            <Accordion.Body>
+                <Controller
+                    name="contests"
+                    control={control}
+                    render={({ field: { onChange } }) => (
+                        <Select
+                            isMulti
+                            placeholder="contests..."
+                            options={holeContestOptions}
+                            isLoading={contestsLoading}
+                            onChange={(val) => {
+                                handleContestHoleChange(contest.value.id, contest.label, val);
+                                return onChange(val);
+                            }}
+                        />
+                    )}
+                />
+            </Accordion.Body>
+        </Accordion.Item>
+    }
+
+    const buildAccordion = contests.map((datum, i) => { return buildAccordionItem(datum, i) });
+
+	const summarizeHolesContests = (contest, i) => {
+        const {id, holes} = contest;
+        const found = contests.filter(c => c.value.id === id);
+        let name = '';
+        if(found){
+            name = found[0]?.label
+        }
+        return <Accordion.Body className="d-flex flex-column" key={i}>
+            <span className="h5">
+                {name}
+            </span>
+            <span className="text-danger h6 fw-bold">{holes?.map(obj => obj.value).join(", ")}</span>
+        </Accordion.Body>
+    }
+
+    const buildContestsSummaryAccordion = formData.contests?.map((datum, i) => { return summarizeHolesContests(datum, i) });
+
+	const summarizeHoles = (contest, i) => {
+        return <Accordion.Body className="d-flex flex-column" key={i}>
+            <span className="h5">
+                Hole {contest.hole_no}
+            </span>
+            <span className="d-flex ps-3">
+                HCP <span className="ms-2 me-2 text-danger fw-bold">{contest.hcp}</span>
+                PAR <span className="ms-2 me-2 text-danger fw-bold">{contest.par}</span>
+            </span>
+        </Accordion.Body>
+    }
+
+    const buildHolesSummaryAccordion = formData.holes?.map((datum, i) => { return summarizeHoles(datum, i) });
 
     return (
         <section  className="position-relative min-vh-100 d-flex align-items-center justify-content-center" style={{ paddingTop: "80px" }} >
@@ -229,7 +352,7 @@ const GolfCourseCreation = () => {
                                 backdropFilter: "blur(10px)",
                             }}
                         >
-                            <div className="card-body p-5">
+                            <div className="card-body p-4">
                                 <div className="text-center mb-4">
                                     <img src={IMAGES.logo} className="text-primary mb-3" width={98} />
                                     <h2 className="fw-bold mb-1">Golf Course Creation</h2>
@@ -239,7 +362,7 @@ const GolfCourseCreation = () => {
                                 </div>
 
                                 <Form>
-                                    <ProgressBar now={(step / 5) * 100} className="mb-3" />
+                                    <ProgressBar now={(step / 4) * 100} className="mb-3" />
 
                                     {step === 1 && (
                                         <div className="d-flex flex-column gap-3">
@@ -304,24 +427,93 @@ const GolfCourseCreation = () => {
                                             }
                                         </span>
                                     )}
-
+                                    
                                     {step === 3 && (
-                                        <>
-                                            <h4>Confirm Your Details</h4>
-                                            <pre>{JSON.stringify(formData, null, 2)}</pre>
-                                        </>
+                                        <div className="p-5 border rounded-4 bg-light shadow mb-5">
+                                            <div className="row">
+                                                <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                                    <Form.Label className="fw-bold">Golf Course</Form.Label>
+                                                    <Form.Label className="text-primary fw-bold h3">{formData.name}</Form.Label>
+                                                </div>
+                                                <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                                    <Form.Label className="fw-bold">Location</Form.Label>
+                                                    <Form.Label className="text-primary fw-bold h3">{formData.location}</Form.Label>
+                                                </div>
+                                            </div>
+                                            <div className="row">
+                                                <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                                    <Form.Label className="fw-bold">Holes</Form.Label>
+                                                    <Form.Label className="text-primary fw-bold h3">{formData.hole_mode.label}</Form.Label>
+                                                </div>
+                                            </div>
+                                            <div className="row">
+                                                <Accordion alwaysOpen>
+                                                    {contests && contests.length > 0 && buildAccordion}
+                                                </Accordion>
+                                            </div>
+                                            <Button onClick={handleNext} className="btn custom-btn w-100 mt-4">Next</Button>
+                                        </div>
+                                    )}
+                                    
+                                    {step === 4 && (
+                                        <div className="p-5 border rounded-4 bg-light shadow mb-5">
+                                            <div className="row">
+                                                <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                                    <Form.Label className="fw-bold">Golf Course</Form.Label>
+                                                    <Form.Label className="text-primary fw-bold h3">{formData.name}</Form.Label>
+                                                </div>
+                                                <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                                    <Form.Label className="fw-bold">Location</Form.Label>
+                                                    <Form.Label className="text-primary fw-bold h3">{formData.location}</Form.Label>
+                                                </div>
+                                            </div>
+                                            <div className="row">
+                                                <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                                                    <Form.Label className="fw-bold">Holes</Form.Label>
+                                                    <Form.Label className="text-primary fw-bold h3">{formData.hole_mode.label}</Form.Label>
+                                                </div>
+                                            </div>
+                                            <div className="row">
+                                                <Accordion alwaysOpen>
+                                                    <Accordion.Item eventKey={["0"]}>
+                                                        <Accordion.Header>
+                                                            <div className="d-flex flex-column">
+                                                                <span className="h6 fw-bold">
+                                                                    Holes
+                                                                </span>
+                                                            </div>
+                                                        </Accordion.Header>
+                                                        {formData.contests && formData.holes.length > 0 && buildHolesSummaryAccordion}
+                                                    </Accordion.Item>
+                                                </Accordion>
+                                            </div>
+                                            <div className="row">
+                                                <Accordion alwaysOpen>
+                                                    <Accordion.Item eventKey={["0"]}>
+                                                        <Accordion.Header>
+                                                            <div className="d-flex flex-column">
+                                                                <span className="h6 fw-bold">
+                                                                    Contests
+                                                                </span>
+                                                            </div>
+                                                        </Accordion.Header>
+                                                        {formData.contests && formData.contests.length > 0 && buildContestsSummaryAccordion}
+                                                    </Accordion.Item>
+                                                </Accordion>
+                                            </div>
+                                        </div>
                                     )}
 
                                     <div className="mt-3 d-flex flex-column mt-4 gap-3">
                                         {/* {step < 4 && <Button onClick={handleNext} className="btn custom-btn w-100">Next</Button>} */}
-                                        {step > 1 && (
-                                            <Button variant="primary" onClick={handleBack} className="me-2">
-                                                Back
+                                        {step === 4 && (
+                                            <Button variant="success" onClick={handleSubmit} className="btn custom-btn w-100" disabled={networkRequest}>
+                                                Create
                                             </Button>
                                         )}
-                                        {step === 4 && (
-                                            <Button variant="success" onClick={handleSubmit} className="btn custom-btn w-100">
-                                                Submit
+                                        {step > 1 && (
+                                            <Button variant="primary" onClick={handleBack} className="me-2" disabled={networkRequest}>
+                                                Back
                                             </Button>
                                         )}
                                     </div>

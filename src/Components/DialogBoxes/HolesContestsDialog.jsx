@@ -65,7 +65,7 @@ const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data, cour
     }
 
 	const buildAccordionItem = (contest, i) => {
-        return <Accordion.Item eventKey="0" key={i}>
+        return <Accordion.Item eventKey={i} key={i}>
             <Accordion.Header>
                 <div className="d-flex flex-column">
                     <span className="mb-2 h5">
@@ -82,7 +82,8 @@ const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data, cour
                                     className={`me-3 shadow ${contest.selectedHoles.includes(hole.holeNo) ? 'bg-danger text-white' : ''} ${!hole.canPick ? 'bg-danger-subtle text-dark' : ''}`}>
                                 {hole.holeNo}
                             </Button>
-                    )} 
+                    )
+                } 
             </Accordion.Body>
         </Accordion.Item>
     }

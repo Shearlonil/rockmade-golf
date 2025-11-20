@@ -123,8 +123,6 @@ const GameMode = () => {
         if(user && user.sub && isAfter(new Date(), new Date(crypt.decryptData(user.sub)).setHours(23, 59, 59, 0))){
             // navigate to sub page
             navigate('/memberships')
-        }else {
-            navigate("/");
         }
         // Cancel any previous in-flight request
         if (controllerRef.current) {
@@ -478,54 +476,6 @@ const GameMode = () => {
                                 </div>
                             </div>
                         </div>
-                        {/* <Form>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Assign Features Per Hole</Form.Label>
-                                <div className="border p-3 rounded bg-white"
-                                    style={{
-                                        maxHeight: "500px",
-                                        overflowY: "auto",
-                                        display: "grid",
-                                        gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                                        gap: "1rem",
-                                    }}
-                                >
-                                    {[...Array(holeCount)].map((_, idx) => {
-                                        const holeNumber = idx + 1;
-                                        return (
-                                            <div key={idx} className="p-3 border rounded bg-light" style={{ minWidth: "200px" }}>
-                                                <h6 className="fw-bold text-center">
-                                                    Hole {holeNumber}
-                                                </h6>
-                                                {specialFeatures.map((f, i) => {
-                                                    const checkboxId = `hole-${holeNumber}-feat-${i}`;
-                                                    return (
-                                                        <Form.Check key={i} id={checkboxId} type="checkbox" label={f} checked={(features[holeNumber] || []).includes(f)}
-                                                            onChange={() => {
-                                                                setFeatures((prev) => {
-                                                                    const updated = { ...(prev || {}) };
-                                                                    const holeArr = updated[holeNumber]
-                                                                        ? [...updated[holeNumber]]
-                                                                        : [];
-                                                                    if (holeArr.includes(f)) {
-                                                                        updated[holeNumber] = holeArr.filter(
-                                                                            (x) => x !== f
-                                                                        );
-                                                                    } else {
-                                                                        updated[holeNumber] = [...holeArr, f];
-                                                                    }
-                                                                    return updated;
-                                                                });
-                                                            }}
-                                                        />
-                                                    );
-                                                })}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </Form.Group>
-                        </Form> */}
                         <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse mt-4">
                             <Button onClick={ createGame } className="me-2 btn-primary col-md-4 col-sm-12" disabled={networkRequest}>
                                 {!networkRequest && 'Next'}
