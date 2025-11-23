@@ -47,6 +47,10 @@ export default class User {
     
     set sub(sub) { _userProps.get(this).sub = sub }
 
+    get hcp() { return _userProps.get(this).hcp }
+    
+    set hcp(hcp) { _userProps.get(this).hcp = hcp }
+
     get regDate() { return _userProps.get(this).regDate }
     
     set regDate(regDate) { _userProps.get(this).regDate = regDate }

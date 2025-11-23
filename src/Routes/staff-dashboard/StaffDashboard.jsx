@@ -8,6 +8,7 @@ import { useAuthUser } from '../../app-context/user-context';
 import { useProfileImg } from '../../app-context/dp-context';
 import IMAGES from '../../assets/images';
 import handleErrMsg from '../../Utils/error-handler';
+import useGenericController from '../../api-controllers/generic-controller-hook';
 
 const StaffDashboard = () => {
     const controllerRef = useRef(new AbortController());
@@ -16,6 +17,7 @@ const StaffDashboard = () => {
     const location = useLocation();
 
     const { imageBlob, setImageBlob } =  useProfileImg();
+    const { performGetRequests } = useGenericController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
@@ -144,7 +146,7 @@ const StaffDashboard = () => {
                 </Col>
             </Row>
             <div className="row mt-3">
-                <Col xs={12} md={6} sm={12} className="mb-2 col-12 col-sm-8 my-2 d-flex flex-column justify-content-center">
+                <Col xs={12} md={6} sm={12} className="mb-2 col-12 d-flex flex-column justify-content-center">
                     <div className="card shadow border-0 rounded-3 h-100 p-4">
                         <div className="card-body">
                             <h2 className="fw-bold space-mono-bold">Monthly Revenue</h2>

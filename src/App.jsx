@@ -23,7 +23,6 @@ function App() {
                 <Route index path="/" element={<Home />} />
                 <Route index path="about" element={<About />} />
                 <Route index path="memberships" element={<Memberships />} />
-                <Route index path="gameMode" element={<GameMode />} />
 
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/staff/login" element={<StaffLogin />} />
@@ -32,6 +31,7 @@ function App() {
                 <Route path="/register"  element={<PlayerRegistrationPage />} />
 
                 <Route path="/dashboard" element={<ProtectedRoute />}>
+                    <Route index path="game/create" element={<GameMode />} />
                     <Route path="staff" >
 				        <Route path="course/create" element={<GolfCourseCreation />} />
                     </Route>
