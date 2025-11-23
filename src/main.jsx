@@ -10,19 +10,28 @@ import "react-datetime/css/react-datetime.css";
 
 import { BrowserRouter } from "react-router-dom";
 import GlobalStyle from "./Styles/GlobalStyles.js";
-import { AuthProvider } from './app-context/auth-user-context';
+import { AuthProvider } from './app-context/auth-context';
 import Footer from "./Components/Footer.jsx";
 import NavBar from "./Components/NavBar.jsx";
+import { TokenProvider } from "./app-context/token-context.js";
+import { UserProvider } from "./app-context/user-context.js";
+import { ProfileImgProvider } from "./app-context/dp-context.js";
 
 createRoot(document.getElementById("root")).render(
     <StrictMode>
         <BrowserRouter>
             <GlobalStyle />
-            <AuthProvider>
-				<NavBar />
-                <App />
-                <Footer />
-            </AuthProvider>
+            <TokenProvider>
+                <AuthProvider>
+                    <UserProvider>
+                        <ProfileImgProvider>
+                            <NavBar />
+                            <App />
+                            <Footer />
+                        </ProfileImgProvider>
+                    </UserProvider>
+                </AuthProvider>
+            </TokenProvider>
           </BrowserRouter>
     </StrictMode>
 );

@@ -9,7 +9,7 @@ import {
 } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useAuth } from "../app-context/auth-user-context";
+import { useAuthUser } from "../app-context/user-context";
 
 export default function GolfCourseRegistration() {
     const controllerRef = useRef(new AbortController());
@@ -17,7 +17,7 @@ export default function GolfCourseRegistration() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { authUser } = useAuth();
+    const { authUser } = useAuthUser();
     const user = authUser();
 
     const [step, setStep] = useState(1);

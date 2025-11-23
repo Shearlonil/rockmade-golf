@@ -1,0 +1,65 @@
+import { createContext, useContext, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { getYear } from "date-fns";
+
+import AppConstants from "../Utils/AppConstants";
+import { useToken } from "./token-context";
+import { useAxiosInterceptor } from "../axios/axios-interceptors";
+
+const AuthContext = createContext();
+
+/*ref:  https://blog.logrocket.com/authentication-react-router-v6/
+        https://blog.logrocket.com/react-context-tutorial/
+*/
+export const AuthProvider = ({ children }) => {
+    // const [jwtToken, setJwtToken] = useLocalStorage(AppConstants.jwtStorageTitle, null);
+    const { xhrAios } = useAxiosInterceptor();
+    const { getJwtToken, setJwtTokenValue } = useToken();
+    const accessToken = getJwtToken();
+    const navigate = useNavigate();
+
+    // call this function when you want to authenticate the user
+    const clientLogin = async (loginDetails) => {
+        const response = await xhrAios.post('/auth/client', loginDetails);
+        //  remove the token prefix from the token for jwtDecode to decode the token
+        const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
+        setJwtTokenValue(jwt);
+    };
+
+    // call this function when you want to authenticate the user
+    const staffLogin = async (loginDetails) => {
+        const response = await xhrAios.post('/auth/staff', loginDetails);
+        //  remove the token prefix from the token for jwtDecode to decode the token
+        const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
+        setJwtTokenValue(jwt);
+    };
+
+    // call this function to sign out logged in user
+    const logout = async (route) => {
+        await xhrAios.get("/auth/logout");
+        setJwtTokenValue(null);
+        if (route) {
+            navigate(route, { replace: true });
+        } else {
+            navigate("/", { replace: true });
+        }
+    };
+
+    const getCurrentYear = () => {
+        return getYear(new Date());
+    };
+
+    const value = useMemo(
+        () => ({
+            clientLogin,
+            staffLogin,
+            logout,
+            getCurrentYear,
+        }),
+        [accessToken]
+    );
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => useContext(AuthContext);

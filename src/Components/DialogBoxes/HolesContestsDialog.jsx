@@ -74,12 +74,12 @@ const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data, cour
                     <span className="text-danger h6">{contest.selectedHoles.join(", ")}</span>
                 </div>
             </Accordion.Header>
-            <Accordion.Body>
+            <Accordion.Body className="d-flex flex-wrap gap-3">
                 {
                     contest.holes.map(
                         (hole, index) => 
-                            <Button variant="outline-danger" disabled={!hole.canPick} key={index}  onClick={() => holeClicked(hole, contest)}
-                                    className={`me-3 shadow ${contest.selectedHoles.includes(hole.holeNo) ? 'bg-danger text-white' : ''} ${!hole.canPick ? 'bg-danger-subtle text-dark' : ''}`}>
+                            <Button variant="outline-danger" disabled={!hole.canPick} key={index}  onClick={() => holeClicked(hole, contest)} style={{minWidth: '45px'}}
+                                    className={`shadow ${contest.selectedHoles.includes(hole.holeNo) ? 'bg-danger text-white' : ''} ${!hole.canPick ? 'bg-danger-subtle text-dark' : ''}`}>
                                 {hole.holeNo}
                             </Button>
                     )

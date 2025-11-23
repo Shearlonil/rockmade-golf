@@ -4,16 +4,18 @@ import { Navbar, Nav, Container } from "react-bootstrap";
 
 import "../Styles/navbarStyle.css"; // custom styles
 import IMAGES from "../assets/images";
-import { useAuth } from "../app-context/auth-user-context";
+import { useAuth } from "../app-context/auth-context";
 import ConfirmDialog from './DialogBoxes/ConfirmDialog';
 import { ThreeDotLoading } from "./react-loading-indicators/Indicator";
 import handleErrMsg from "../Utils/error-handler";
+import { useAuthUser } from "../app-context/user-context";
 
-function OffcanvasExample() {
+function NavBar() {
     const navigate = useNavigate();
     const location = useLocation();
 
-	const { authUser, logout } = useAuth();
+	const { logout } = useAuth();
+    const { authUser } = useAuthUser();
 	const user = authUser();
 
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -68,25 +70,13 @@ function OffcanvasExample() {
                     </div>
 
                     <Navbar.Collapse id="main-navbar">
-                        <Nav className="ms-auto me-lg-5 align-items-lg-center">
+                        <Nav className="ms-auto me-auto align-items-lg-center">
                             <Nav.Link as={NavLink} to="/" className={`${location.pathname === "/" && "nav-link activeLink nav-text" }`} >
                                 Home
                             </Nav.Link>
 
                             <Nav.Link as={NavLink} to="/about" className={`${location.pathname === "/about" && "nav-link activeLink nav-text" }`} >
                                 About
-                            </Nav.Link>
-
-                            <Nav.Link as={NavLink} to="/gameMode" className={`${location.pathname === "/gameMode" && "nav-link activeLink nav-text" }`} >
-                                Game Mode
-                            </Nav.Link>
-
-                            <Nav.Link as={NavLink} to="/golfCourseRegistration" className={`${location.pathname === "/golfCourseRegistration" && "nav-link activeLink nav-text" }`} >
-                                Course Registration
-                            </Nav.Link>
-
-                            <Nav.Link as={NavLink} to="/register" className={`${location.pathname === "/register" && "nav-link activeLink nav-text" }`} >
-                                Player Registration
                             </Nav.Link>
 
                             <Nav.Link as={NavLink} to="/memberships" className={`${location.pathname === "/memberships" && "nav-link activeLink nav-text" }`} >
@@ -120,4 +110,4 @@ function OffcanvasExample() {
     );
 }
 
-export default OffcanvasExample;
+export default NavBar;

@@ -14,7 +14,8 @@ import { toast } from "react-toastify";
 import { Button, Form } from "react-bootstrap";
 
 import IMAGES from "../assets/images";
-import { useAuth } from "../app-context/auth-user-context";
+import { useAuth } from "../app-context/auth-context";
+import { useAuthUser } from "../app-context/user-context";
 import ErrorMessage from '../Components/ErrorMessage';
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
 import handleErrMsg from '../Utils/error-handler';
@@ -22,7 +23,8 @@ import handleErrMsg from '../Utils/error-handler';
 const StaffLogin = () => {
     const navigate = useNavigate();
 
-    const { staffLogin, authUser } = useAuth();
+    const { staffLogin } = useAuth();
+    const { authUser } = useAuthUser();
     const user = authUser();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -60,7 +62,7 @@ const StaffLogin = () => {
             setIsLoggingIn(true);
             await staffLogin(data);
             setIsLoggingIn(false);
-            navigate("/staff/dashboard");
+            navigate("/dashboard");
         } catch (ex) {
             setIsLoggingIn(false);
             toast.error(handleErrMsg(ex).msg);

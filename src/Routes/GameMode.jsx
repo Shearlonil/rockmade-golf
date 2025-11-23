@@ -20,16 +20,16 @@ import { format, isAfter, subDays } from 'date-fns';
 import { GameModeCard } from "../Styles/HomeStyle";
 import HeroComp from "../Components/HeroComp";
 import IMAGES from "../assets/images";
-import { useAuth } from "../app-context/auth-user-context";
 import crypt from "../Utils/crypto-helper";
-import courseController from "../api-controllers/course-controller";
 import ErrorMessage from "../Components/ErrorMessage";
 import { course_selection_schema } from "../Utils/yup-schema-validator/game-creation-schema";
 import { gameModes } from "../Utils/data";
 import HolesContestsDialog from "../Components/DialogBoxes/HolesContestsDialog";
 import handleErrMsg from '../Utils/error-handler';
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
-import gameController from "../api-controllers/game-controller";
+import { useAuthUser } from "../app-context/user-context";
+import useCourseController from "../api-controllers/course-controller-hook";
+import useGameController from "../api-controllers/game-controller-hook";
 
 const GameMode = () => {
     const controllerRef = useRef(new AbortController());
@@ -37,7 +37,9 @@ const GameMode = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { authUser } = useAuth();
+    const { getAxios, fetchAllActive } = useCourseController();
+    const { createGame } = useGameController();
+    const { authUser } = useAuthUser();
     const user = authUser();
 
     const [step, setStep] = useState(1);
@@ -120,6 +122,12 @@ const GameMode = () => {
     ];
 
     useEffect(() => {
+        if(user && !user.sub){
+            // staff now allowed, because user.sub for staff will be undefined
+            toast.info("Only subscribed memebers are allowed to create games")
+            // navigate to dashboard
+            navigate('/dashboard')
+        }
         if(user && user.sub && isAfter(new Date(), new Date(crypt.decryptData(user.sub)).setHours(23, 59, 59, 0))){
             // navigate to sub page
             navigate('/memberships')
@@ -142,8 +150,7 @@ const GameMode = () => {
         });
 
         return () => {
-            // This cleanup function runs when the component unmounts
-            // or when the dependencies of useEffect change (e.g., route change)
+            // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
             controllerRef.current.abort();
         };
     }, [holeType, players, location.pathname]);
@@ -152,13 +159,13 @@ const GameMode = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const response = await courseController.fetchAllActive(controllerRef.current.signal);
+            const response = await fetchAllActive(controllerRef.current.signal);
             setGolfCourseOptions(response.data.map(course => ({label: course.name, value: course})));
             setGolfCoursesLoading(false);
 
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError' || courseController.getAxios().isCancel(error)) {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -201,7 +208,7 @@ const GameMode = () => {
     //  Handle golf course selection change
     const handleGolfCourseChange = (selectedCourse) => {
         const arr = [];
-        if(selectedCourse.no_of_holes === 18){
+        if(selectedCourse.value.no_of_holes === 18){
             let full = {label: 'Full 18', value: 1};
             let front = {label: 'Front 9', value: 2};
             let back = {label: 'Back 9', value: 3};
@@ -244,8 +251,7 @@ const GameMode = () => {
         setCourse(c);
     }
 
-    const createGame = async () => {
-        // console.log(course);
+    const setUpGame = async () => {
         try {
             // Cancel previous request if it exists
             if (controllerRef.current) {
@@ -253,11 +259,11 @@ const GameMode = () => {
             }
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            await gameController.createGame(controllerRef.current.signal, course);
+            await createGame(controllerRef.current.signal, course);
             setStep(4);
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError' || gameController.getAxios().isCancel(error)) {
+            if (error.name === 'AbortError' || getAxios().isCancel(error)) {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -345,9 +351,9 @@ const GameMode = () => {
                                     <Form.Control
                                         type="text"
                                         placeholder="Game Name"
-                                        {...register("game_name")}
+                                        {...register("name")}
                                     />
-                                    <ErrorMessage source={golfCourseSelectionErrors.game_name} />
+                                    <ErrorMessage source={golfCourseSelectionErrors.name} />
                                 </Form.Group>
 
                                 <Form.Group className="col-12 col-md-6 mb-3">
@@ -454,7 +460,7 @@ const GameMode = () => {
                             </div>
                             <div className="col-12 col-md-6 d-flex flex-column mt-3">
                                 <Form.Label className="fw-bold">Game Name</Form.Label>
-                                <Form.Label className="text-primary fw-bold h3">{course.game_name}</Form.Label>
+                                <Form.Label className="text-primary fw-bold h3">{course.name}</Form.Label>
                             </div>
                         </div>
 
@@ -477,7 +483,7 @@ const GameMode = () => {
                             </div>
                         </div>
                         <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse mt-4">
-                            <Button onClick={ createGame } className="me-2 btn-primary col-md-4 col-sm-12" disabled={networkRequest}>
+                            <Button onClick={ setUpGame } className="me-2 btn-primary col-md-4 col-sm-12" disabled={networkRequest}>
                                 {!networkRequest && 'Next'}
                                 {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
                             </Button>

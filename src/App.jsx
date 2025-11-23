@@ -12,10 +12,9 @@ import PlayerRegistrationPage from "./Routes/PlayerRegistrationPage.jsx";
 import ScoreTable from './Routes/ScoreTable';
 import PageNotFound from './Routes/PageNotFound';
 import { ProtectedRoute } from './Routes/ProtectedRoute';
-import ClientDashboard from "./Routes/client-dashboard/ClientDashboard.jsx";
 import StaffLogin from "./Routes/StaffLogin.jsx";
-import StaffDashboard from "./Routes/staff-dashboard/StaffDashboard.jsx";
 import GolfCourseCreation from "./Routes/GolfCourseCreation.jsx";
+import Dashboard from "./Routes/MainDashboard.jsx";
 
 function App() {
     return (
@@ -33,15 +32,13 @@ function App() {
                 <Route path="/register"  element={<PlayerRegistrationPage />} />
 
                 <Route path="/dashboard" element={<ProtectedRoute />}>
-					<Route path={""} element={<ClientDashboard />} />
-                </Route>
-
-                <Route path="/staff/dashboard" element={<ProtectedRoute />}>
-					<Route path={""} element={<StaffDashboard />} />
+                    <Route path="staff" >
+				        <Route path="course/create" element={<GolfCourseCreation />} />
+                    </Route>
+					<Route path={""} element={<Dashboard />} />
                 </Route>
 
                 <Route path="score" element={<ScoreTable />} />
-				<Route path="/test" element={<GolfCourseCreation />} />
 				<Route path="*" element={<PageNotFound />} />
             </Routes>
 			<ToastContainer />

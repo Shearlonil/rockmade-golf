@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  RiUserLine,
-  RiMailLine,
-  RiLockLine,
-  RiEyeLine,
-  RiPhoneLine,
-  RiEyeOffLine,
+    RiUserLine,
+    RiMailLine,
+    RiLockLine,
+    RiEyeLine,
+    RiPhoneLine,
+    RiEyeOffLine,
 } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import IMAGES from "../assets/images";

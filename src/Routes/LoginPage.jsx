@@ -14,15 +14,17 @@ import { toast } from "react-toastify";
 import { Button, Form } from "react-bootstrap";
 
 import IMAGES from "../assets/images";
-import { useAuth } from "../app-context/auth-user-context";
+import { useAuth } from "../app-context/auth-context";
 import ErrorMessage from '../Components/ErrorMessage';
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
 import handleErrMsg from '../Utils/error-handler';
+import { useAuthUser } from "../app-context/user-context";
 
 const LoginPage = () => {
     const navigate = useNavigate();
 
-    const { clientLogin, authUser } = useAuth();
+    const { clientLogin } = useAuth();
+    const { authUser } = useAuthUser();
     const user = authUser();
 
     const [showPassword, setShowPassword] = useState(false);

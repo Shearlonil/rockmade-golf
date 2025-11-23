@@ -25,16 +25,18 @@ import { schema, emailSchema } from "../Utils/yup-schema-validator/user-form-sch
 import ErrorMessage from "../Components/ErrorMessage";
 import { gender } from "../Utils/data";
 import handleErrMsg from "../Utils/error-handler";
-import userController from "../api-controllers/user-controller";
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
-import genericController from "../api-controllers/generic-controller";
-import { useAuth } from "../app-context/auth-user-context";
+import { useAuthUser } from "../app-context/user-context";
+import useGenericController from '../api-controllers/generic-controller-hook';
+import useUserController from "../api-controllers/user-controller-hook";
 
 const PlayerRegistrationPage = () => {
     const navigate = useNavigate();
     const controllerRef = useRef(new AbortController());
     
-    const { authUser } = useAuth();
+    const { performGetRequests, requestOTP } = useGenericController();
+    const { onboard } = useUserController();
+    const { authUser } = useAuthUser();
     const user = authUser();
 
 	const {
@@ -92,13 +94,14 @@ const PlayerRegistrationPage = () => {
             }
             controllerRef.current = new AbortController();
             const urls = [ '/countries/active/all', '/courses/onboarding/active/all' ];
-            const response = await genericController.performGetRequests(urls);
-            const { 0: cuontriesRequest, 1: coursesRequest } = response;
+            const response = await performGetRequests(urls, controllerRef.current.signal);
+            console.log(response);
+            const { 0: countriesRequest, 1: coursesRequest } = response;
 
             //	check if the request to fetch pkg doesn't fail before setting values to display
-            if(cuontriesRequest){
+            if(countriesRequest){
                 setCountrysLoading(false);
-                setCountryOptions(cuontriesRequest.data.map( country => ({label: country.name, value: country})));
+                setCountryOptions(countriesRequest.data.map( country => ({label: country.name, value: country})));
             }
 
             //	check if the request to fetch vendors doesn't fail before setting values to display
@@ -107,7 +110,7 @@ const PlayerRegistrationPage = () => {
                 setCourseOptions(coursesRequest.data.map( course => ({label: course.name, value: course})));
             }
         } catch (error) {
-            if (error.name === 'AbortError' || userController.getAxios().isCancel(error)) {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -125,10 +128,14 @@ const PlayerRegistrationPage = () => {
             setNetworkRequest(true);
             emailSchema.validateSync(emailRef.current.value);
 			toast.info(`sending OTP to ${emailRef.current.value}.`);
-            await genericController.requestOTP(emailRef.current.value);
+            await requestOTP(emailRef.current.value);
 			toast.info(`OTP sent to ${emailRef.current.email}. If not found in your inbox, please check you spam`);
             setNetworkRequest(false);
         } catch (error) {
+            if (error.name === 'AbortError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
             setNetworkRequest(false);
             toast.error(handleErrMsg(error.message).msg);
         }
@@ -152,11 +159,11 @@ const PlayerRegistrationPage = () => {
             setNetworkRequest(true);
             data.email = emailRef.current.value;
             data.file = dp;
-            await userController.onboard(controllerRef.current.signal, data);
+            await onboard(controllerRef.current.signal, data);
             setNetworkRequest(false);
             navigate("/memberships");
         } catch (error) {
-            if (error.name === 'AbortError' || userController.getAxios().isCancel(error)) {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }

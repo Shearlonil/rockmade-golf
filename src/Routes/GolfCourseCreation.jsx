@@ -9,12 +9,14 @@ import Select from 'react-select';
 import { Accordion, Button, Col, Form, ProgressBar, Row } from "react-bootstrap";
 
 import IMAGES from "../assets/images";
-import { useAuth } from "../app-context/auth-user-context";
+import { useAuthUser } from "../app-context/user-context";
 import ErrorMessage from '../Components/ErrorMessage';
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
 import handleErrMsg from '../Utils/error-handler';
 import { dynamic18Fields, dynamic9Fields, holeMode } from "../Utils/data";
-import contestController from "../api-controllers/contest-controller";
+import ConfirmDialog from "../Components/DialogBoxes/ConfirmDialog";
+import useContestController from '../api-controllers/contest-controller-hook';
+import useCourseController from "../api-controllers/course-controller-hook";
 
 // Function to generate dynamic Yup schema
 const generateYupSchema = (fields) => {
@@ -41,7 +43,9 @@ const GolfCourseCreation = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { authUser } = useAuth();
+    const { fetchAllActive: fetchActiveContest } = useContestController();
+    const { createCourse } = useCourseController();
+    const { authUser } = useAuthUser();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
@@ -50,6 +54,8 @@ const GolfCourseCreation = () => {
     const [contests, setContests] = useState([]);
     const [holeContestOptions, setHoleContestOptions] = useState([]);
     const [contestsLoading, setContestsLoading] = useState(true);
+	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [displayMsg, setDisplayMsg] = useState("");
 
 	const schema = yup.object().shape({
 		name: yup.string().required("Course name is required"),
@@ -101,13 +107,13 @@ const GolfCourseCreation = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const response = await contestController.fetchAllActive(controllerRef.current.signal);
+            const response = await fetchActiveContest(controllerRef.current.signal);
             setContestsLoading(false);
             setContests(response.data.map(contest => ({label: contest.name, value: contest})));
 
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError' || contestController.getAxios().isCancel(error)) {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -133,6 +139,8 @@ const GolfCourseCreation = () => {
 
     const handleNext = () => setStep(step + 1);
 
+	const handleCloseModal = () => etShowConfirmModal(false);
+
     const handleContestHoleChange = (contest_id, contest_name, data) => {
         const f = {...formData};
         const found = f.contests.filter(c => c.id === contest_id);
@@ -149,29 +157,53 @@ const GolfCourseCreation = () => {
         formData.contests = [];
     };
 
-    const handleSubmit = () => {
-        formData.holes.forEach(hole => {
-            for (const contest of formData.contests) {
-                const found = contest.holes.find(h => h.value === hole.hole_no);
-                if(found){
-                    // check if contests array already exists in hole
-                    if(hole.contests){
-                        hole.contests.push(contest.id);
-                    }else {
-                        hole.contests = [contest.id];
+    const confirmCourseCreation = () => {
+        setDisplayMsg(`Create ${formData.name} with details?`);
+        setShowConfirmModal(true);
+    }
+
+    const handleSubmit = async () => {
+        try {
+            setShowConfirmModal(false);
+            const arr = [];
+            for (const hole of formData.holes) {
+                arr.push({
+                    hole_no: hole.hole_no,
+                    hcp: hole.hcp,
+                    par: hole.par
+                });
+            }
+            arr.forEach(hole => {
+                for (const contest of formData.contests) {
+                    const found = contest.holes.find(h => h.value === hole.hole_no);
+                    if(found){
+                        // check if contests array already exists in hole
+                        if(hole.contests){
+                            hole.contests.push(contest.id);
+                        }else {
+                            hole.contests = [contest.id];
+                        }
                     }
                 }
+            })
+            const data = {
+                name: formData.name,
+                hole_count: formData.hole_mode.value,
+                location: formData.location,
+            };
+            data.holes = arr;
+            setNetworkRequest(true);
+            await createCourse(controllerRef.current.signal, data);
+            toast.success("Golf course created successfully");
+            setStep(1);
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                // Request was intentionally aborted, handle silently
+                return;
             }
-        })
-        const data = {
-            name: formData.name,
-            hole_count: formData.hole_mode.value,
-            location: formData.location,
-            holes: formData.holes,
-            contests: formData.contests,
-        };
-        console.log(data);
-        // alert("Form submitted:\n" + JSON.stringify(formData, null, 2));
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
     };
 
     const buildHolesFormFields = () => {
@@ -507,8 +539,9 @@ const GolfCourseCreation = () => {
                                     <div className="mt-3 d-flex flex-column mt-4 gap-3">
                                         {/* {step < 4 && <Button onClick={handleNext} className="btn custom-btn w-100">Next</Button>} */}
                                         {step === 4 && (
-                                            <Button variant="success" onClick={handleSubmit} className="btn custom-btn w-100" disabled={networkRequest}>
-                                                Create
+                                            <Button variant="success" onClick={(confirmCourseCreation)} className="btn custom-btn w-100" disabled={networkRequest}>
+                                                {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
+                                                {!networkRequest && 'Create'}
                                             </Button>
                                         )}
                                         {step > 1 && (
@@ -523,6 +556,12 @@ const GolfCourseCreation = () => {
                     </div>
                 </motion.div>
             </div>
+			<ConfirmDialog
+				show={showConfirmModal}
+				handleClose={handleCloseModal}
+				handleConfirm={handleSubmit}
+				message={displayMsg}
+			/>
         </section>
     );
 };
