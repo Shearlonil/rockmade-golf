@@ -14,6 +14,7 @@ const gameModes = [
         image: IMAGES.image5,
     },
     {
+        id: 3,
         name: "Versus Game",
         desc: "Perfect for casual play or practice. Invite friends or join a friendly round at registered golf courses near you.",
         image: IMAGES.image2,

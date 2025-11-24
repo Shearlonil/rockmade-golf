@@ -259,12 +259,20 @@ const GameMode = () => {
             }
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            await createGame(controllerRef.current.signal, course);
+            const data = {
+                contests: course.contests,
+                startDate: course.startDate,
+                course_id: course.course.value.id,
+                hole_mode: course.hole_mode.value,
+                name: course.name,
+                mode: gameMode.id
+            };
+            await createGame(controllerRef.current.signal, data);
             setStep(4);
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError' || getAxios().isCancel(error)) {
-                // Request was intentionally aborted, handle silently
+            if (error.name === 'AbortError') {
+                // Request was aborted, handle silently
                 return;
             }
             setNetworkRequest(false);
@@ -311,13 +319,13 @@ const GameMode = () => {
                 </div>
 
                 {step === 1 && (
-                    <div className="text-center">
+                    <div className="text-center mb-5">
                         <h2 className="mb-4">Choose Game Mode</h2>
                         <Row>
                             {gameModes.map((mode, index) => (
                                 <Col key={index} md={4} className="mb-4"
                                     onClick={() => {
-                                        setGameMode(mode.name);
+                                        setGameMode(mode);
                                         setStep(2); // move immediately to next step
                                     }}
                                     style={{ cursor: "pointer" }}
@@ -340,7 +348,7 @@ const GameMode = () => {
                             Select Course & Hole Type{" "}
                             {gameMode && (
                                 <span className="badge text-bg-info">
-                                    <small>{gameMode}</small>
+                                    <small>{gameMode.name}</small>
                                 </span>
                             )}
                         </h2>
@@ -451,7 +459,7 @@ const GameMode = () => {
 
                 {step === 3 && (
                     <div className="p-5 border rounded-4 bg-light shadow mb-5">
-                        <h2 className="mb-4 text-center">{gameMode} Setup</h2>
+                        <h2 className="mb-4 text-center">{gameMode.name} Setup</h2>
 
                         <div className="row">
                             <div className="col-12 col-md-6 d-flex flex-column mt-3">

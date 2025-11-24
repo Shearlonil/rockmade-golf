@@ -19,6 +19,7 @@ const IMAGES = {
     player4: new URL("./Img/player4.webp", import.meta.url).href,
     player5: new URL("./Img/player5.jpeg", import.meta.url).href,
     player6: new URL("./Img/player6.jpeg", import.meta.url).href,
+    golf_course: new URL("./Img/golf_course.png", import.meta.url).href,
 
     ////////////// SVGs
     svg_fans_SECONDARY: new URL("./Svg/undraw_fans_SECONDARY.svg", import.meta.url).href,
@@ -31,6 +32,7 @@ const IMAGES = {
     svg_playing_golf: new URL("./Svg/undraw_playing-golf.svg", import.meta.url).href,
     svg_team_SECONDARY: new URL("./Svg/undraw_team_SECONDARY.svg", import.meta.url ).href,
     svg_team: new URL("./Svg/undraw_team.svg", import.meta.url).href,
+    golf: new URL("./Svg/golf-svgrepo-com.svg", import.meta.url).href,
 };
 
 export default IMAGES;

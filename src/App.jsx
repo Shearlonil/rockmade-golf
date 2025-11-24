@@ -15,6 +15,8 @@ import { ProtectedRoute } from './Routes/ProtectedRoute';
 import StaffLogin from "./Routes/StaffLogin.jsx";
 import GolfCourseCreation from "./Routes/GolfCourseCreation.jsx";
 import Dashboard from "./Routes/MainDashboard.jsx";
+import ActiveCourses from "./Routes/staff-dashboard/courses/ActiveCourses.jsx";
+import TrashedCourses from "./Routes/staff-dashboard/courses/TrashedCourses.jsx";
 
 function App() {
     return (
@@ -33,7 +35,11 @@ function App() {
                 <Route path="/dashboard" element={<ProtectedRoute />}>
                     <Route index path="game/create" element={<GameMode />} />
                     <Route path="staff" >
-				        <Route path="course/create" element={<GolfCourseCreation />} />
+                        <Route path="courses" >
+				            <Route path="active" element={<ActiveCourses />} />
+				            <Route path="trash" element={<TrashedCourses />} />
+				            <Route path="create" element={<GolfCourseCreation />} />
+                        </Route>
                     </Route>
 					<Route path={""} element={<Dashboard />} />
                 </Route>

@@ -9,6 +9,7 @@ import { useProfileImg } from '../../app-context/dp-context';
 import IMAGES from '../../assets/images';
 import handleErrMsg from '../../Utils/error-handler';
 import useGenericController from '../../api-controllers/generic-controller-hook';
+import OffcanvasMenu from '../../Components/OffcanvasMenu';
 
 const StaffDashboard = () => {
     const controllerRef = useRef(new AbortController());
@@ -24,6 +25,12 @@ const StaffDashboard = () => {
     const [networkRequest, setNetworkRequest] = useState(false);
     const [topPlayedCoursesData, setTopPlayedCoursesData] = useState([ { name: "Fetching Data", value: 1, color: "#0088FE" } ]);
     const [mostPlayedContestsData, setMostPlayedContestsData] = useState([]);
+    
+    const usersOffCanvasMenu = [
+        { label: "Golf Courses", onClickParams: {evtName: 'viewGolfCourses'} },
+        { label: "Contests", onClickParams: {evtName: 'contests'} },
+        { label: "Users", onClickParams: {evtName: 'users'} },
+    ];
     
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8a2be2"];
     const months = ['Jan', 'Feb', 'Mar', 'April', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -84,8 +91,22 @@ const StaffDashboard = () => {
         }
     }
 
+	const handleOffCanvasMenuItemClick = async (onclickParams, e) => {
+		switch (onclickParams.evtName) {
+            case 'viewGolfCourses':
+                navigate('/dashboard/staff/courses/active');
+                break;
+            case 'contests':
+                break;
+            case 'users':
+                navigate('/dashboard/users/trash');
+                break;
+        }
+	}
+
     return (
         <section className='container' style={{minHeight: '60vh'}}>
+            <OffcanvasMenu menuItems={usersOffCanvasMenu} menuItemClick={handleOffCanvasMenuItemClick} variant='danger' />
             <Row className='mt-4'>
                 <div className="d-flex flex-wrap gap-4 align-items-center" >
                     <img src={IMAGES.image1} alt ="Avatar" className="rounded-circle" width={100} height={100} />
@@ -208,7 +229,7 @@ const StaffDashboard = () => {
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='danger' className='w-100 fw-bold' onClick={() => navigate('staff/course/create')}>Add Golf Course</Button> 
+                        <Button variant='danger' className='w-100 fw-bold' onClick={() => navigate('staff/courses/create')}>Add Golf Course</Button> 
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 
