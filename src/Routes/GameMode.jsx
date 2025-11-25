@@ -37,7 +37,7 @@ const GameMode = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { getAxios, fetchAllActive } = useCourseController();
+    const { fetchAllActive } = useCourseController();
     const { createGame } = useGameController();
     const { authUser } = useAuthUser();
     const user = authUser();

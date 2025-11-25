@@ -36,6 +36,7 @@
         "react-select": "^5.10.2",
         "react-toastify": "^11.0.5",
         "recharts": "^3.5.0",
+        "rsuite": "^6.0.0",
         "styled-components": "^6.1.19",
         "yup": "^1.7.0"
     },

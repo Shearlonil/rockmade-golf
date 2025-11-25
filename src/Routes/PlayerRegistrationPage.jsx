@@ -95,7 +95,6 @@ const PlayerRegistrationPage = () => {
             controllerRef.current = new AbortController();
             const urls = [ '/countries/active/all', '/courses/onboarding/active/all' ];
             const response = await performGetRequests(urls, controllerRef.current.signal);
-            console.log(response);
             const { 0: countriesRequest, 1: coursesRequest } = response;
 
             //	check if the request to fetch pkg doesn't fail before setting values to display

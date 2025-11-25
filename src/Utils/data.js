@@ -43,6 +43,17 @@ const holeMode = [
 	}
 ]
 
+const status = [
+	{
+		label: 'Active',
+		value: true
+	},
+	{
+		label: 'Inactive',
+		value: false
+	}
+]
+
 // Dynamic form field configuration
 const dynamic18Fields = [
     { name: 'hcp1', type: 'number', label: 'HCP', required: true, min: 1 },
@@ -176,6 +187,7 @@ export {
 	holeMode,
 	dynamic18Fields,
 	dynamic9Fields,
+    status,
 };
 
 /*	
