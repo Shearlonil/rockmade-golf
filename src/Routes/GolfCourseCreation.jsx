@@ -196,6 +196,8 @@ const GolfCourseCreation = () => {
             await createCourse(controllerRef.current.signal, data);
             toast.success("Golf course created successfully");
             setStep(1);
+            setNetworkRequest(false);
+            navigate('/dashboard/staff/courses/create');
         } catch (error) {
             if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently

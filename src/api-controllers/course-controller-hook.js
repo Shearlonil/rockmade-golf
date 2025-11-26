@@ -4,6 +4,10 @@ import { useAxiosInterceptor } from '../axios/axios-interceptors';
 const useCourseController = () => {
     const { xhrAios } = useAxiosInterceptor();
     
+    const finById = async (signal, id) => {
+        return await xhrAios.get(`/courses/search/${id}`, {signal});
+    }
+    
     const fetchAllActive = async (signal) => {
         return await xhrAios.get(`/courses/active/all`, {signal});
     }
@@ -17,6 +21,7 @@ const useCourseController = () => {
     }
 
     return {
+        finById,
         fetchAllActive,
         createCourse,
         getAxios,

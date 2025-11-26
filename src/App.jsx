@@ -2,7 +2,6 @@ import { Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 
 import Home from "./Routes/Home.jsx";
-import GolfCourseRegistration from "./Routes/GolfCourseRegistration.jsx";
 import About from "./Routes/About.jsx";
 import Memberships from "./Routes/Memberships.jsx";
 import GameMode from "./Routes/GameMode.jsx";
@@ -17,6 +16,7 @@ import GolfCourseCreation from "./Routes/GolfCourseCreation.jsx";
 import Dashboard from "./Routes/MainDashboard.jsx";
 import ActiveCourses from "./Routes/staff-dashboard/courses/ActiveCourses.jsx";
 import TrashedCourses from "./Routes/staff-dashboard/courses/TrashedCourses.jsx";
+import GolfCourseView from "./Routes/staff-dashboard/courses/GolfCourseView.jsx";
 
 function App() {
     return (
@@ -29,13 +29,13 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/staff/login" element={<StaffLogin />} />
                 <Route path="/signup" element={<SignUpPage />} />
-                <Route path="golfCourseRegistration" element={<GolfCourseRegistration />} />
                 <Route path="/register"  element={<PlayerRegistrationPage />} />
 
                 <Route path="/dashboard" element={<ProtectedRoute />}>
                     <Route index path="game/create" element={<GameMode />} />
                     <Route path="staff" >
                         <Route path="courses" >
+                            <Route path=":id/view" element={<GolfCourseView />} />
 				            <Route path="active" element={<ActiveCourses />} />
 				            <Route path="trash" element={<TrashedCourses />} />
 				            <Route path="create" element={<GolfCourseCreation />} />

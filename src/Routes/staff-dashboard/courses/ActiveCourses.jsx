@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { IoMdAddCircle } from "react-icons/io";
+import { GrView } from "react-icons/gr";
 import { VscEdit, VscSave, VscRemove } from 'react-icons/vsc';
 import { Table, IconButton, Input, NumberInput, DatePicker } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
@@ -60,12 +61,6 @@ const columns = [
         flexGrow: 1,
         // width: 100
     },
-    {
-        key: 'lname',
-        label: 'Creator',
-        flexGrow: 1,
-        // width: 100
-    }
 ];
 
 function toValueString(value, dataType) {
@@ -107,9 +102,10 @@ const EditableCell = ({ rowData, dataType, dataKey, onChange, onEdit, ...props }
     );
 };
 
-const ActionCell = ({ rowData, dataKey, onEdit, onRemove, onSave, ...props }) => {
+const ActionCell = ({ rowData, dataKey, onEdit, onRemove, onSave, onViewCouse, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
+            <IconButton icon={<GrView color='green' />} onClick={() => { onViewCouse(rowData.id); }}  />
             <IconButton appearance="subtle" icon={rowData.status === 'EDIT' ? <VscSave /> : <VscEdit />} onClick={() => { onEdit(rowData.id); }}/>
             <IconButton appearance="subtle" icon={<VscRemove />} onClick={() => { onRemove(rowData.id); }}  />
             <IconButton icon={<VscSave color='green' />} onClick={() => { onSave(rowData.id); }}  />
@@ -213,7 +209,11 @@ const ActiveCourses = () => {
         setCourses(courses.filter(item => item.id !== id));
     };
   
-    const handleSave = id => {}
+    const handleSave = id => {};
+  
+    const handleCourseView = id => {
+        navigate(`/dashboard/staff/courses/${id}/view`)
+    };
 
     return (
         <section className='container d-flex flex-column gap-4' style={{minHeight: '60vh'}}>
@@ -297,7 +297,7 @@ const ActiveCourses = () => {
                 })}
                 <Column width={150} >
                     <HeaderCell>Actions...</HeaderCell>
-                    <ActionCell onEdit={handleEdit} onRemove={handleRemove} onSave={handleSave} />
+                    <ActionCell onEdit={handleEdit} onRemove={handleRemove} onSave={handleSave} onViewCouse={handleCourseView} />
                 </Column>
             </Table>
             <Row className="mt-3">

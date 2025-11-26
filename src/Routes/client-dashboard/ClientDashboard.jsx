@@ -221,7 +221,7 @@ const ClientDashboard = () => {
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='primary' className='w-100 fw-bold'>View Contests</Button> 
+                        <Button variant='primary' className='w-100 fw-bold'>Game History</Button> 
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 
