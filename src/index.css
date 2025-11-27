@@ -11,3 +11,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.disabledDiv {
+  pointer-events: none;
+  opacity: 0.4;
+}

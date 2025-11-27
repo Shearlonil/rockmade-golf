@@ -139,7 +139,7 @@ const GolfCourseCreation = () => {
 
     const handleNext = () => setStep(step + 1);
 
-	const handleCloseModal = () => etShowConfirmModal(false);
+	const handleCloseModal = () => setShowConfirmModal(false);
 
     const handleContestHoleChange = (contest_id, contest_name, data) => {
         const f = {...formData};
@@ -193,6 +193,11 @@ const GolfCourseCreation = () => {
             };
             data.holes = arr;
             setNetworkRequest(true);
+            // Cancel previous request if it exists
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
+            controllerRef.current = new AbortController();
             await createCourse(controllerRef.current.signal, data);
             toast.success("Golf course created successfully");
             setStep(1);

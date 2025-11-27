@@ -8,13 +8,18 @@ const useContestController = () => {
         return await xhrAios.get(`/contests/active/all`, {signal});
     }
     
-    const getAxios = () => {
-        return xhrAios;
+    const removeHole = async (signal, data) => {
+        return await xhrAios.put(`/contests/hole/remove`, data, {signal});
+    }
+
+    const updateHoles = async (signal, data) => {
+        return await xhrAios.put(`/contests/holes/update`, data, {signal});
     }
 
     return {
         fetchAllActive,
-        getAxios,
+        removeHole,
+        updateHoles,
     }
 }
 
