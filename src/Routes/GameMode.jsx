@@ -165,7 +165,7 @@ const GameMode = () => {
 
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
