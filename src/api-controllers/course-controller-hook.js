@@ -16,15 +16,25 @@ const useCourseController = () => {
         return await xhrAios.post(`/courses/create`, data, {signal});
     }
     
-    const getAxios = () => {
-        return xhrAios;
+    const updateCourseHoleCount = async (signal, data) => {
+        return await xhrAios.post(`/courses/holes/update`, data, {signal});
+    }
+    
+    const updateCourse = async (signal, data) => {
+        return await xhrAios.post(`/courses/update`, data, {signal});
+    }
+    
+    const status = async (signal, data) => {
+        return await xhrAios.post(`/courses/status`, data, {signal});
     }
 
     return {
         finById,
         fetchAllActive,
         createCourse,
-        getAxios,
+        updateCourseHoleCount,
+        updateCourse,
+        status,
     }
 }
 

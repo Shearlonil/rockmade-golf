@@ -16,10 +16,25 @@ const useContestController = () => {
         return await xhrAios.put(`/contests/holes/update`, data, {signal});
     }
 
+    const create = async (signal, name) => {
+        return await xhrAios.post(`/contests/create/${name}`, {signal});
+    }
+
+    const update = async (signal, data) => {
+        return await xhrAios.put(`/contests/update`, data, {signal});
+    }
+    
+    const status = async (signal, data) => {
+        return await xhrAios.post(`/contests/status`, data, {signal});
+    }
+
     return {
         fetchAllActive,
         removeHole,
         updateHoles,
+        create,
+        update,
+        status,
     }
 }
 

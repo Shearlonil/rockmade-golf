@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Modal, Button, Accordion, Form, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { dynamic9Fields, dynamic18Fields } from "../../Utils/data";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import ErrorMessage from "../ErrorMessage";
+import { ThreeDotLoading } from "../react-loading-indicators/Indicator";
 
 // Function to generate dynamic Yup schema
 const generateYupSchema = (fields) => {
@@ -27,7 +28,7 @@ const generateYupSchema = (fields) => {
     return yup.object().shape(schemaObject);
 };
 
-const CourseHoleModeUpdateDialog = ({show, handleClose, data}) => {
+const CourseHoleModeUpdateDialog = ({show, handleClose, networkRequest, updateHoleCount, data}) => {
     const [course, setCourse] = useState(null);
     const [holeCount, setHoleCount] = useState(null);
 
@@ -58,10 +59,36 @@ const CourseHoleModeUpdateDialog = ({show, handleClose, data}) => {
         }
     };
 
-    const onSubmit9HolesIdxPar = (data) => {
+    const onSubmit = (data) => {
+        const holes = buildHole(data);
+        if(holes){
+            updateHoleCount(holes);
+        }else {
+            toast.error("HCP and PAR mismatch");
+        }
     };
 
-    const onSubmit18HolesIdxPar = (data) => {
+    const buildHole = (data) => {
+        const hcpArr = [];
+        const parArr = [];
+        for (const key in data) {
+            if(key.startsWith('hcp')){
+                hcpArr.push({name: key, value: data[key], hole_no: key.slice(3) * 1});
+            }else if (key.startsWith('par')) {
+                parArr.push({name: key, value: data[key], hole_no: key.slice(3) * 1});
+            }
+        }
+
+        hcpArr.sort((a, b) => a.hole_no - b.hole_no);
+        parArr.sort((a, b) => a.hole_no - b.hole_no);
+
+        if(hcpArr.length === parArr.length){
+            const holes = hcpArr.map((h, idx) => {
+                return {hole_no: h.hole_no, hcp: h.value, par: parArr[idx].value};
+            });
+            return holes;
+        }
+        return null;
     };
 
     const buildHolesFormFields = () => {
@@ -146,10 +173,21 @@ const CourseHoleModeUpdateDialog = ({show, handleClose, data}) => {
                 </Accordion>
             </Modal.Body>
             <Modal.Footer>
-                {holeCount === 9 && <Button variant="success w-25" onClick={handleSubmitDynamic9Holes(onSubmit9HolesIdxPar)} >save</Button> }
-                {holeCount === 18 &&  <Button variant="success w-25" onClick={handleSubmitDynamic18Holes(onSubmit18HolesIdxPar)} >save</Button> }
-                <Button variant="danger w-25" onClick={handleClose}>
-                    Close
+                {holeCount === 9 && 
+                    <Button variant="success w-25" onClick={handleSubmitDynamic9Holes(onSubmit)} disabled={networkRequest} >
+                        {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
+                        {!networkRequest && 'Save'}
+                    </Button>
+                }
+                {holeCount === 18 &&  
+                    <Button variant="success w-25" onClick={handleSubmitDynamic18Holes(onSubmit)} disabled={networkRequest} >
+                        {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
+                        {!networkRequest && 'Save'}
+                    </Button>
+                }
+                <Button variant="danger w-25" onClick={handleClose} disabled={networkRequest}>
+                    {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
+                    {!networkRequest && 'Close'}
                 </Button>
             </Modal.Footer>
         </Modal>

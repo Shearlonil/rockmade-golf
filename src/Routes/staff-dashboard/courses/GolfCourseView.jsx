@@ -55,7 +55,7 @@ export default function GolfCourseView() {
     const location = useLocation();
     const { id } = useParams();
 
-    const { finById } = useCourseController();
+    const { finById, updateCourse, updateCourseHoleCount, status } = useCourseController();
     const { performGetRequests } = useGenericController();
     const { removeHole, updateHoles } = useContestController();
     const { authUser } = useAuthUser();
@@ -69,7 +69,6 @@ export default function GolfCourseView() {
     const [course, setCourse] = useState(null);
     const [holeCount, setHoleCount] = useState(null);
     const [contests, setContests] = useState(null);
-    const [courseHoles, setCourseHoles] = useState(null);
     const [contestArrOptions, setContestArrOptions] = useState([]);
 
 	const [showCourseHoleModeUpdate, setShowCourseHoleModeUpdate] = useState(false);
@@ -78,9 +77,7 @@ export default function GolfCourseView() {
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
 
     const {
-		register,
         control,
-        setValue,
         handleSubmit,
     } = useForm();
 
@@ -125,42 +122,14 @@ export default function GolfCourseView() {
             const { 0: courseReq, 1: contestsReq } = response;
 
             let courseHoles = [];
-            let a = [];
             if(courseReq && courseReq.data){
                 setCourse(courseReq.data);
                 courseHoles = courseReq.data.Holes;
-                const temp = holeMode.find(mode => mode.value === courseReq.data.no_of_holes);
-                setValue('no_of_holes', temp);
                 setHoleCount(courseReq.data.no_of_holes);
-                setCourseHoles(temp.value);
-                // setHoleContestOptions(holesOptions);
-                a = temp;
             }
             
             if(contestsReq && contestsReq.data){
-                const options = []; // structure of obj stored in this arr {id: contest_id, contestOptions: [{label: hole.hole_no, value: {id: hole.id, hole_no:hole.hole_no}}]}
-                contestsReq.data.forEach(datum => {
-                    datum.holes = [];
-                    courseHoles.forEach(hole => {
-                        /*  if hole has contest, add to list of contest holes to display under the Contest dropdown.
-                            Else, add to options to display in dropdown of contest
-                        */
-                        let f = hole.contest.find(contest => contest.id === datum.id);
-                        if(f){
-                            datum.holes.push({id: hole.id, hole_no: hole.hole_no});
-                        }else {
-                            // check if contest obj alreacy exists in options arr
-                            const opt = options.find(option => option.id === datum.id);
-                            if(opt){
-                                opt.contestOptions.push({label: hole.hole_no, value: {id: hole.id, hole_no:hole.hole_no}});
-                            }else {
-                                options.push({id: datum.id, contestOptions: [{label: hole.hole_no, value: {id: hole.id, hole_no: hole.hole_no}}]});
-                            }
-                        }
-                    });
-                })
-                setContestArrOptions(options);
-                setContests(contestsReq.data);
+                setUpContests(contestsReq.data, courseHoles);
             }
             
             setNetworkRequest(false);
@@ -194,16 +163,15 @@ export default function GolfCourseView() {
 
     // called by handleSubmit of Update Contests button
     const updateContests = (data) => {
-        delete data.no_of_holes;
-        const contests = [];
+        const tempContests = [];
         for (const key in data) {
             if(data[key]){
                 const arr = data[key].map(element => element.value.id);
-                contests.push({contest_id: key, holes: arr});
+                tempContests.push({contest_id: key, holes: arr});
             }
         }
-        if(contests.length > 0){
-            setHolesToUpdate({contests: [...contests]});
+        if(tempContests.length > 0){
+            setHolesToUpdate({contests: [...tempContests]});
             setDisplayMsg(`Update Holes with Contests ?`);
             setShowConfirmModal(true);
             setConfirmDialogEvtName('updateHoles');
@@ -225,8 +193,30 @@ export default function GolfCourseView() {
         console.log(data);
     };
 
-    const editCourseHoles = () => {
-        console.log('val');
+    const updateHoleCount = async (data) => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const response = await updateCourseHoleCount(controllerRef.current.signal, {course_id: course.id, holes: data});
+            // update necessary fields in course
+            const c = {...course};
+            c.Holes = response.data;
+            c.no_of_holes = response.data.length;
+            setCourse(c);
+            setUpContests(contests, response.data);
+            setHoleCount(response.data.length);
+            setShowCourseHoleModeUpdate(false);
+            setNetworkRequest(false);
+        } catch (error) {
+            // TODO: delete log
+            console.log(error);
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
     };
 
     const edit9Hole = (hole) => {
@@ -239,18 +229,14 @@ export default function GolfCourseView() {
 
     // used to update values in react-select
     const handleContestHoleChange = (optionsArr, name) => {
-        setValue(name.toString(), optionsArr);
+        // setValue(name.toString(), optionsArr);
     };
 
     const updateHolesContests = async () => {
         try {
             setShowConfirmModal(false);
             setNetworkRequest(true);
-            // Cancel previous request if it exists
-            if (controllerRef.current) {
-                controllerRef.current.abort();
-            }
-            controllerRef.current = new AbortController();
+            resetAbortController();
             await updateHoles(controllerRef.current.signal, holesToUpdate);
             // structure of holesToUpdate sent to server {contests: [ {contest_id, holes: [id, id, ...]} ]}
             const arrOptions = [...contestArrOptions];
@@ -267,7 +253,6 @@ export default function GolfCourseView() {
                     const found = tempContests.find(c => c.id == contest.contest_id);
                     found.holes.push({id: removed[0].value.id, hole_no: removed[0].label});
                 });
-                setValue(contest.contest_id, null);
             }
             setContests(tempContests);
             setContestArrOptions(arrOptions);
@@ -284,11 +269,7 @@ export default function GolfCourseView() {
 
     const removeHoleFromContest = async () => {
         try {
-            // Cancel previous request if it exists
-            if (controllerRef.current) {
-                controllerRef.current.abort();
-            }
-            controllerRef.current = new AbortController();
+            resetAbortController()
             setShowConfirmModal(false);
             setNetworkRequest(true);
             await removeHole(controllerRef.current.signal, holeToRemoveProp);
@@ -316,8 +297,8 @@ export default function GolfCourseView() {
 
     const buildHolesFormFields = () => {
         const objArr = [];
-        if(courseHoles === 9){
-            for(let i = 0; i < courseHoles * 2; i += 2){
+        if(holeCount === 9){
+            for(let i = 0; i < holeCount * 2; i += 2){
                 objArr.push({
                     hole: dynamic9Fields[i],
                     par: dynamic9Fields[i + 1]
@@ -356,8 +337,8 @@ export default function GolfCourseView() {
                     </Row>
                 </div>
             });
-        }else if(courseHoles === 18){
-            for(let i = 0; i < courseHoles * 2; i += 2){
+        }else if(holeCount === 18){
+            for(let i = 0; i < holeCount * 2; i += 2){
                 objArr.push({
                     hole: dynamic18Fields[i],
                     par: dynamic18Fields[i + 1]
@@ -426,15 +407,22 @@ export default function GolfCourseView() {
                 <Controller
                     name={name.toString()} // convert the id type number to string, else exception
                     control={control}
-                    render={({ field: { value } }) => (
+                    render={({ field: { value, onChange, onBlur, ref } }) => (
                         <Select
+                            /*  For clearing react-select
+                                ref: https://stackoverflow.com/questions/50412843/how-to-programmatically-clear-reset-react-select
+                            */
+                            key={`my_unique_select_key__${JSON.stringify(contest)}`}
                             isMulti
+                            name={name.toString()}
                             placeholder="holes..."
                             options={contestArrOption ? contestArrOption.contestOptions : []}
                             isLoading={networkRequest}
                             className="w-100"
-                            value={value}
-                            onChange={val => handleContestHoleChange(val, name)}
+                            onChange={val => {
+                                handleContestHoleChange(val, name.toString());
+                                return onChange(val);
+                            }}
                         />
                     )}
                 />
@@ -444,6 +432,40 @@ export default function GolfCourseView() {
     }
 
     const buildAccordion = contests?.map((datum, i) => { return buildAccordionItem(datum, i) });
+
+    const resetAbortController = () => {
+        // Cancel previous request if it exists
+        if (controllerRef.current) {
+            controllerRef.current.abort();
+        }
+        controllerRef.current = new AbortController();
+    };
+
+    const setUpContests = (data, courseHoles) => {
+        const options = []; // structure of obj stored in this arr {id: contest_id, contestOptions: [{label: hole.hole_no, value: {id: hole.id, hole_no:hole.hole_no}}]}
+        data.forEach(datum => {
+            datum.holes = [];
+            courseHoles.forEach(hole => {
+                /*  if hole has contest, add to list of contest holes to display under the Contest dropdown.
+                    Else, add to options to display in dropdown of contest
+                */
+                let f = hole.contest?.find(contest => contest.id === datum.id);
+                if(f){
+                    datum.holes.push({id: hole.id, hole_no: hole.hole_no});
+                }else {
+                    // check if contest obj already exists in options arr
+                    const opt = options.find(option => option.id === datum.id);
+                    if(opt){
+                        opt.contestOptions.push({label: hole.hole_no, value: {id: hole.id, hole_no:hole.hole_no}});
+                    }else {
+                        options.push({id: datum.id, contestOptions: [{label: hole.hole_no, value: {id: hole.id, hole_no: hole.hole_no}}]});
+                    }
+                }
+            });
+        })
+        setContestArrOptions(options);
+        setContests(data);
+    }
 
     return (
         <section className='container d-flex flex-column gap-4' style={{minHeight: '60vh'}}>
@@ -480,38 +502,21 @@ export default function GolfCourseView() {
                             <span className="fw-bold text-success h4"> {holeCount} </span>
                         </div>
                         <IoSettings size={35} style={{ color: 'blue' }} onClick={() => setShowCourseHoleModeUpdate(true)} />
-                        {/* <Controller
-                            name="no_of_holes"
-                            control={control}
-                            render={({ field: { onChange, value } }) => (
-                                <Select
-                                    name="no_of_holes"
-                                    placeholder="No of Holes..."
-                                    className="text-dark w-100"
-                                    options={holeMode}
-                                    onChange={(val) => { 
-                                        noOfHolesChange(val);
-                                        onChange(val);
-                                    }}
-                                    value={value}
-                                />
-                            )}
-                        /> */}
                     </div>
                 </div>
             </Row>
             <div className="d-flex flex-column align-items-center">
                 <div className="col-12 col-md-7 col-lg-7" style={{ maxHeight: "500px", overflow: 'scroll' }}>
-                    {course && courseHoles && buildHolesFormFields()}
+                    {course && holeCount && buildHolesFormFields()}
                 </div>
                 <div className="d-flex justify-content-center col-12 col-md-7 col-lg-7">
-                    {courseHoles && courseHoles === 9 && 
+                    {holeCount && holeCount === 9 && 
                         <Button onClick={handleSubmitDynamic9Holes(onSubmit9HolesIdxPar)} disabled={networkRequest} className="btn custom-btn w-50 mt-4">
                             {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
                             {!networkRequest && 'Update Holes'}
                         </Button>
                     }
-                    {courseHoles && courseHoles === 18 && 
+                    {holeCount && holeCount === 18 && 
                         <Button onClick={handleSubmitDynamic18Holes(onSubmit18HolesIdxPar)} disabled={networkRequest} className="btn custom-btn w-50 mt-4">
                             {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
                             {!networkRequest && 'Update Holes'}
@@ -541,6 +546,9 @@ export default function GolfCourseView() {
             <CourseHoleModeUpdateDialog
                 show={showCourseHoleModeUpdate}
                 handleClose={handleCloseModal}
+                networkRequest={networkRequest}
+                setNetworkRequest={setNetworkRequest}
+                updateHoleCount={updateHoleCount}
                 data={course}
             />
         </section>

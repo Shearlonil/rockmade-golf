@@ -7,14 +7,24 @@ const useCountryController = () => {
     const fetchAllActive = async (signal) => {
         return await xhrAios.get(`/countries/active/all`, {signal});
     }
+
+    const create = async (signal, name) => {
+        return await xhrAios.post(`/countries/create/${name}`, {signal});
+    }
+
+    const update = async (signal, data) => {
+        return await xhrAios.put(`/countries/update`, data, {signal});
+    }
     
-    const getAxios = () => {
-        return xhrAios;
+    const status = async (signal, data) => {
+        return await xhrAios.post(`/countries/status`, data, {signal});
     }
 
     return {
         fetchAllActive,
-        getAxios,
+        create,
+        update,
+        status,
     }
 }
 
