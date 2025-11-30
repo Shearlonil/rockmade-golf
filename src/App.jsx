@@ -14,8 +14,7 @@ import { ProtectedRoute } from './Routes/ProtectedRoute';
 import StaffLogin from "./Routes/StaffLogin.jsx";
 import GolfCourseCreation from "./Routes/GolfCourseCreation.jsx";
 import Dashboard from "./Routes/MainDashboard.jsx";
-import ActiveCourses from "./Routes/staff-dashboard/courses/ActiveCourses.jsx";
-import TrashedCourses from "./Routes/staff-dashboard/courses/TrashedCourses.jsx";
+import Courses from "./Routes/staff-dashboard/courses/Courses.jsx";
 import GolfCourseView from "./Routes/staff-dashboard/courses/GolfCourseView.jsx";
 
 function App() {
@@ -36,8 +35,7 @@ function App() {
                     <Route path="staff" >
                         <Route path="courses" >
                             <Route path=":id/view" element={<GolfCourseView />} />
-				            <Route path="active" element={<ActiveCourses />} />
-				            <Route path="trash" element={<TrashedCourses />} />
+				            <Route path="active" element={<Courses />} />
 				            <Route path="create" element={<GolfCourseCreation />} />
                         </Route>
                     </Route>

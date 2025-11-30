@@ -28,6 +28,7 @@ import useCourseController from "../../../api-controllers/course-controller-hook
 import useGenericController from "../../../api-controllers/generic-controller-hook";
 import useContestController from "../../../api-controllers/contest-controller-hook";
 import CourseHoleModeUpdateDialog from "../../../Components/DialogBoxes/CourseHoleModeUpdateDialog";
+import HoleHcpParUpdateDialog from "../../../Components/DialogBoxes/HoleHcpParUpdateDialog";
 
 // Function to generate dynamic Yup schema
 const generateYupSchema = (fields) => {
@@ -55,7 +56,7 @@ export default function GolfCourseView() {
     const location = useLocation();
     const { id } = useParams();
 
-    const { finById, updateCourse, updateCourseHoleCount, status } = useCourseController();
+    const { updateCourseHoleCount, updateCourseHole } = useCourseController();
     const { performGetRequests } = useGenericController();
     const { removeHole, updateHoles } = useContestController();
     const { authUser } = useAuthUser();
@@ -68,10 +69,12 @@ export default function GolfCourseView() {
     const [holesToUpdate, setHolesToUpdate] = useState(null);
     const [course, setCourse] = useState(null);
     const [holeCount, setHoleCount] = useState(null);
+    const [holeCredentials, setHoleCredentials] = useState(null);
     const [contests, setContests] = useState(null);
     const [contestArrOptions, setContestArrOptions] = useState([]);
 
 	const [showCourseHoleModeUpdate, setShowCourseHoleModeUpdate] = useState(false);
+	const [showHoleHcpParUpdate, setShowHoleHcpParUpdate] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
@@ -85,7 +88,6 @@ export default function GolfCourseView() {
     const {
         register: dynamic9HoleRegister, 
         setValue: set9HoleValue,
-        handleSubmit: handleSubmitDynamic9Holes, 
         formState: { errors: dynamicHolesErrors } 
     } = useForm({
         resolver: yupResolver(dynamic9HolesSchema),
@@ -95,7 +97,6 @@ export default function GolfCourseView() {
     const {
         register: dynamic18HoleRegister,
         setValue: set18HoleValue,
-        handleSubmit: handleSubmitDynamic18Holes, 
         formState: { errors: dynamic18HolesErrors } 
     } = useForm({
         resolver: yupResolver(dynamic18HolesSchema),
@@ -181,16 +182,7 @@ export default function GolfCourseView() {
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
         setShowCourseHoleModeUpdate(false);
-    };
-
-    const onSubmit9HolesIdxPar = (data) => {
-        // buildHole(data)
-        console.log(data);
-    };
-
-    const onSubmit18HolesIdxPar = (data) => {
-        // buildHole(data)
-        console.log(data);
+        setShowHoleHcpParUpdate(false);
     };
 
     const updateHoleCount = async (data) => {
@@ -208,8 +200,6 @@ export default function GolfCourseView() {
             setShowCourseHoleModeUpdate(false);
             setNetworkRequest(false);
         } catch (error) {
-            // TODO: delete log
-            console.log(error);
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
@@ -219,17 +209,32 @@ export default function GolfCourseView() {
         }
     };
 
-    const edit9Hole = (hole) => {
-        console.log(hole);
-    };
-
-    const edit18Hole = (hole) => {
-        console.log(hole);
+    const editHole = (hole, val) => {
+        setHoleCredentials({ ...val, id: hole.id, no: hole.hole_no });
+        setShowHoleHcpParUpdate(true);
     };
 
     // used to update values in react-select
-    const handleContestHoleChange = (optionsArr, name) => {
-        // setValue(name.toString(), optionsArr);
+    const handleHoleHcpParUpdate = async (data) => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            await updateCourseHole(controllerRef.current.signal, { course_id: course.id, hole_id: holeCredentials.id, hcp: data.hcp, par: data.par } );
+            setNetworkRequest(false);
+            setShowHoleHcpParUpdate(false);
+            const c = {...course}
+            const hole = c.Holes.find(c => c.id === holeCredentials.id);
+            hole.hcp_idx = data.hcp;
+            hole.par = data.par;
+            setCourse(c);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
     };
 
     const updateHolesContests = async () => {
@@ -311,7 +316,7 @@ export default function GolfCourseView() {
                 return <div className="shadow border p-3 rounded mt-2 mb-4" key={idx}>
                    <div className="d-flex justify-content-between">
                          <span className="fw-bold text-success">Hole {idx + 1}</span>
-                         <MdChangeCircle size={30} style={{ color: 'blue' }} onClick={() => edit9Hole(hole)} />
+                         <MdChangeCircle size={30} style={{ color: 'blue' }} onClick={() => editHole(hole, val)} />
                    </div>
                     <Row>
                         <Col xs={6} className="mb-2">
@@ -351,7 +356,7 @@ export default function GolfCourseView() {
                 return <div className="shadow border p-3 rounded mt-2 mb-4" key={idx}>
                    <div className="d-flex justify-content-between">
                          <span className="fw-bold text-success">Hole {idx + 1}</span>
-                         <MdChangeCircle size={30} style={{ color: 'blue' }} onClick={() => edit18Hole(hole)} />
+                         <MdChangeCircle size={30} style={{ color: 'blue' }} onClick={() => editHole(hole, val)} />
                    </div>
                     <Row>
                         <Col xs={6} className="mb-2">
@@ -407,22 +412,19 @@ export default function GolfCourseView() {
                 <Controller
                     name={name.toString()} // convert the id type number to string, else exception
                     control={control}
-                    render={({ field: { value, onChange, onBlur, ref } }) => (
+                    render={({ field: { onChange } }) => (
                         <Select
                             /*  For clearing react-select
                                 ref: https://stackoverflow.com/questions/50412843/how-to-programmatically-clear-reset-react-select
                             */
-                            key={`my_unique_select_key__${JSON.stringify(contest)}`}
+                            key={`${JSON.stringify(contest)}`}
                             isMulti
                             name={name.toString()}
                             placeholder="holes..."
                             options={contestArrOption ? contestArrOption.contestOptions : []}
                             isLoading={networkRequest}
                             className="w-100"
-                            onChange={val => {
-                                handleContestHoleChange(val, name.toString());
-                                return onChange(val);
-                            }}
+                            onChange={val =>  onChange(val) }
                         />
                     )}
                 />
@@ -509,21 +511,10 @@ export default function GolfCourseView() {
                 <div className="col-12 col-md-7 col-lg-7" style={{ maxHeight: "500px", overflow: 'scroll' }}>
                     {course && holeCount && buildHolesFormFields()}
                 </div>
-                <div className="d-flex justify-content-center col-12 col-md-7 col-lg-7">
-                    {holeCount && holeCount === 9 && 
-                        <Button onClick={handleSubmitDynamic9Holes(onSubmit9HolesIdxPar)} disabled={networkRequest} className="btn custom-btn w-50 mt-4">
-                            {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
-                            {!networkRequest && 'Update Holes'}
-                        </Button>
-                    }
-                    {holeCount && holeCount === 18 && 
-                        <Button onClick={handleSubmitDynamic18Holes(onSubmit18HolesIdxPar)} disabled={networkRequest} className="btn custom-btn w-50 mt-4">
-                            {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
-                            {!networkRequest && 'Update Holes'}
-                        </Button>
-                    }
-                </div>
             </div>
+
+            <span className="text-success fw-bold h2 d-flex flex-column align-items-center"> CONTESTS </span>
+
             <div className="d-flex flex-column align-items-center mb-5">
                 <div className="col-12 col-md-7 col-lg-7">
                     <Accordion alwaysOpen>
@@ -547,9 +538,15 @@ export default function GolfCourseView() {
                 show={showCourseHoleModeUpdate}
                 handleClose={handleCloseModal}
                 networkRequest={networkRequest}
-                setNetworkRequest={setNetworkRequest}
                 updateHoleCount={updateHoleCount}
                 data={course}
+            />
+            <HoleHcpParUpdateDialog
+                show={showHoleHcpParUpdate}
+                handleClose={handleCloseModal}
+                networkRequest={networkRequest}
+                holeCredentials={holeCredentials}
+                updateHoleValues={handleHoleHcpParUpdate}
             />
         </section>
     );

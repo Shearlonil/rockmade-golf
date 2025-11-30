@@ -22,7 +22,7 @@ export default function PaginationLite(props) {
     useEffect(() => {
         //  set current page back to 1 as the table will be re-rendered and back to first page
         setCurrentPage(pageNumber);
-        getPageNumber(pageNumber);
+        // getPageNumber(pageNumber);
     }, [itemCount, pageNumber]);
 
     if (pageCount <= 1) return null;

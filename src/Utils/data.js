@@ -43,7 +43,7 @@ const holeMode = [
 	}
 ]
 
-const status = [
+const statusOptions = [
 	{
 		label: 'Active',
 		value: true
@@ -51,6 +51,33 @@ const status = [
 	{
 		label: 'Inactive',
 		value: false
+	}
+]
+
+const pageSizeOptions = [
+	{
+		label: '20',
+		value: 20
+	},
+	{
+		label: '50',
+		value: 50
+	},
+	{
+		label: '100',
+		value: 100
+	},
+	{
+		label: '200',
+		value: 200
+	},
+	{
+		label: '500',
+		value: 500
+	},
+	{
+		label: '1000',
+		value: 1000
 	}
 ]
 
@@ -187,7 +214,8 @@ export {
 	holeMode,
 	dynamic18Fields,
 	dynamic9Fields,
-    status,
+    statusOptions,
+    pageSizeOptions,
 };
 
 /*	
