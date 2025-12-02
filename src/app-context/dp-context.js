@@ -6,7 +6,7 @@ const ProfileImgContext = createContext();
         https://blog.logrocket.com/react-context-tutorial/
 */
 export const ProfileImgProvider = ({ children }) => {
-    const { imgBlob, setImgBlob } = useState(null);
+    const [ imgBlob, setImgBlob ] = useState(null);
     
     const imageBlob = () => {
         return imgBlob;

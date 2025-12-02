@@ -127,10 +127,12 @@ const GameMode = () => {
             toast.info("Only subscribed memebers are allowed to create games")
             // navigate to dashboard
             navigate('/dashboard')
+            return;
         }
         if(user && user.sub && isAfter(new Date(), new Date(crypt.decryptData(user.sub)).setHours(23, 59, 59, 0))){
             // navigate to sub page
             navigate('/memberships')
+            return;
         }
         // Cancel any previous in-flight request
         if (controllerRef.current) {

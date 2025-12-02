@@ -92,7 +92,9 @@ const GolfCourseCreation = () => {
 
     useEffect(() => {
         if(!user || !user.hasAuth(200)){
-            navigate("/");
+            toast.info('Account not authorized to view this page');
+            navigate("/dashboard");
+            return;
         }
 
         initialize();

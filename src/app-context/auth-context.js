@@ -13,7 +13,7 @@ const AuthContext = createContext();
 */
 export const AuthProvider = ({ children }) => {
     // const [jwtToken, setJwtToken] = useLocalStorage(AppConstants.jwtStorageTitle, null);
-    const { xhrAios } = useAxiosInterceptor();
+    const { xhrAios, setAxiosToken } = useAxiosInterceptor();
     const { getJwtToken, setJwtTokenValue } = useToken();
     const accessToken = getJwtToken();
     const navigate = useNavigate();
@@ -24,6 +24,10 @@ export const AuthProvider = ({ children }) => {
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
+        /*  Update token in axios. A Bug detected on signin in, Axios won't attach bearer token to request after first login. Will only start attaching after page refresh.
+            This is a make shift to circumvent the bug
+        */
+        setAxiosToken(jwt);
     };
 
     // call this function when you want to authenticate the user
@@ -32,6 +36,10 @@ export const AuthProvider = ({ children }) => {
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
+        /*  Update token in axios. A Bug detected on signin in, Axios won't attach bearer token to request after first login. Will only start attaching after page refresh.
+            This is a make shift to circumvent the bug
+        */
+        setAxiosToken(jwt);
     };
 
     // call this function to sign out logged in user

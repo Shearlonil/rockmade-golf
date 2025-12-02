@@ -6,123 +6,93 @@ import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { IoMdAddCircle } from "react-icons/io";
 import { GrView } from "react-icons/gr";
-import { VscEdit, VscSave, VscRemove } from 'react-icons/vsc';
+import { VscRemove } from 'react-icons/vsc';
 import { TbRestore } from "react-icons/tb";
-import { Table, IconButton, Input, NumberInput, DatePicker } from 'rsuite';
+import { Table, IconButton } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
-import IMAGES from "../../../assets/images";
 import { useAuthUser } from "../../../app-context/user-context";
-import useCourseController from "../../../api-controllers/course-controller-hook";
 import handleErrMsg from "../../../Utils/error-handler";
-import { statusOptions, pageSizeOptions } from "../../../Utils/data";
-import PaginationLite from '../../../Components/PaginationLite';
-import RsuiteTableSkeletonLoader from "../../../Components/RsuiteTableSkeletonLoader";
+import IMAGES from "../../../assets/images";
+import PaginationLite from "../../../Components/PaginationLite";
 import ConfirmDialog from "../../../Components/DialogBoxes/ConfirmDialog";
-import cryptoHelper from "../../../Utils/crypto-helper";
+import { pageSizeOptions, statusOptions } from "../../../Utils/data";
+import RsuiteTableSkeletonLoader from "../../../Components/RsuiteTableSkeletonLoader";
+import useStaffController from "../../../api-controllers/staff-controller";
+import StaffCreationDialog from "../../../Components/DialogBoxes/StaffCreationDialog";
+import useGenericController from "../../../api-controllers/generic-controller-hook";
+import StaffProfileViewDialog from "../../../Components/DialogBoxes/StaffProfileViewDialog";
 
 const columns = [
     {
-        key: 'name',
-        label: 'Name',
+        key: 'fname',
+        label: 'First Name',
         fixed: true,
         flexGrow: 2,
         // width: 200
     },
     {
-        key: 'location',
-        label: 'Location',
-        flexGrow: 1,
-        // fixed: true,
-        // width: 200
+        key: 'lname',
+        label: 'Last Name',
+        flexGrow: 2,
+        // width: 100
     },
     {
-        key: 'no_of_holes',
-        label: 'Number Of Holes',
+        key: 'phone',
+        label: 'Phone',
         flexGrow: 1,
         // width: 100
     },
     {
-        key: 'createdAt',
-        label: 'Created At',
+        key: 'email',
+        label: 'Email',
         flexGrow: 1,
         // width: 100
     },
     {
-        key: 'fname',
+        key: 'sex',
+        label: 'Gender',
+        flexGrow: 1,
+        // width: 100
+    },
+    {
+        key: 'creator_fname',
         label: 'Creator',
         flexGrow: 1,
         // width: 100
     },
 ];
 
-function toValueString(value, dataType) {
-    return (dataType === 'date') ? value?.toLocaleDateString() : value;
-}
-
-const fieldMap = {
-    string: Input,
-    number: NumberInput,
-    date: DatePicker
-};
-
-const EditableCell = ({ rowData, dataType, dataKey, onChange, onEdit, ...props }) => {
-    const editing = rowData.mode === 'EDIT';
-
-    const Field = fieldMap[dataType];
-    const value = rowData[dataKey];
-    const text = toValueString(value, dataType);
-
-    return (
-        <Cell
-            {...props}
-            className={editing ? 'table-cell-editing' : ''}
-            onDoubleClick={() => {
-                onEdit?.(rowData.id);
-            }}
-        >
-            {editing ? (
-                <Field
-                    defaultValue={value}
-                    onChange={value => {
-                        onChange?.(rowData.id, dataKey, value);
-                    }}
-                />
-            ) : (
-                text
-            )}
-        </Cell>
-    );
-};
-
-const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onRestore, onSave, onViewCouse, ...props }) => {
+const ActionCell = ({ rowData, dataKey, changeStatus, onViewStaff, onRestore, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} onClick={() => { onViewCouse(rowData.id); }}  />
-            <IconButton appearance="subtle" icon={rowData.mode === 'EDIT' ? <VscSave /> : <VscEdit />} onClick={() => { onEdit(rowData.id); }}/>
+            <IconButton icon={<GrView color='green' />} onClick={() => { onViewStaff(rowData); }}  />
             <IconButton appearance="subtle" icon={rowData.status == true ? <VscRemove /> : <TbRestore />} onClick={() => { changeStatus(rowData); }}  />
-            <IconButton icon={<VscSave color='green' />} onClick={() => { onSave(rowData); }}  />
         </Cell>
   );
 };
 
-const Courses = () => {
+const Staff = () => {
     const controllerRef = useRef(new AbortController());
     
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { paginateFetch, courseSearch, activeCoursesPageInit, status, updateCourse } = useCourseController();
+    const { performGetRequests } = useGenericController();
+    const { paginateFetch, staffSearch, status, register, updateRoles } = useStaffController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
-    const [courseOptions, setCourseOptions] = useState([]);
-    const [courseStatus, setCourseStatus] = useState(true);
+    const [userOptions, setUserOptions] = useState([]);
+    const [authOptions, setAuthOptions] = useState([]);
+    const [userStatus, setUserStatus] = useState(true);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [showStaffCreationModal, setShowStaffCreationModal] = useState(false);
+	const [showStaffProfileModal, setShowStaffProfileModal] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
-    const [editedCourse, setEditedCourse] = useState(null);
+    const [editedUser, setEditedUser] = useState(null);
         
     //	for pagination
     const [pageSize, setPageSize] = useState(pageSizeOptions[2].value);
@@ -130,11 +100,12 @@ const Courses = () => {
     const [currentPage, setCurrentPage] = useState(1);
     
     //  data returned from DataPagination
-    const [courses, setCourses] = useState([]);
+    const [users, setUsers] = useState([]);
     
     useEffect(() => {
-        if(!user || cryptoHelper.decryptData(user.mode) !== '0'){
-            navigate("/");
+        if(!user || !user.hasAuth(103)){
+            toast.info('Account not authorized to view this page');
+            navigate("/dashboard");
             return;
         }
 
@@ -149,16 +120,22 @@ const Courses = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const response = await activeCoursesPageInit(controllerRef.current.signal, pageSize);
+            const urls = [ `/staff/active/init/${pageSize}`, '/staff/auths' ];
+            const response = await performGetRequests(urls, controllerRef.current.signal);
+            const { 0: staffInitReq, 1: authReq } = response;
 
             //	check if the request to fetch pkg doesn't fail before setting values to display
-            if(response && response.data){
-                const { count, results } = response.data;
-                setCourseOptions(results?.map(course => ({label: course.name, value: course})));
+            if(staffInitReq && staffInitReq.data){
+                const { count, results } = staffInitReq.data;
+                setUserOptions(results?.map(staff => ({label: staff.fname + " " + staff.lname, value: staff})));
                 if(results && count){
-                    setCourses(results);
+                    setUsers(results);
                     setTotalItemsCount(count);
                 }
+            }
+
+            if(authReq && authReq.data){
+                setAuthOptions(authReq.data.map(auth => ({label: auth.name, value: auth})));
             }
 
             setNetworkRequest(false);
@@ -172,15 +149,15 @@ const Courses = () => {
         }
     };
 
-    const asyncCourseSearch = async (inputValue, callback) => {
+    const asyncUserSearch = async (inputValue, callback) => {
         /*  refs: https://stackoverflow.com/questions/65963103/how-can-i-setup-react-select-to-work-correctly-with-server-side-data-by-using  */
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await courseSearch(controllerRef.current.signal, {inputValue, courseStatus});
-            const results = response.data.map(course => ({label: course.name, value: course}));
-            setCourseOptions(results);
-            setCourses(response.data);
+            const response = await staffSearch(controllerRef.current.signal, {inputValue, userStatus});
+            const results = response.data.map(staff => ({label: staff.fname + " " + staff.lname, value: staff}));
+            setUserOptions(results);
+            setUsers(response.data);
             setTotalItemsCount(0);
             setNetworkRequest(false);
             callback(results);
@@ -194,22 +171,22 @@ const Courses = () => {
         }
     };
 
-    const handleCourseChange = (val) => {
+    const handleStaffChange = (val) => {
         setTotalItemsCount(0);
-        setCourses( val ? [val.value] : [] );
+        setUsers( val ? [val.value] : [] );
     };
 
     const handleStatusChange = async (val) => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await paginateFetch(controllerRef.current.signal, {page: 1, pageSize, courseStatus: val.value});
+            const response = await paginateFetch(controllerRef.current.signal, {page: 1, pageSize, userStatus: val.value});
             const { count, results } = response.data;
-            setCourseOptions(results.map(course => ({label: course.name, value: course})));
-            setCourses(results);
+            setUserOptions(results.map(staff => ({label: staff.fname + " " + staff.lname, value: staff})));
+            setUsers(results);
             setCurrentPage(1);
             setTotalItemsCount(count);
-            setCourseStatus(val.value);
+            setUserStatus(val.value);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -226,10 +203,10 @@ const Courses = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await paginateFetch(controllerRef.current.signal, {page: 1, pageSize: val.value, courseStatus});
+            const response = await paginateFetch(controllerRef.current.signal, {page: 1, pageSize: val.value, userStatus});
             const { count, results } = response.data;
-            setCourseOptions(results.map(course => ({label: course.name, value: course})));
-            setCourses(results);
+            setUserOptions(results.map(staff => ({label: staff.fname + " " + staff.lname, value: staff})));
+            setUsers(results);
             setCurrentPage(1);
             setTotalItemsCount(count);
             setPageSize(val.value);
@@ -248,10 +225,10 @@ const Courses = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await paginateFetch(controllerRef.current.signal, {page: pageNumber, pageSize, courseStatus});
+            const response = await paginateFetch(controllerRef.current.signal, {page: pageNumber, pageSize, userStatus});
             const { count, results } = response.data;
-            setCourseOptions(results.map(course => ({label: course.name, value: course})));
-            setCourses(results);
+            setUserOptions(results.map(staff => ({label: staff.fname + " " + staff.lname, value: staff})));
+            setUsers(results);
             setCurrentPage(pageNumber);
             setTotalItemsCount(count);
             setNetworkRequest(false);
@@ -265,14 +242,14 @@ const Courses = () => {
         }
     };
 
-	const delGolfCourse = async () => {
+	const delUser = async () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await status(controllerRef.current.signal, {id: editedCourse.id, status: false});
-            setCourses(courses.filter(course => editedCourse.id !== course.id));
-            setTotalItemsCount(courses.length - 1);
-            setEditedCourse(null);
+            await status(controllerRef.current.signal, {id: editedUser.id, status: false});
+            setUsers(users.filter(staff => editedUser.id !== staff.id));
+            setTotalItemsCount(users.length - 1);
+            setEditedUser(null);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -284,14 +261,14 @@ const Courses = () => {
         }
     };
 
-	const restoreGolfCourse = async () => {
+	const restoreUser = async () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await status(controllerRef.current.signal, {id: editedCourse.id, status: true});
-            setCourses(courses.filter(course => editedCourse.id !== course.id));
-            setTotalItemsCount(courses.length - 1);
-            setEditedCourse(null);
+            await status(controllerRef.current.signal, {id: editedUser.id, status: true});
+            setUsers(users.filter(staff => editedUser.id !== staff.id));
+            setTotalItemsCount(users.length - 1);
+            setEditedUser(null);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -303,78 +280,107 @@ const Courses = () => {
         }
     };
 
-    const updateGolfCourse = async () => {
-        try {
-            setNetworkRequest(true);
-            resetAbortController();
-            await updateCourse(controllerRef.current.signal, {id: editedCourse.id, name: editedCourse.name, location: editedCourse.location});
-            setEditedCourse(null);
-            setNetworkRequest(false);
-        } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
-                // Request was intentionally aborted, handle silently
-                return;
-            }
-            setNetworkRequest(false);
-            toast.error(handleErrMsg(error).msg);
-        }
-    }
-
-    const handleChange = (id, key, value) => {
-        const nextData = Object.assign([], courses);
-        nextData.find(item => item.id === id)[key] = value;
-        setCourses(nextData);
-    };
-
-    const handleEdit = id => {
-        const nextData = Object.assign([], courses);
-        const activeItem = nextData.find(item => item.id === id);
-
-        activeItem.mode = activeItem.mode ? null : 'EDIT';
-
-        setCourses(nextData);
-    };
-
-    const handleChangeStatus = course => {
-        if(course.status){
+    const handleChangeStatus = staff => {
+        if(staff.status){
             setConfirmDialogEvtName('remove');
-            setDisplayMsg(`Delete ${course.name} from active list?`);
+            setDisplayMsg(`Delete ${staff.fname + " " + staff.lname} from active list?`);
             setShowConfirmModal(true);
-            setEditedCourse(course);
+            setEditedUser(staff);
         }else {
             setConfirmDialogEvtName('restore');
-            setDisplayMsg(`Restore ${course.name} from list of inactive courses?`);
+            setDisplayMsg(`Restore ${staff.fname + " " + staff.lname} from list of inactive users?`);
             setShowConfirmModal(true);
-            setEditedCourse(course);
+            setEditedUser(staff);
         }
     };
-  
-    const handleSave = async (course) => {
-        setConfirmDialogEvtName('save');
-        setDisplayMsg(`Save changes made to ${course.name}?`);
-        setShowConfirmModal(true);
-        setEditedCourse(course);
+
+    const handleViewStaff = staff => {
+        setEditedUser(staff);
+        setDisplayMsg('Profile View');
+        setShowStaffProfileModal(true);
     };
   
-    const handleCourseView = id => {
-        navigate(`/dashboard/staff/courses/${id}/view`)
+    const handleCreateStaff = async (staff) => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const authArr = staff.authorities?.map(auth => auth.value.code);
+            const dto = {
+                fname: staff.fname,
+                lname: staff.lname,
+                phone: staff.phone,
+                email: staff.email,
+                sex: staff.sex.value,
+                authorities: authArr ? authArr : []
+            }
+            const response = await register(controllerRef.current.signal, dto);
+            const user = {
+                id: response.data.id,
+                fname: staff.fname,
+                lname: staff.lname,
+                phone: staff.phone,
+                email: staff.email,
+                sex: staff.sex.value,
+                status: 1,
+                createdAt: new Date(),
+            }
+            setUsers([...users, user]);
+            setTotalItemsCount(users.length - 1);
+            setEditedUser(null);
+            setNetworkRequest(false);
+            handleCloseModal();
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
     };
+
+    const handleAuthUpdate = async (auths) => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+
+            const authArr = auths.map(auth => ( {id: auth.value.id, code: auth.value.code} ));
+
+            await updateRoles(controllerRef.current.signal, {id: editedUser.id, authorities: authArr});
+            
+            setEditedUser(null);
+            setNetworkRequest(false);
+            handleCloseModal();
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
+    const handleAddStaff = () => {
+        setDisplayMsg('Add New Staff');
+        setShowStaffCreationModal(true);
+    }
 
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
+        setShowStaffCreationModal(false);
+        setShowStaffProfileModal(false);
     };
   
     const handleConfirm = async () => {
         setShowConfirmModal(false);
         switch (confirmDialogEvtName) {
             case "remove":
-                delGolfCourse();
+                delUser();
                 break;
             case "restore":
-                restoreGolfCourse();
+                restoreUser();
                 break;
-            case 'save':
-                updateGolfCourse();
         }
     };
 
@@ -397,7 +403,7 @@ const Courses = () => {
                     </div>
                 </div>
                 <div className=" col-12 col-md-2 mt-4">
-                    <Button variant="success fw-bold d-flex gap-3 align-items-center justify-content-center" className="w-100" onClick={() => navigate('/dashboard/staff/courses/create')}>
+                    <Button variant="success fw-bold d-flex gap-3 align-items-center justify-content-center" className="w-100" onClick={handleAddStaff}>
                         <IoMdAddCircle size='32px' /> Add
                     </Button>
                 </div>
@@ -406,8 +412,8 @@ const Courses = () => {
             <Row className="card shadow border-0 rounded-3 z-3">
                 <div className="card-body row ms-0 me-0">
                     <div className="d-flex gap-3 align-items-center col-12 col-md-4 mb-3">
-                        <img src={IMAGES.golf_course} alt ="Avatar" className="rounded-circle" width={50} height={50} />
-                        <span className="text-danger fw-bold h2">Golf Courses</span>
+                        <img src={IMAGES.staff_management} alt ="Avatar" className="rounded-circle" width={50} height={50} />
+                        <span className="text-danger fw-bold h2">Staff Members</span>
                     </div>
 
                     <div className="d-flex flex-column gap-2 align-items-center col-12 col-md-4 mb-3">
@@ -418,10 +424,10 @@ const Courses = () => {
                             // getOptionLabel={getOptionLabel}
                             getOptionValue={(option) => option}
                             // defaultValue={initialObject}
-                            defaultOptions={courseOptions}
+                            defaultOptions={userOptions}
                             cacheOptions
-                            loadOptions={asyncCourseSearch}
-                            onChange={(val) => handleCourseChange(val) }
+                            loadOptions={asyncUserSearch}
+                            onChange={(val) => handleStaffChange(val) }
                         />
                     </div>
 
@@ -454,27 +460,12 @@ const Courses = () => {
                 </div>
             </Row>
 
-            <Table loading={networkRequest} rowKey="id" data={courses} affixHeader affixHorizontalScrollbar 
+            <Table loading={networkRequest} rowKey="id" data={users} affixHeader affixHorizontalScrollbar 
                 renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} 
                 autoHeight={true} hover={true}>
                     
                 {columns.map((column, idx) => {
                     const { key, label, ...rest } = column;
-                    if(idx < 2){
-                        return (
-                            <Column {...rest} key={key}>
-                                <HeaderCell>{label}</HeaderCell>
-                                <EditableCell
-                                    fullText
-                                    dataKey={key}
-                                    dataType="string"
-                                    onChange={handleChange}
-                                    onEdit={handleEdit}
-                                    style={{ padding: 6 }}
-                                />
-                            </Column>
-                        )
-                    }
                     return (
                         <Column {...rest} key={key} fullText>
                             <HeaderCell>{label}</HeaderCell>
@@ -484,7 +475,7 @@ const Courses = () => {
                 })}
                 <Column width={150} >
                     <HeaderCell>Actions...</HeaderCell>
-                    <ActionCell onEdit={handleEdit} changeStatus={handleChangeStatus} onSave={handleSave} onViewCouse={handleCourseView} />
+                    <ActionCell changeStatus={handleChangeStatus} onViewStaff={handleViewStaff} />
                 </Column>
             </Table>
             <Row className="mt-3">
@@ -501,8 +492,27 @@ const Courses = () => {
 				handleConfirm={handleConfirm}
 				message={displayMsg}
 			/>
+			<StaffCreationDialog
+				show={showStaffCreationModal}
+				handleClose={handleCloseModal}
+				handleConfirm={handleCreateStaff}
+				message={displayMsg}
+                networkRequest={networkRequest}
+                setNetworkREquest={setNetworkRequest}
+                authOptions={authOptions}
+                staff={editedUser}
+			/>
+			<StaffProfileViewDialog
+				show={showStaffProfileModal}
+				handleClose={handleCloseModal}
+				handleConfirm={handleAuthUpdate}
+				message={displayMsg}
+                networkRequest={networkRequest}
+                authOptions={authOptions}
+                staff={editedUser}
+			/>
         </section>
     )
 }
 
-export default Courses;
+export default Staff;

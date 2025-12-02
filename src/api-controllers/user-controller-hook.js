@@ -23,13 +23,36 @@ const useUserController = () => {
         await xhrAios.post(`/users/onboarding`, formData, {signal})
     }
     
-    const getAxios = () => {
-        return xhrAios;
+    const status = async (signal, data) => {
+        return await xhrAios.put(`/users/status`, data, {signal});
+    }
+    
+    const activeStaffPageInit = async (signal, pageSize) => {
+        return await xhrAios.get(`/users/active/init/${pageSize}`, {signal});
+    }
+    
+    const paginateFetch = async (signal, data) => {
+        return await xhrAios.get(`/users/search/page/${data.page}`, {
+            params: {
+                pageSize: data.pageSize, status: data.contestStatus, page: data.page
+            }
+        }, {signal});
+    }
+    
+    const userSearch = async (signal, data) => {
+        return await xhrAios.get(`/users/query`, {
+            params: {
+                str: data.inputValue, status: data.userStatus
+            }
+        }, {signal});
     }
 
     return {
         onboard,
-        getAxios,
+        status,
+        activeStaffPageInit,
+        paginateFetch,
+        userSearch,
     }
 }
 

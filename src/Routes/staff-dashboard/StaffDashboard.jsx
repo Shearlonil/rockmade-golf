@@ -10,6 +10,7 @@ import IMAGES from '../../assets/images';
 import handleErrMsg from '../../Utils/error-handler';
 import useGenericController from '../../api-controllers/generic-controller-hook';
 import OffcanvasMenu from '../../Components/OffcanvasMenu';
+import cryptoHelper from '../../Utils/crypto-helper';
 
 const StaffDashboard = () => {
     const controllerRef = useRef(new AbortController());
@@ -63,7 +64,7 @@ const StaffDashboard = () => {
     };
 
     useEffect(() => {
-        if(!user || !user.authorities || user.authorities.length === 0){
+        if(!user || cryptoHelper.decryptData(user.mode) === '1'){
             navigate("/");
         }
         setMostPlayedContestsData([{month: months[0], amount: 1000}]);
@@ -94,12 +95,13 @@ const StaffDashboard = () => {
 	const handleOffCanvasMenuItemClick = async (onclickParams, e) => {
 		switch (onclickParams.evtName) {
             case 'viewGolfCourses':
-                navigate('/dashboard/staff/courses/active');
+                navigate('/dashboard/staff/courses');
                 break;
             case 'contests':
+                navigate('/dashboard/contests');
                 break;
             case 'users':
-                navigate('/dashboard/users/trash');
+                navigate('/dashboard/users');
                 break;
         }
 	}
@@ -234,7 +236,7 @@ const StaffDashboard = () => {
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='primary' className='w-100 fw-bold'>View Contests</Button> 
+                        <Button variant='primary' className='w-100 fw-bold' onClick={() => navigate('contests')}>View Contests</Button>
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 

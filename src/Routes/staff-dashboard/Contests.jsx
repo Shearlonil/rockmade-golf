@@ -5,21 +5,21 @@ import { toast } from "react-toastify";
 import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { IoMdAddCircle } from "react-icons/io";
-import { GrView } from "react-icons/gr";
 import { VscEdit, VscSave, VscRemove } from 'react-icons/vsc';
 import { TbRestore } from "react-icons/tb";
 import { Table, IconButton, Input, NumberInput, DatePicker } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
-import IMAGES from "../../../assets/images";
-import { useAuthUser } from "../../../app-context/user-context";
-import useCourseController from "../../../api-controllers/course-controller-hook";
-import handleErrMsg from "../../../Utils/error-handler";
-import { statusOptions, pageSizeOptions } from "../../../Utils/data";
-import PaginationLite from '../../../Components/PaginationLite';
-import RsuiteTableSkeletonLoader from "../../../Components/RsuiteTableSkeletonLoader";
-import ConfirmDialog from "../../../Components/DialogBoxes/ConfirmDialog";
-import cryptoHelper from "../../../Utils/crypto-helper";
+import { useAuthUser } from "../../app-context/user-context";
+import useContestController from "../../api-controllers/contest-controller-hook";
+import handleErrMsg from "../../Utils/error-handler";
+import IMAGES from "../../assets/images";
+import ConfirmDialog from "../../Components/DialogBoxes/ConfirmDialog";
+import PaginationLite from "../../Components/PaginationLite";
+import { statusOptions, pageSizeOptions } from "../../Utils/data";
+import RsuiteTableSkeletonLoader from "../../Components/RsuiteTableSkeletonLoader";
+import InputDialog from '../../Components/DialogBoxes/InputDialog';
+import cryptoHelper from "../../Utils/crypto-helper";
 
 const columns = [
     {
@@ -30,27 +30,14 @@ const columns = [
         // width: 200
     },
     {
-        key: 'location',
-        label: 'Location',
-        flexGrow: 1,
-        // fixed: true,
-        // width: 200
-    },
-    {
-        key: 'no_of_holes',
-        label: 'Number Of Holes',
+        key: 'fname',
+        label: 'Creator',
         flexGrow: 1,
         // width: 100
     },
     {
         key: 'createdAt',
         label: 'Created At',
-        flexGrow: 1,
-        // width: 100
-    },
-    {
-        key: 'fname',
-        label: 'Creator',
         flexGrow: 1,
         // width: 100
     },
@@ -95,10 +82,9 @@ const EditableCell = ({ rowData, dataType, dataKey, onChange, onEdit, ...props }
     );
 };
 
-const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onRestore, onSave, onViewCouse, ...props }) => {
+const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onRestore, onSave, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} onClick={() => { onViewCouse(rowData.id); }}  />
             <IconButton appearance="subtle" icon={rowData.mode === 'EDIT' ? <VscSave /> : <VscEdit />} onClick={() => { onEdit(rowData.id); }}/>
             <IconButton appearance="subtle" icon={rowData.status == true ? <VscRemove /> : <TbRestore />} onClick={() => { changeStatus(rowData); }}  />
             <IconButton icon={<VscSave color='green' />} onClick={() => { onSave(rowData); }}  />
@@ -106,23 +92,24 @@ const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onRestore, onSave,
   );
 };
 
-const Courses = () => {
+const Contests = () => {
     const controllerRef = useRef(new AbortController());
     
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { paginateFetch, courseSearch, activeCoursesPageInit, status, updateCourse } = useCourseController();
+    const { paginateFetch, contestSearch, activeContestsPageInit, status, update, create } = useContestController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
-    const [courseOptions, setCourseOptions] = useState([]);
-    const [courseStatus, setCourseStatus] = useState(true);
+    const [contestOptions, setContestOptions] = useState([]);
+    const [contestStatus, setContestStatus] = useState(true);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [showInputModal, setShowInputModal] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
-    const [editedCourse, setEditedCourse] = useState(null);
+    const [editedContest, setEditedContest] = useState(null);
         
     //	for pagination
     const [pageSize, setPageSize] = useState(pageSizeOptions[2].value);
@@ -130,11 +117,11 @@ const Courses = () => {
     const [currentPage, setCurrentPage] = useState(1);
     
     //  data returned from DataPagination
-    const [courses, setCourses] = useState([]);
+    const [contests, setContests] = useState([]);
     
     useEffect(() => {
         if(!user || cryptoHelper.decryptData(user.mode) !== '0'){
-            navigate("/");
+            navigate("/dashboard");
             return;
         }
 
@@ -149,14 +136,14 @@ const Courses = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const response = await activeCoursesPageInit(controllerRef.current.signal, pageSize);
+            const response = await activeContestsPageInit(controllerRef.current.signal, pageSize);
 
             //	check if the request to fetch pkg doesn't fail before setting values to display
             if(response && response.data){
                 const { count, results } = response.data;
-                setCourseOptions(results?.map(course => ({label: course.name, value: course})));
+                setContestOptions(results?.map(course => ({label: course.name, value: course})));
                 if(results && count){
-                    setCourses(results);
+                    setContests(results);
                     setTotalItemsCount(count);
                 }
             }
@@ -172,15 +159,15 @@ const Courses = () => {
         }
     };
 
-    const asyncCourseSearch = async (inputValue, callback) => {
+    const asyncContestSearch = async (inputValue, callback) => {
         /*  refs: https://stackoverflow.com/questions/65963103/how-can-i-setup-react-select-to-work-correctly-with-server-side-data-by-using  */
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await courseSearch(controllerRef.current.signal, {inputValue, courseStatus});
+            const response = await contestSearch(controllerRef.current.signal, {inputValue, contestStatus});
             const results = response.data.map(course => ({label: course.name, value: course}));
-            setCourseOptions(results);
-            setCourses(response.data);
+            setContestOptions(results);
+            setContests(response.data);
             setTotalItemsCount(0);
             setNetworkRequest(false);
             callback(results);
@@ -194,22 +181,22 @@ const Courses = () => {
         }
     };
 
-    const handleCourseChange = (val) => {
+    const handleContestChange = (val) => {
         setTotalItemsCount(0);
-        setCourses( val ? [val.value] : [] );
+        setContests( val ? [val.value] : [] );
     };
 
     const handleStatusChange = async (val) => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await paginateFetch(controllerRef.current.signal, {page: 1, pageSize, courseStatus: val.value});
+            const response = await paginateFetch(controllerRef.current.signal, {page: 1, pageSize, contestStatus: val.value});
             const { count, results } = response.data;
-            setCourseOptions(results.map(course => ({label: course.name, value: course})));
-            setCourses(results);
+            setContestOptions(results.map(course => ({label: course.name, value: course})));
+            setContests(results);
             setCurrentPage(1);
             setTotalItemsCount(count);
-            setCourseStatus(val.value);
+            setContestStatus(val.value);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -226,10 +213,10 @@ const Courses = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await paginateFetch(controllerRef.current.signal, {page: 1, pageSize: val.value, courseStatus});
+            const response = await paginateFetch(controllerRef.current.signal, {page: 1, pageSize: val.value, contestStatus});
             const { count, results } = response.data;
-            setCourseOptions(results.map(course => ({label: course.name, value: course})));
-            setCourses(results);
+            setContestOptions(results.map(course => ({label: course.name, value: course})));
+            setContests(results);
             setCurrentPage(1);
             setTotalItemsCount(count);
             setPageSize(val.value);
@@ -248,10 +235,10 @@ const Courses = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await paginateFetch(controllerRef.current.signal, {page: pageNumber, pageSize, courseStatus});
+            const response = await paginateFetch(controllerRef.current.signal, {page: pageNumber, pageSize, contestStatus});
             const { count, results } = response.data;
-            setCourseOptions(results.map(course => ({label: course.name, value: course})));
-            setCourses(results);
+            setContestOptions(results.map(course => ({label: course.name, value: course})));
+            setContests(results);
             setCurrentPage(pageNumber);
             setTotalItemsCount(count);
             setNetworkRequest(false);
@@ -265,14 +252,14 @@ const Courses = () => {
         }
     };
 
-	const delGolfCourse = async () => {
+	const delContest = async () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await status(controllerRef.current.signal, {id: editedCourse.id, status: false});
-            setCourses(courses.filter(course => editedCourse.id !== course.id));
-            setTotalItemsCount(courses.length - 1);
-            setEditedCourse(null);
+            await status(controllerRef.current.signal, {id: editedContest.id, status: false});
+            setContests(contests.filter(course => editedContest.id !== course.id));
+            setTotalItemsCount(contests.length - 1);
+            setEditedContest(null);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -284,14 +271,14 @@ const Courses = () => {
         }
     };
 
-	const restoreGolfCourse = async () => {
+	const restoreContest = async () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await status(controllerRef.current.signal, {id: editedCourse.id, status: true});
-            setCourses(courses.filter(course => editedCourse.id !== course.id));
-            setTotalItemsCount(courses.length - 1);
-            setEditedCourse(null);
+            await status(controllerRef.current.signal, {id: editedContest.id, status: true});
+            setContests(contests.filter(course => editedContest.id !== course.id));
+            setTotalItemsCount(contests.length - 1);
+            setEditedContest(null);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -303,12 +290,12 @@ const Courses = () => {
         }
     };
 
-    const updateGolfCourse = async () => {
+    const updateContest = async () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await updateCourse(controllerRef.current.signal, {id: editedCourse.id, name: editedCourse.name, location: editedCourse.location});
-            setEditedCourse(null);
+            await update(controllerRef.current.signal, {id: editedContest.id, name: editedContest.name, location: editedContest.location});
+            setEditedContest(null);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -321,18 +308,18 @@ const Courses = () => {
     }
 
     const handleChange = (id, key, value) => {
-        const nextData = Object.assign([], courses);
+        const nextData = Object.assign([], contests);
         nextData.find(item => item.id === id)[key] = value;
-        setCourses(nextData);
+        setContests(nextData);
     };
 
     const handleEdit = id => {
-        const nextData = Object.assign([], courses);
+        const nextData = Object.assign([], contests);
         const activeItem = nextData.find(item => item.id === id);
 
         activeItem.mode = activeItem.mode ? null : 'EDIT';
 
-        setCourses(nextData);
+        setContests(nextData);
     };
 
     const handleChangeStatus = course => {
@@ -340,12 +327,12 @@ const Courses = () => {
             setConfirmDialogEvtName('remove');
             setDisplayMsg(`Delete ${course.name} from active list?`);
             setShowConfirmModal(true);
-            setEditedCourse(course);
+            setEditedContest(course);
         }else {
             setConfirmDialogEvtName('restore');
-            setDisplayMsg(`Restore ${course.name} from list of inactive courses?`);
+            setDisplayMsg(`Restore ${course.name} from list of inactive contests?`);
             setShowConfirmModal(true);
-            setEditedCourse(course);
+            setEditedContest(course);
         }
     };
   
@@ -353,30 +340,52 @@ const Courses = () => {
         setConfirmDialogEvtName('save');
         setDisplayMsg(`Save changes made to ${course.name}?`);
         setShowConfirmModal(true);
-        setEditedCourse(course);
+        setEditedContest(course);
     };
-  
-    const handleCourseView = id => {
-        navigate(`/dashboard/staff/courses/${id}/view`)
-    };
+
+    const handleAddContest = () => {
+        setDisplayMsg('Enter Contest name');
+        setShowInputModal(true);
+    }
 
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
+        setShowInputModal(false);
     };
   
     const handleConfirm = async () => {
         setShowConfirmModal(false);
         switch (confirmDialogEvtName) {
             case "remove":
-                delGolfCourse();
+                delContest();
                 break;
             case "restore":
-                restoreGolfCourse();
+                restoreContest();
                 break;
             case 'save':
-                updateGolfCourse();
+                updateContest();
         }
     };
+	
+	const handleInputOK = async (str) => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const response = await create(controllerRef.current.signal, str);
+            const c = response.data;
+            c.fname = user.firstName;
+            setContests([...contests, c]);
+            setShowInputModal(false);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+	};
 
     const resetAbortController = () => {
         // Cancel previous request if it exists
@@ -397,7 +406,7 @@ const Courses = () => {
                     </div>
                 </div>
                 <div className=" col-12 col-md-2 mt-4">
-                    <Button variant="success fw-bold d-flex gap-3 align-items-center justify-content-center" className="w-100" onClick={() => navigate('/dashboard/staff/courses/create')}>
+                    <Button variant="success fw-bold d-flex gap-3 align-items-center justify-content-center" className="w-100" onClick={handleAddContest}>
                         <IoMdAddCircle size='32px' /> Add
                     </Button>
                 </div>
@@ -406,8 +415,8 @@ const Courses = () => {
             <Row className="card shadow border-0 rounded-3 z-3">
                 <div className="card-body row ms-0 me-0">
                     <div className="d-flex gap-3 align-items-center col-12 col-md-4 mb-3">
-                        <img src={IMAGES.golf_course} alt ="Avatar" className="rounded-circle" width={50} height={50} />
-                        <span className="text-danger fw-bold h2">Golf Courses</span>
+                        <img src={IMAGES.cup} alt ="Avatar" className="rounded-circle" width={50} height={50} />
+                        <span className="text-danger fw-bold h2">Golf Contests</span>
                     </div>
 
                     <div className="d-flex flex-column gap-2 align-items-center col-12 col-md-4 mb-3">
@@ -418,10 +427,10 @@ const Courses = () => {
                             // getOptionLabel={getOptionLabel}
                             getOptionValue={(option) => option}
                             // defaultValue={initialObject}
-                            defaultOptions={courseOptions}
+                            defaultOptions={contestOptions}
                             cacheOptions
-                            loadOptions={asyncCourseSearch}
-                            onChange={(val) => handleCourseChange(val) }
+                            loadOptions={asyncContestSearch}
+                            onChange={(val) => handleContestChange(val) }
                         />
                     </div>
 
@@ -454,13 +463,13 @@ const Courses = () => {
                 </div>
             </Row>
 
-            <Table loading={networkRequest} rowKey="id" data={courses} affixHeader affixHorizontalScrollbar 
+            <Table loading={networkRequest} rowKey="id" data={contests} affixHeader affixHorizontalScrollbar 
                 renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} 
                 autoHeight={true} hover={true}>
                     
                 {columns.map((column, idx) => {
                     const { key, label, ...rest } = column;
-                    if(idx < 2){
+                    if(idx < 1){
                         return (
                             <Column {...rest} key={key}>
                                 <HeaderCell>{label}</HeaderCell>
@@ -484,7 +493,7 @@ const Courses = () => {
                 })}
                 <Column width={150} >
                     <HeaderCell>Actions...</HeaderCell>
-                    <ActionCell onEdit={handleEdit} changeStatus={handleChangeStatus} onSave={handleSave} onViewCouse={handleCourseView} />
+                    <ActionCell onEdit={handleEdit} changeStatus={handleChangeStatus} onSave={handleSave} />
                 </Column>
             </Table>
             <Row className="mt-3">
@@ -501,8 +510,15 @@ const Courses = () => {
 				handleConfirm={handleConfirm}
 				message={displayMsg}
 			/>
+            <InputDialog
+                show={showInputModal}
+                handleClose={handleCloseModal}
+                handleConfirm={handleInputOK}
+                message={displayMsg}
+                networkRequest={networkRequest}
+            />
         </section>
     )
 }
 
-export default Courses;
+export default Contests;

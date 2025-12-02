@@ -9,6 +9,8 @@ import { useProfileImg } from '../../app-context/dp-context';
 import IMAGES from '../../assets/images';
 import handleErrMsg from '../../Utils/error-handler';
 import useGenericController from '../../api-controllers/generic-controller-hook';
+import cryptoHelper from '../../Utils/crypto-helper';
+import { useAuth } from '../../app-context/auth-context';
 
 const ClientDashboard = () => {
     const controllerRef = useRef(new AbortController());
@@ -16,6 +18,7 @@ const ClientDashboard = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const { logout } = useAuth();
     const { imageBlob, setImageBlob } =  useProfileImg();
     const { performGetRequests, download } = useGenericController();
     const { authUser } = useAuthUser();
@@ -62,8 +65,8 @@ const ClientDashboard = () => {
     };
 
     useEffect(() => {
-        if(!user || user.authorities.length > 0){
-            navigate("/");
+        if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
+            logoutUnauthorized();
         }
         setMostPlayedContestsData([{month: months[0], amount: 1000}]);
 
@@ -73,6 +76,12 @@ const ClientDashboard = () => {
             controllerRef.current.abort();
         };
     }, [location.pathname]);
+
+    const logoutUnauthorized = async () => {
+        setNetworkRequest(true);
+        await logout();
+        navigate("/");
+    }
 
     const initialize = async () => {
         try {

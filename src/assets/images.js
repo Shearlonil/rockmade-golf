@@ -20,6 +20,8 @@ const IMAGES = {
     player5: new URL("./Img/player5.jpeg", import.meta.url).href,
     player6: new URL("./Img/player6.jpeg", import.meta.url).href,
     golf_course: new URL("./Img/golf_course.png", import.meta.url).href,
+    cup: new URL("./Img/cup.png", import.meta.url).href,
+    staff_management: new URL("./Img/management.png", import.meta.url).href,
 
     ////////////// SVGs
     svg_fans_SECONDARY: new URL("./Svg/undraw_fans_SECONDARY.svg", import.meta.url).href,

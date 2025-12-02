@@ -16,6 +16,8 @@ import GolfCourseCreation from "./Routes/GolfCourseCreation.jsx";
 import Dashboard from "./Routes/MainDashboard.jsx";
 import Courses from "./Routes/staff-dashboard/courses/Courses.jsx";
 import GolfCourseView from "./Routes/staff-dashboard/courses/GolfCourseView.jsx";
+import Contests from "./Routes/staff-dashboard/Contests.jsx";
+import Staff from "./Routes/staff-dashboard/users/Staff.jsx";
 
 function App() {
     return (
@@ -32,11 +34,13 @@ function App() {
 
                 <Route path="/dashboard" element={<ProtectedRoute />}>
                     <Route index path="game/create" element={<GameMode />} />
+                    <Route index path="contests" element={<Contests />} />
+                    <Route index path="users" element={<Staff />} />
                     <Route path="staff" >
                         <Route path="courses" >
                             <Route path=":id/view" element={<GolfCourseView />} />
-				            <Route path="active" element={<Courses />} />
 				            <Route path="create" element={<GolfCourseCreation />} />
+				            <Route path="" element={<Courses />} />
                         </Route>
                     </Route>
 					<Route path={""} element={<Dashboard />} />

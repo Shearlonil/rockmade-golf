@@ -4,8 +4,20 @@ import { useAxiosInterceptor } from '../axios/axios-interceptors';
 const useContestController = () => {
     const { xhrAios } = useAxiosInterceptor();
     
+    const finById = async (signal, id) => {
+        return await xhrAios.get(`/contests/search/${id}`, {signal});
+    }
+    
     const fetchAllActive = async (signal) => {
         return await xhrAios.get(`/contests/active/all`, {signal});
+    }
+    
+    const contestSearch = async (signal, data) => {
+        return await xhrAios.get(`/contests/query`, {
+            params: {
+                str: data.inputValue, status: data.contestStatus
+            }
+        }, {signal});
     }
     
     const removeHole = async (signal, data) => {
@@ -25,16 +37,32 @@ const useContestController = () => {
     }
     
     const status = async (signal, data) => {
-        return await xhrAios.post(`/contests/status`, data, {signal});
+        return await xhrAios.put(`/contests/status`, data, {signal});
+    }
+    
+    const activeContestsPageInit = async (signal, pageSize) => {
+        return await xhrAios.get(`/contests/active/init/${pageSize}`, {signal});
+    }
+    
+    const paginateFetch = async (signal, data) => {
+        return await xhrAios.get(`/contests/search/page/${data.page}`, {
+            params: {
+                pageSize: data.pageSize, status: data.contestStatus, page: data.page
+            }
+        }, {signal});
     }
 
     return {
+        finById,
         fetchAllActive,
         removeHole,
         updateHoles,
         create,
         update,
         status,
+        paginateFetch,
+        activeContestsPageInit,
+        contestSearch,
     }
 }
 

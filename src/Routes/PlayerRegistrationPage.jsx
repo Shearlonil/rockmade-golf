@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
     RiUserLine,
     RiMailLine,
-    RiCalendarLine,
     RiBuildingLine,
     RiGolfBallLine,
     RiEyeLine,
