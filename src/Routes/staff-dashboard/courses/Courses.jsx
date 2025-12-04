@@ -95,10 +95,10 @@ const EditableCell = ({ rowData, dataType, dataKey, onChange, onEdit, ...props }
     );
 };
 
-const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onRestore, onSave, onViewCouse, ...props }) => {
+const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onRestore, onSave, onViewCourse, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} onClick={() => { onViewCouse(rowData.id); }}  />
+            <IconButton icon={<GrView color='green' />} onClick={() => { onViewCourse(rowData.id); }}  />
             <IconButton appearance="subtle" icon={rowData.mode === 'EDIT' ? <VscSave /> : <VscEdit />} onClick={() => { onEdit(rowData.id); }}/>
             <IconButton appearance="subtle" icon={rowData.status == true ? <VscRemove /> : <TbRestore />} onClick={() => { changeStatus(rowData); }}  />
             <IconButton icon={<VscSave color='green' />} onClick={() => { onSave(rowData); }}  />
@@ -484,7 +484,7 @@ const Courses = () => {
                 })}
                 <Column width={150} >
                     <HeaderCell>Actions...</HeaderCell>
-                    <ActionCell onEdit={handleEdit} changeStatus={handleChangeStatus} onSave={handleSave} onViewCouse={handleCourseView} />
+                    <ActionCell onEdit={handleEdit} changeStatus={handleChangeStatus} onSave={handleSave} onViewCourse={handleCourseView} />
                 </Column>
             </Table>
             <Row className="mt-3">

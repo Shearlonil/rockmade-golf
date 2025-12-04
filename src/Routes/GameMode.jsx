@@ -89,14 +89,6 @@ const GameMode = () => {
 		},
 	});
 
-    const specialFeatures = [
-        "Port-Not-Port",
-        "Beddy No Beddy",
-        "Mulligan",
-        "Longest Drive",
-        "Closest to Pin",
-    ];
-
     const registeredPlayers = [
         {
             name: "Obarinsola Olatunji",
@@ -122,7 +114,7 @@ const GameMode = () => {
     ];
 
     useEffect(() => {
-        if(user && !user.sub){
+        if(user && crypt.decryptData(user.mode) === '0'){
             // staff now allowed, because user.sub for staff will be undefined
             toast.info("Only subscribed memebers are allowed to create games")
             // navigate to dashboard
@@ -597,9 +589,6 @@ const GameMode = () => {
                                 <Button onClick={ () => setStep(5)} className="me-2 btn-success col-md-4 col-sm-12">
                                     Start Game
                                 </Button>
-                                <Button variant="secondary" onClick={() => setStep(3)} className="me-2 btn-danger col-md-4 col-sm-12" >
-                                    Back
-                                </Button>
                             </div>
                         </div>
 
@@ -795,7 +784,6 @@ const GameMode = () => {
                 show={showHolesContestsModal}
                 handleClose={handleCloseModal}
                 data={holesContestData}
-                course={course}
                 updateHolesContest={updateHolesContest}
             />
         </>

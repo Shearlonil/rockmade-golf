@@ -31,6 +31,10 @@ const useUserController = () => {
         return await xhrAios.get(`/users/active/init/${pageSize}`, {signal});
     }
     
+    const dashbaord = async (signal) => {
+        return await xhrAios.get(`/users/dashboard`, {signal});
+    }
+    
     const paginateFetch = async (signal, data) => {
         return await xhrAios.get(`/users/search/page/${data.page}`, {
             params: {
@@ -51,6 +55,7 @@ const useUserController = () => {
         onboard,
         status,
         activeStaffPageInit,
+        dashbaord,
         paginateFetch,
         userSearch,
     }

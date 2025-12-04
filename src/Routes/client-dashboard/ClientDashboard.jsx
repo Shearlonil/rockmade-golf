@@ -1,16 +1,67 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, Col, Row } from 'react-bootstrap';
+import { IoSettings } from "react-icons/io5";
+import { GrView } from "react-icons/gr";
+import { VscRemove } from 'react-icons/vsc';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { Table, IconButton } from 'rsuite';
+const { Column, HeaderCell } = Table;
 
 import { useAuthUser } from '../../app-context/user-context';
 import { useProfileImg } from '../../app-context/dp-context';
 import IMAGES from '../../assets/images';
 import handleErrMsg from '../../Utils/error-handler';
-import useGenericController from '../../api-controllers/generic-controller-hook';
 import cryptoHelper from '../../Utils/crypto-helper';
 import { useAuth } from '../../app-context/auth-context';
+import useUserController from '../../api-controllers/user-controller-hook';
+import useGenericController from '../../api-controllers/generic-controller-hook';
+import { OrbitalLoading } from '../../Components/react-loading-indicators/Indicator';
+
+const columns = [
+    {
+        key: 'name',
+        label: 'Name',
+        fixed: true,
+        flexGrow: 2,
+        // width: 200
+    },
+    {
+        key: 'hole_mode',
+        label: 'Hole Mode',
+        flexGrow: 1,
+        // fixed: true,
+        // width: 200
+    },
+    {
+        key: 'date',
+        label: 'Game Date',
+        flexGrow: 1,
+        // width: 100
+    },
+    {
+        key: 'mode',
+        label: 'Game Status',
+        flexGrow: 1,
+        // width: 100
+    },
+    {
+        key: 'createdAt',
+        label: 'Created At',
+        flexGrow: 1,
+        // width: 100
+    },
+];
+
+const ActionCell = ({ rowData, dataKey, onDelete, onViewGame, ...props }) => {
+    return (
+        <Table.Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
+            <IconButton icon={<GrView color='green' />} onClick={() => { onViewGame(rowData.id); }}  />
+            <IconButton appearance="subtle" icon={<VscRemove />} onClick={() => { onDelete(rowData); }}  />
+        </Table.Cell>
+  );
+};
 
 const ClientDashboard = () => {
     const controllerRef = useRef(new AbortController());
@@ -21,6 +72,7 @@ const ClientDashboard = () => {
     const { logout } = useAuth();
     const { imageBlob, setImageBlob } =  useProfileImg();
     const { performGetRequests, download } = useGenericController();
+    const { dashbaord } = useUserController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
@@ -31,7 +83,9 @@ const ClientDashboard = () => {
     const [hcp, setHcp] = useState(0);
     const [coursesPlayed, setCoursesPlayed] = useState(0);
     const [gamesPlayed, setGamesPlayed] = useState(0);
-    const [homeClub, setHomeClub] = useState(0);
+    const [homeClub, setHomeClub] = useState("");
+    const [ongoigRounds, setOngongRounds] = useState([]);
+    const [recentGames, setRecentGames] = useState([]);
 
     
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8a2be2"];
@@ -87,7 +141,30 @@ const ClientDashboard = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-
+            const response = await dashbaord();
+            if(response && response.data){
+                setCoursesPlayed(response.data.courses_played);
+                setGamesPlayed(response.data.games_played);
+                setHomeClub(response.data.home_club);
+                const rounds = response.data.ongoing_rounds.map(r => {
+                    let mode = 'Full 18';
+                    if(r.hole_mode === 2){
+                        mode = 'Font 9'
+                    }else if(r.hole_mode === 3) {
+                        mode = 'Back 9'
+                    }
+                    return {
+                        id: r.game_id,
+                        name: r.name,
+                        date: r.date,
+                        mode: r.mode === 1 ? "Yet to play" : "In play",
+                        hole_mode: mode,
+                        createdAt: r.createdAt
+                    }
+                });
+                setOngongRounds(rounds);
+                console.log(rounds);
+            }
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError') {
@@ -97,6 +174,12 @@ const ClientDashboard = () => {
             setNetworkRequest(false);
             toast.error(handleErrMsg(error).msg);
         }
+    }
+
+    const handleOngoingGameDelete = async () => {
+    }
+
+    const handleViewOngoingGame = async () => {
     }
 
     return (
@@ -117,7 +200,6 @@ const ClientDashboard = () => {
                             <div className="card-body">
                                 <div className='d-flex justify-content-between'>
                                     <span className='h1 text-warning fw-bold' style={{fontSize: '50px'}}>{user?.hcp}</span>
-                                    <span>hello</span>
                                 </div>
                                 <span>Handicap Index value</span>
                             </div>
@@ -133,7 +215,6 @@ const ClientDashboard = () => {
                             <div className="card-body">
                                 <div className='d-flex justify-content-between'>
                                     <span className='h1 text-danger fw-bold' style={{fontSize: '50px'}}>{coursesPlayed}</span>
-                                    <span>hello</span>
                                 </div>
                                 <span>Number of courses played</span>
                             </div>
@@ -149,7 +230,6 @@ const ClientDashboard = () => {
                             <div className="card-body">
                                 <div className='d-flex justify-content-between'>
                                     <span className='h1 text-primary fw-bold' style={{fontSize: '50px'}}>{gamesPlayed}</span>
-                                    <span>hello</span>
                                 </div>
                                 <span>Number of games played</span>
                             </div>
@@ -163,11 +243,12 @@ const ClientDashboard = () => {
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
                             <div className="card-body">
-                                <div className='d-flex justify-content-between'>
-                                    <span className='h1 text-success fw-bold' style={{fontSize: '50px'}}>{homeClub}</span>
-                                    <span>hello</span>
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <span className='align-self-end'>
+                                        <IoSettings size={30} style={{ color: 'green' }} onClick={() => null} />
+                                    </span>
+                                    <span className='text-success fw-bold' style={{fontSize: '25px'}}>{homeClub?.name}</span>
                                 </div>
-                                <span>Registered Home Club</span>
                             </div>
                             <div className="card-footer text-white bg-success">
                                 Home Club
@@ -176,6 +257,28 @@ const ClientDashboard = () => {
                     </div>
                 </Col>
             </Row>
+            <div className="justify-content-center d-flex">
+                {networkRequest && <OrbitalLoading color='red' />}
+            </div>
+            {ongoigRounds.length > 0 && <h2 className='mt-3'>Ongoing Games</h2>}
+            {ongoigRounds.length > 0 && 
+                <Table rowKey="id" data={ongoigRounds} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true}>
+                    {columns.map((column, idx) => {
+                        const { key, label, ...rest } = column;
+                        // console.log(ongoigRounds[idx][key]);
+                        return (
+                            <Column {...rest} key={key} fullText>
+                                <HeaderCell>{label}</HeaderCell>
+                                <Table.Cell dataKey={key} style={{ padding: 6 }} />
+                            </Column>
+                        );
+                    })}
+                    <Column width={100} >
+                        <HeaderCell>Actions...</HeaderCell>
+                        <ActionCell onDelete={handleOngoingGameDelete} onViewGame={handleViewOngoingGame} />
+                    </Column>
+                </Table>
+            }
             <div className="row mt-3">
                 <Col xs={12} md={12} sm={12} className="mb-2 col-12 my-2 d-flex flex-column justify-content-center">
                     <div className="card shadow border-0 rounded-3 h-100 p-4">
