@@ -16,7 +16,7 @@ const GameSettings = ({changePageNumber}) => {
                                 <li> Add Contests to spice up games </li>
                             </ul>
                             <span>Setup Games as needed</span>
-                            <Button variant='primary'>Setup</Button>
+                            <Button variant='primary' onClick={() => changePageNumber(4)}>Setup</Button>
                         </div>
                     </div>
                 </div>

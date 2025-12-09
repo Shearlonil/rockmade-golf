@@ -9,20 +9,14 @@ import {
     ToggleButton,
     ButtonGroup,
 } from "react-bootstrap";
-import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import Select from "react-select";
-import Datetime from 'react-datetime';
-import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate, useLocation } from "react-router-dom";
-import { format, isAfter, subDays } from 'date-fns';
+import { format, isAfter } from 'date-fns';
 
 import { GameModeCard } from "../Styles/HomeStyle";
 import HeroComp from "../Components/HeroComp";
 import IMAGES from "../assets/images";
 import crypt from "../Utils/crypto-helper";
-import ErrorMessage from "../Components/ErrorMessage";
-import { course_selection_schema } from "../Utils/yup-schema-validator/game-creation-schema";
 import { gameModes } from "../Utils/data";
 import HolesContestsDialog from "../Components/DialogBoxes/HolesContestsDialog";
 import handleErrMsg from '../Utils/error-handler';
@@ -31,6 +25,7 @@ import { useAuthUser } from "../app-context/user-context";
 import useCourseController from "../api-controllers/course-controller-hook";
 import useGameController from "../api-controllers/game-controller-hook";
 import CourseSetup from "../Components/CourseSetup";
+import { useActiveCourses } from "../app-context/active-courses-context";
 
 const GameMode = () => {
     const controllerRef = useRef(new AbortController());
@@ -38,6 +33,7 @@ const GameMode = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const { setCourses, setLoadingCourses } = useActiveCourses();
     const { fetchAllActive } = useCourseController();
     const { createGame } = useGameController();
     const { authUser } = useAuthUser();
@@ -46,10 +42,6 @@ const GameMode = () => {
     const [step, setStep] = useState(1);
     
     const [networkRequest, setNetworkRequest] = useState(false);
-	const [golfCourseOptions, setGolfCourseOptions] = useState([]);
-	const [golfCoursesLoading, setGolfCoursesLoading] = useState(true);
-	const [holeOptions, setHoleOptions] = useState([]);
-	const [holesLoading, setHolesLoading] = useState(true);
 	const [holesContestData, setHolesContestData] = useState([]);
 	const [courseSettingData, setCourseSettingData] = useState(null);
     
@@ -59,7 +51,7 @@ const GameMode = () => {
     const [holeType, setHoleType] = useState("18");
     const [gameFormat, setGameFormat] = useState("Stroke Play");
     const [features, setFeatures] = useState({});
-	const [showHolesContestsModal, setShowHolesContestsModal] = useState("");
+	const [showHolesContestsModal, setShowHolesContestsModal] = useState(false);
 
     // players: slot contains either null or a player object {name,image,handicap,tee}
     const [players, setPlayers] = useState([user, null, null, null]); // 4 slots
@@ -72,24 +64,6 @@ const GameMode = () => {
 
     // editMode: 'own' (default) or 'all' (host/scorekeeper)
     const [editMode, setEditMode] = useState("own");
-
-    const yesterday = subDays(new Date(), 1); // Subtracts 1 day from today to use as past dates
-    const disablePastDt = current => current.isAfter(yesterday);
-
-	const {
-		register,
-		handleSubmit: handleGolfCourseSelectionSubmit,
-		control: courseSelectionControl,
-		reset,
-		setValue,
-		formState: { errors: golfCourseSelectionErrors },
-	} = useForm({
-		resolver: yupResolver(course_selection_schema),
-		defaultValues: {
-			course: null,
-            startDate: new Date(),
-		},
-	});
 
     const registeredPlayers = [
         {
@@ -156,8 +130,8 @@ const GameMode = () => {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
             const response = await fetchAllActive(controllerRef.current.signal);
-            setGolfCourseOptions(response.data.map(course => ({label: course.name, value: course})));
-            setGolfCoursesLoading(false);
+            setCourses(response.data);
+            setLoadingCourses(false);
 
             setNetworkRequest(false);
         } catch (error) {
@@ -199,22 +173,6 @@ const GameMode = () => {
             copy[playerIdx][holeIdx] = v === "" ? "" : String(v);
             return copy;
         });
-    };
-
-    //  Handle golf course selection change
-    const handleGolfCourseChange = (selectedCourse) => {
-        const arr = [];
-        if(selectedCourse.value.no_of_holes === 18){
-            let full = {label: 'Full 18', value: 1};
-            let front = {label: 'Front 9', value: 2};
-            let back = {label: 'Back 9', value: 3};
-            arr.splice(0, 0, full, front, back);
-        }else {
-            arr.push({label: 'Front 9', value: 2});
-        }
-        setHoleOptions(arr);
-        setHolesLoading(false);
-        setValue("hole_mode", null);
     };
 
 	const submitCourse = (data) => {
@@ -338,122 +296,13 @@ const GameMode = () => {
                     </div>
                 )}
 
-                {/* {step === 2 && <CourseSetup data={courseSettingData} gameMode={gameMode.name} handleSaveCourseSetting={submitCourse} handleCancel={() => setStep(1)} btnRedText='Back' btnBlueText='Next' />} */}
-
-                {step === 2 && (
-                    <div className="d-flex flex-column justify-content-center align-items-center text-center p-md-5 p-3 border rounded-4 bg-light shadow mb-5">
-                        <h2 className="mb-4">
-                            Select Course & Hole Type{" "}
-                            {gameMode && (
-                                <span className="badge text-bg-info">
-                                    <small className="fw-bold text-white">{gameMode.name}</small>
-                                </span>
-                            )}
-                        </h2>
-                        <Form className="mb-4 row d-flex justify-content-center">
-                            <div className="d-flex row">
-                                <Form.Group className="col-12 col-md-6 mb-3">
-                                    <Form.Label className="fw-bold">Game Name</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="Game Name"
-                                        {...register("name")}
-                                    />
-                                    <ErrorMessage source={golfCourseSelectionErrors.name} />
-                                </Form.Group>
-
-                                <Form.Group className="col-12 col-md-6 mb-3">
-                                    <Form.Label className="fw-bold">Game Date</Form.Label>
-                                    <Controller
-                                        name="startDate"
-                                        control={courseSelectionControl}
-                                        render={({ field }) => (
-                                            <Datetime
-                                                {...field}
-                                                timeFormat={false}
-                                                closeOnSelect={true}
-                                                dateFormat="DD/MM/YYYY"
-                                                isValidDate={disablePastDt}
-                                                inputProps={{
-                                                    placeholder: "Choose date",
-                                                    className: "form-control",
-                                                    readOnly: true, // Optional: makes input read-only
-                                                }}
-                                                value={field.value ? new Date(field.value) :  null}
-                                                onChange={(date) => field.onChange(date ? date.toDate() : null) }
-                                                /*	react-hook-form is unable to reset the value in the Datetime component because of the below bug.
-                                                    refs:
-                                                        *	https://stackoverflow.com/questions/46053202/how-to-clear-the-value-entered-in-react-datetime
-                                                        *	https://stackoverflow.com/questions/69536272/reactjs-clear-date-input-after-clicking-clear-button
-                                                    there's clearly a rendering bug in component if you try to pass a null or empty value in controlled component mode: 
-                                                    the internal input still got the former value entered with the calendar (uncontrolled ?) despite the fact that that.state.value
-                                                    or field.value is null : I've been able to "patch" it with the renderInput prop :*/
-                                                renderInput={(props) => {
-                                                    return <input {...props} value={field.value ? props.value : ''} />
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                    <ErrorMessage source={golfCourseSelectionErrors.startDate} />
-                                </Form.Group>
-                            </div>
-
-                            <div className="d-flex row">
-                                <Form.Group className="col-12 col-md-6 mb-3">
-                                    <Form.Label className="fw-bold">Choose Course</Form.Label>
-                                    <Controller
-                                        name="course"
-                                        control={courseSelectionControl}
-                                        render={({ field: { onChange, value } }) => (
-                                            <Select
-                                                required
-                                                name="course"
-                                                placeholder="Select Golf Course..."
-                                                className="text-dark"
-                                                isLoading={golfCoursesLoading}
-                                                options={golfCourseOptions}
-                                                value={value}
-                                                onChange={(val) => {
-                                                    onChange(val);
-                                                    handleGolfCourseChange(val);
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                    <ErrorMessage source={golfCourseSelectionErrors.course} />
-                                </Form.Group>
-                                <Form.Group className="col-12 col-md-6 mb-3">
-                                    <Form.Label className="fw-bold">How many holes are you playing?</Form.Label>
-                                    <Controller
-                                        name="hole_mode"
-                                        control={courseSelectionControl}
-                                        render={({ field: { onChange, value } }) => (
-                                            <Select
-                                                required
-                                                name="hole_mode"
-                                                placeholder="Number of holes..."
-                                                className="text-dark"
-                                                isLoading={holesLoading}
-                                                options={holeOptions}
-                                                value={value}
-                                                onChange={(val) => { onChange(val) }}
-                                            />
-                                        )}
-                                    />
-                                    <ErrorMessage source={golfCourseSelectionErrors.hole_mode} />
-                                </Form.Group>
-                            </div>
-                        </Form>
-                        <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse mb-2">
-                            <Button onClick={handleGolfCourseSelectionSubmit(submitCourse)} className="me-2 btn-primary col-md-4 col-sm-12">
-                                Next
-                            </Button>
-                            <Button variant="secondary" onClick={() => setStep(1)} className="me-2 btn-danger col-md-4 col-sm-12" >
-                                Back
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                {step === 2 && 
+                    <CourseSetup 
+                        data={courseSettingData} 
+                        gameMode={gameMode.name} 
+                        handleSaveCourseSetting={submitCourse} 
+                        handleCancel={() => setStep(1)} 
+                        btnRedText='Back' btnBlueText='Next' />}
 
                 {step === 3 && (
                     <div className="p-5 border rounded-4 bg-light shadow mb-5">

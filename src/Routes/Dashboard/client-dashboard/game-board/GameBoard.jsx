@@ -18,6 +18,9 @@ import LeaderBoards from './LeaderBoards';
 import GameSettings from './GameSettings';
 import CourseSetup from '../../../../Components/CourseSetup';
 import { useActiveCourses } from '../../../../app-context/active-courses-context';
+import ConfirmDialog from '../../../../Components/DialogBoxes/ConfirmDialog';
+import GameSetup from '../../../../Components/GameSetup';
+import HolesContestsDialog from '../../../../Components/DialogBoxes/HolesContestsDialog';
 
 const GameBoard = () => {
     const controllerRef = useRef(new AbortController());
@@ -33,11 +36,21 @@ const GameBoard = () => {
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
+	const [holesContestData, setHolesContestData] = useState([]);
+    // course data
     const [ongoingRound, setOngoingRound] = useState(null);
+    // Game data
+    const [gameData, setGameData] = useState(null);
     const [playerScores, setPlayerScores] = useState([]);
     const [pageNumber, setPageNumber] = useState(1);
     const [gameMode, setGameMode] = useState(null);
     
+	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [displayMsg, setDisplayMsg] = useState("");
+    const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
+    const [updatedCourseData, setUpdatedCoureData] = useState(null);
+	const [showHolesContestsModal, setShowHolesContestsModal] = useState(false);
+
     const offCanvasMenu = [
         { label: "Enter Score", onClickParams: {evtName: 'enterScore'} },
         { label: "Leaderboards", onClickParams: {evtName: 'leaderboards'} },
@@ -121,8 +134,77 @@ const GameBoard = () => {
     }
 
     const handleSaveCourseSetting = (data) => {
-        console.log(data);
+        setConfirmDialogEvtName('save')
+        setDisplayMsg('Update Course for the ongoing game??');
+        setShowConfirmModal(true);
+        setUpdatedCoureData(data);
     }
+
+	const handleCloseModal = () => {
+        setShowConfirmModal(false);
+        setShowHolesContestsModal(false);
+    };
+  
+    const handleConfirm = async () => {
+        setShowConfirmModal(false);
+        switch (confirmDialogEvtName) {
+            case "remove":
+                break;
+            case "restore":
+                break;
+            case 'save':
+                updateGameCourse();
+        }
+    };
+
+    const updateHolesContest = (data) => {
+        const arr = [];
+        data.filter(datum => datum.selectedHoles.length > 0).forEach(datum => arr.push({id: datum.id, name: datum.name, holes: datum.selectedHoles}));
+        // const c = {...course};
+        // c.contests = arr;
+        // setCourse(c);
+        // setCourseSettingData(c);
+    }
+
+    const updateGameCourse = async () => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            console.log(updatedCourseData, ongoingRound);
+            // await update(controllerRef.current.signal, {id: editedContest.id, name: editedContest.name, location: editedContest.location});
+            setConfirmDialogEvtName(null);
+            setNetworkRequest(false);
+            setUpdatedCoureData(null);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    }
+
+    const setUpGame = async () => {
+        try {
+            // Cancel previous request if it exists
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
+            controllerRef.current = new AbortController();
+            setNetworkRequest(true);
+            // await createGame(controllerRef.current.signal, data);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                // Request was aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+  
 
     const resetAbortController = () => {
         // Cancel previous request if it exists
@@ -163,7 +245,27 @@ const GameBoard = () => {
             {pageNumber === 1 && <GroupScore holeMode={ongoingRound?.hole_mode} playerScores={playerScores} />}
             {pageNumber === 2 && <LeaderBoards />}
             {pageNumber === 3 && <GameSettings changePageNumber={changePageNumber} />}
-            {pageNumber === 5 && <CourseSetup gameMode={gameMode} data={ongoingRound} handleSaveCourseSetting={handleSaveCourseSetting} />}
+            {pageNumber === 4 && 
+                <GameSetup 
+                    gameMode={gameMode} 
+                    course={gameData} 
+                    setUpGame={setUpGame} 
+                    handleCancel={() => setPageNumber(3)} 
+                    networkRequest={networkRequest}
+                    setShowHolesContestsModal={setShowHolesContestsModal} />}
+            {pageNumber === 5 && <CourseSetup gameMode={gameMode} data={ongoingRound} handleSaveCourseSetting={handleSaveCourseSetting} handleCancel={() => setPageNumber(3)}  />}
+			<ConfirmDialog
+				show={showConfirmModal}
+				handleClose={handleCloseModal}
+				handleConfirm={handleConfirm}
+				message={displayMsg}
+			/>
+            <HolesContestsDialog
+                show={showHolesContestsModal}
+                handleClose={handleCloseModal}
+                data={holesContestData}
+                updateHolesContest={updateHolesContest}
+            />
         </section>
     )
 }

@@ -1,20 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import {
-    Button,
-    Row,
-    Col,
-    Form,
-    Container,
-    Modal,
-    ToggleButton,
-    ButtonGroup,
-} from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Button, Form, } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 import Select from "react-select";
 import Datetime from 'react-datetime';
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useNavigate, useLocation } from "react-router-dom";
 import { subDays } from 'date-fns';
 
 import { course_selection_schema } from "../Utils/yup-schema-validator/game-creation-schema";
@@ -56,24 +45,14 @@ const CourseSetup = ({data, gameMode, handleSaveCourseSetting, btnRedText = 'Can
         setGolfCourseOptions(options);
         setGolfCoursesLoading(coursesLoading);
         if(data){
+            /*  this component can be loaded from different pages:
+                1.  from GameMode to create new game
+                2.  from GameBoard to change settings of yet to play or in-play games
+                In case od GameMode, startDate will be available in data. While in GameBoard, the date field will be available due to data fetch from db.
+                Hence, two different setup modes: newSetup and oldSetup
+            */
             setValue('name', data.name);
-            setValue('startDate', data.date);
-            const selectedCourse = options.find(opt => opt.value.id === data.course_id)
-            const holeOpts = handleGolfCourseChange(selectedCourse);
-            setValue('course', selectedCourse);
-            switch (data.hole_mode) {
-                case 1:
-                    setValue("hole_mode", holeOpts.find(opt => opt.value === 1));
-                    break;
-                case 2:
-                    setValue("hole_mode", holeOpts.find(opt => opt.value === 2));
-                    break;
-                case 3:
-                    setValue("hole_mode", holeOpts.find(opt => opt.value === 3));
-                    break;
-                default:
-                    break;
-            }
+            data.startDate ? newSetup(options) : oldSetup(options);
         }
     }, []);
 
@@ -93,6 +72,46 @@ const CourseSetup = ({data, gameMode, handleSaveCourseSetting, btnRedText = 'Can
         setValue("hole_mode", null);
         return arr;
     };
+
+    const newSetup = (options) => {
+        setValue('startDate', data.startDate); // startDate in GameMode.jsx and date in GameBoard.jsx
+        const selectedCourse = options.find(opt => opt.value.id === data.course.value.id);
+        const holeOpts = handleGolfCourseChange(selectedCourse);
+        setValue('course', selectedCourse);
+        switch (data.hole_mode.value) {
+            case 1:
+                setValue("hole_mode", holeOpts.find(opt => opt.value === 1));
+                break;
+            case 2:
+                setValue("hole_mode", holeOpts.find(opt => opt.value === 2));
+                break;
+            case 3:
+                setValue("hole_mode", holeOpts.find(opt => opt.value === 3));
+                break;
+            default:
+                break;
+        }
+    }
+
+    const oldSetup = (options) => {
+        setValue('startDate', data.date); // startDate in GameMode.jsx and date in GameBoard.jsx
+        const selectedCourse = options.find(opt => opt.value.id === data.course_id);
+        const holeOpts = handleGolfCourseChange(selectedCourse);
+        setValue('course', selectedCourse);
+        switch (data.hole_mode) {
+            case 1:
+                setValue("hole_mode", holeOpts.find(opt => opt.value === 1));
+                break;
+            case 2:
+                setValue("hole_mode", holeOpts.find(opt => opt.value === 2));
+                break;
+            case 3:
+                setValue("hole_mode", holeOpts.find(opt => opt.value === 3));
+                break;
+            default:
+                break;
+        }
+    }
 
     return (
         <div className="d-flex flex-column justify-content-center align-items-center text-center p-md-5 p-3 border rounded-4 bg-light shadow mb-5">
