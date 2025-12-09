@@ -8,15 +8,15 @@ import { toast } from "react-toastify";
 import Select from 'react-select';
 import { Accordion, Button, Col, Form, ProgressBar, Row } from "react-bootstrap";
 
-import IMAGES from "../assets/images";
-import { useAuthUser } from "../app-context/user-context";
-import ErrorMessage from '../Components/ErrorMessage';
-import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
-import handleErrMsg from '../Utils/error-handler';
-import { dynamic18Fields, dynamic9Fields, holeMode } from "../Utils/data";
-import ConfirmDialog from "../Components/DialogBoxes/ConfirmDialog";
-import useContestController from '../api-controllers/contest-controller-hook';
-import useCourseController from "../api-controllers/course-controller-hook";
+import IMAGES from "../../../assets/images";
+import { useAuthUser } from "../../../app-context/user-context";
+import ErrorMessage from '../../../Components/ErrorMessage';
+import { ThreeDotLoading } from "../../../Components/react-loading-indicators/Indicator";
+import handleErrMsg from '../../../Utils/error-handler';
+import { dynamic18Fields, dynamic9Fields, holeMode } from "../../../Utils/data";
+import ConfirmDialog from "../../../Components/DialogBoxes/ConfirmDialog";
+import useContestController from '../../../api-controllers/contest-controller-hook';
+import useCourseController from "../../../api-controllers/course-controller-hook";
 
 // Function to generate dynamic Yup schema
 const generateYupSchema = (fields) => {

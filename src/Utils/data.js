@@ -140,19 +140,7 @@ const dynamic9Fields = [
     { name: 'par8', type: 'number', label: 'PAR', required: true, min: 1 },
     { name: 'hcp9', type: 'number', label: 'HCP', required: true, min: 1 },
     { name: 'par9', type: 'number', label: 'PAR', required: true, min: 1 },
-]
-
-const dynamic9Hcp = [
-    { name: 'hcpOne', type: 'number', label: 'HCP', required: true, min: 1 },
-    { name: 'hcpTwo', type: 'number', label: 'HCP', required: true, min: 1 },
-    { name: 'hcpThree', type: 'number', label: 'HCP', required: true, min: 1 },
-    { name: 'hcpFour', type: 'number', label: 'HCP', required: true, min: 1 },
-    { name: 'hcpFive', type: 'number', label: 'HCP', required: true, min: 1 },
-    { name: 'hcpSix', type: 'number', label: 'HCP', required: true, min: 1 },
-    { name: 'hcpSeven', type: 'number', label: 'HCP', required: true, min: 1 },
-    { name: 'hcpEight', type: 'number', label: 'HCP', required: true, min: 1 },
-    { name: 'hcpNine', type: 'number', label: 'HCP', required: true, min: 1 },
-]
+];
 
 const dynamic18Hcp = [
     { name: 'hcpOne', type: 'number', label: 'HCP', required: true, min: 1 },

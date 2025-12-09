@@ -11,17 +11,17 @@ import { TbRestore } from "react-icons/tb";
 import { Table, IconButton } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
-import { useAuthUser } from "../../../app-context/user-context";
-import handleErrMsg from "../../../Utils/error-handler";
-import IMAGES from "../../../assets/images";
-import PaginationLite from "../../../Components/PaginationLite";
-import ConfirmDialog from "../../../Components/DialogBoxes/ConfirmDialog";
-import { pageSizeOptions, statusOptions } from "../../../Utils/data";
-import RsuiteTableSkeletonLoader from "../../../Components/RsuiteTableSkeletonLoader";
-import useStaffController from "../../../api-controllers/staff-controller";
-import StaffCreationDialog from "../../../Components/DialogBoxes/StaffCreationDialog";
-import useGenericController from "../../../api-controllers/generic-controller-hook";
-import StaffProfileViewDialog from "../../../Components/DialogBoxes/StaffProfileViewDialog";
+import { useAuthUser } from "../../../../app-context/user-context";
+import handleErrMsg from "../../../../Utils/error-handler";
+import IMAGES from "../../../../assets/images";
+import PaginationLite from "../../../../Components/PaginationLite";
+import ConfirmDialog from "../../../../Components/DialogBoxes/ConfirmDialog";
+import { pageSizeOptions, statusOptions } from "../../../../Utils/data";
+import RsuiteTableSkeletonLoader from "../../../../Components/RsuiteTableSkeletonLoader";
+import useStaffController from "../../../../api-controllers/staff-controller";
+import StaffCreationDialog from "../../../../Components/DialogBoxes/StaffCreationDialog";
+import useGenericController from "../../../../api-controllers/generic-controller-hook";
+import StaffProfileViewDialog from "../../../../Components/DialogBoxes/StaffProfileViewDialog";
 
 const columns = [
     {

@@ -19,6 +19,7 @@ import { useAuthUser } from "../app-context/user-context";
 import ErrorMessage from '../Components/ErrorMessage';
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
 import handleErrMsg from '../Utils/error-handler';
+import cryptoHelper from "../Utils/crypto-helper";
 
 const StaffLogin = () => {
     const navigate = useNavigate();
@@ -60,6 +61,8 @@ const StaffLogin = () => {
     const onSubmit = async (data) => {
         try {
             setIsLoggingIn(true);
+            const pw = cryptoHelper.encrypt(data.pw);
+            data.pw = pw;
             await staffLogin(data);
             setIsLoggingIn(false);
             navigate("/dashboard");

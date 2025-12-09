@@ -1,92 +1,38 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, Col, Row } from 'react-bootstrap';
-import { IoSettings } from "react-icons/io5";
-import { GrView } from "react-icons/gr";
-import { VscRemove } from 'react-icons/vsc';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Table, IconButton } from 'rsuite';
-const { Column, HeaderCell } = Table;
 
-import { useAuthUser } from '../../app-context/user-context';
-import { useProfileImg } from '../../app-context/dp-context';
-import IMAGES from '../../assets/images';
-import handleErrMsg from '../../Utils/error-handler';
-import cryptoHelper from '../../Utils/crypto-helper';
-import { useAuth } from '../../app-context/auth-context';
-import useUserController from '../../api-controllers/user-controller-hook';
-import useGenericController from '../../api-controllers/generic-controller-hook';
-import { OrbitalLoading } from '../../Components/react-loading-indicators/Indicator';
+import { useAuthUser } from '../../../app-context/user-context';
+import { useProfileImg } from '../../../app-context/dp-context';
+import IMAGES from '../../../assets/images';
+import handleErrMsg from '../../../Utils/error-handler';
+import useGenericController from '../../../api-controllers/generic-controller-hook';
+import OffcanvasMenu from '../../../Components/OffcanvasMenu';
+import cryptoHelper from '../../../Utils/crypto-helper';
 
-const columns = [
-    {
-        key: 'name',
-        label: 'Name',
-        fixed: true,
-        flexGrow: 2,
-        // width: 200
-    },
-    {
-        key: 'hole_mode',
-        label: 'Hole Mode',
-        flexGrow: 1,
-        // fixed: true,
-        // width: 200
-    },
-    {
-        key: 'date',
-        label: 'Game Date',
-        flexGrow: 1,
-        // width: 100
-    },
-    {
-        key: 'mode',
-        label: 'Game Status',
-        flexGrow: 1,
-        // width: 100
-    },
-    {
-        key: 'createdAt',
-        label: 'Created At',
-        flexGrow: 1,
-        // width: 100
-    },
-];
-
-const ActionCell = ({ rowData, dataKey, onDelete, onViewGame, ...props }) => {
-    return (
-        <Table.Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} onClick={() => { onViewGame(rowData.id); }}  />
-            <IconButton appearance="subtle" icon={<VscRemove />} onClick={() => { onDelete(rowData); }}  />
-        </Table.Cell>
-  );
-};
-
-const ClientDashboard = () => {
+const StaffDashboard = () => {
     const controllerRef = useRef(new AbortController());
     
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { logout } = useAuth();
     const { imageBlob, setImageBlob } =  useProfileImg();
-    const { performGetRequests, download } = useGenericController();
-    const { dashbaord } = useUserController();
+    const { performGetRequests } = useGenericController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
     const [topPlayedCoursesData, setTopPlayedCoursesData] = useState([ { name: "Fetching Data", value: 1, color: "#0088FE" } ]);
     const [mostPlayedContestsData, setMostPlayedContestsData] = useState([]);
-
-    const [hcp, setHcp] = useState(0);
-    const [coursesPlayed, setCoursesPlayed] = useState(0);
-    const [gamesPlayed, setGamesPlayed] = useState(0);
-    const [homeClub, setHomeClub] = useState("");
-    const [ongoigRounds, setOngongRounds] = useState([]);
-    const [recentGames, setRecentGames] = useState([]);
-
+    
+    const usersOffCanvasMenu = [
+        { label: "Golf Courses", onClickParams: {evtName: 'viewGolfCourses'} },
+        { label: "Contests", onClickParams: {evtName: 'contests'} },
+        { label: "Users", onClickParams: {evtName: 'users'} },
+        { label: "Change Password", onClickParams: {evtName: 'pw'} },
+    ];
     
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8a2be2"];
     const months = ['Jan', 'Feb', 'Mar', 'April', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -119,8 +65,8 @@ const ClientDashboard = () => {
     };
 
     useEffect(() => {
-        if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
-            logoutUnauthorized();
+        if(!user || cryptoHelper.decryptData(user.mode) === '1'){
+            navigate("/");
         }
         setMostPlayedContestsData([{month: months[0], amount: 1000}]);
 
@@ -131,43 +77,14 @@ const ClientDashboard = () => {
         };
     }, [location.pathname]);
 
-    const logoutUnauthorized = async () => {
-        setNetworkRequest(true);
-        await logout();
-        navigate("/");
-    }
-
     const initialize = async () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const response = await dashbaord();
-            if(response && response.data){
-                setCoursesPlayed(response.data.courses_played);
-                setGamesPlayed(response.data.games_played);
-                setHomeClub(response.data.home_club);
-                const rounds = response.data.ongoing_rounds.map(r => {
-                    let mode = 'Full 18';
-                    if(r.hole_mode === 2){
-                        mode = 'Font 9'
-                    }else if(r.hole_mode === 3) {
-                        mode = 'Back 9'
-                    }
-                    return {
-                        id: r.game_id,
-                        name: r.name,
-                        date: r.date,
-                        mode: r.mode === 1 ? "Yet to play" : "In play",
-                        hole_mode: mode,
-                        createdAt: r.createdAt
-                    }
-                });
-                setOngongRounds(rounds);
-                console.log(rounds);
-            }
+
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -176,14 +93,26 @@ const ClientDashboard = () => {
         }
     }
 
-    const handleOngoingGameDelete = async () => {
-    }
-
-    const handleViewOngoingGame = async () => {
-    }
+	const handleOffCanvasMenuItemClick = async (onclickParams, e) => {
+		switch (onclickParams.evtName) {
+            case 'viewGolfCourses':
+                navigate('/dashboard/staff/courses');
+                break;
+            case 'contests':
+                navigate('/dashboard/contests');
+                break;
+            case 'users':
+                navigate('/dashboard/users');
+                break;
+            case 'pw':
+                navigate('/dashboard/users');
+                break;
+        }
+	}
 
     return (
         <section className='container' style={{minHeight: '60vh'}}>
+            <OffcanvasMenu menuItems={usersOffCanvasMenu} menuItemClick={handleOffCanvasMenuItemClick} variant='danger' />
             <Row className='mt-4'>
                 <div className="d-flex flex-wrap gap-4 align-items-center" >
                     <img src={IMAGES.image1} alt ="Avatar" className="rounded-circle" width={100} height={100} />
@@ -198,13 +127,10 @@ const ClientDashboard = () => {
                     <div className="p-2">
                         <div className="card shadow border-0 rounded-3 h-100" style={{minHeight: 170}}>
                             <div className="card-body">
-                                <div className='d-flex justify-content-between'>
-                                    <span className='h1 text-warning fw-bold' style={{fontSize: '50px'}}>{user?.hcp}</span>
-                                </div>
-                                <span>Handicap Index value</span>
+                                This is some text within a card body.
                             </div>
                             <div className="card-footer fw-bold bg-warning">
-                                HCP
+                                Total Users
                             </div>
                         </div>
                     </div>
@@ -213,13 +139,10 @@ const ClientDashboard = () => {
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
                             <div className="card-body">
-                                <div className='d-flex justify-content-between'>
-                                    <span className='h1 text-danger fw-bold' style={{fontSize: '50px'}}>{coursesPlayed}</span>
-                                </div>
-                                <span>Number of courses played</span>
+                                This is some text within a card body.
                             </div>
                             <div className="card-footer text-white bg-danger">
-                                Courses Played
+                                Subscribed Users
                             </div>
                         </div>
                     </div>
@@ -228,13 +151,10 @@ const ClientDashboard = () => {
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
                             <div className="card-body">
-                                <div className='d-flex justify-content-between'>
-                                    <span className='h1 text-primary fw-bold' style={{fontSize: '50px'}}>{gamesPlayed}</span>
-                                </div>
-                                <span>Number of games played</span>
+                                This is some text within a card body.
                             </div>
                             <div className="card-footer text-white bg-primary">
-                                Total Games Played
+                                Total Golf Courses
                             </div>
                         </div>
                     </div>
@@ -243,47 +163,20 @@ const ClientDashboard = () => {
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
                             <div className="card-body">
-                                <div className='d-flex flex-column justify-content-between'>
-                                    <span className='align-self-end'>
-                                        <IoSettings size={30} style={{ color: 'green' }} onClick={() => null} />
-                                    </span>
-                                    <span className='text-success fw-bold' style={{fontSize: '25px'}}>{homeClub?.name}</span>
-                                </div>
+                                This is some text within a card body.
                             </div>
                             <div className="card-footer text-white bg-success">
-                                Home Club
+                                Total Contests
                             </div>
                         </div>
                     </div>
                 </Col>
             </Row>
-            <div className="justify-content-center d-flex">
-                {networkRequest && <OrbitalLoading color='red' />}
-            </div>
-            {ongoigRounds.length > 0 && <h2 className='mt-3'>Ongoing Games</h2>}
-            {ongoigRounds.length > 0 && 
-                <Table rowKey="id" data={ongoigRounds} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true}>
-                    {columns.map((column, idx) => {
-                        const { key, label, ...rest } = column;
-                        // console.log(ongoigRounds[idx][key]);
-                        return (
-                            <Column {...rest} key={key} fullText>
-                                <HeaderCell>{label}</HeaderCell>
-                                <Table.Cell dataKey={key} style={{ padding: 6 }} />
-                            </Column>
-                        );
-                    })}
-                    <Column width={100} >
-                        <HeaderCell>Actions...</HeaderCell>
-                        <ActionCell onDelete={handleOngoingGameDelete} onViewGame={handleViewOngoingGame} />
-                    </Column>
-                </Table>
-            }
             <div className="row mt-3">
-                <Col xs={12} md={12} sm={12} className="mb-2 col-12 my-2 d-flex flex-column justify-content-center">
+                <Col xs={12} md={6} sm={12} className="mb-2 col-12 d-flex flex-column justify-content-center">
                     <div className="card shadow border-0 rounded-3 h-100 p-4">
                         <div className="card-body">
-                            <h2 className="fw-bold space-mono-bold">Game Performance Stats</h2>
+                            <h2 className="fw-bold space-mono-bold">Monthly Revenue</h2>
                             <div className="d-flex justify-content-center flex-wrap gap-3">
                                 <ResponsiveContainer aspect={1.99} height={400}>
                                     <BarChart
@@ -308,13 +201,27 @@ const ClientDashboard = () => {
                         </div>
                     </div>
                 </Col>
-            </div>
-            <div className="row mt-3">
-                <Col xs={12} md={12} sm={12} className="mb-2 col-12 my-2 d-flex flex-column justify-content-center">
+                <Col xs={12} md={6} sm={12} className="mb-2">
                     <div className="card shadow border-0 rounded-3 h-100 p-4">
-                        <div className="card-body">
-                            <h2 className="fw-bold">Recent Games</h2>
-                            <div className="d-flex justify-content-center flex-wrap gap-3">
+                        <div className="card-body d-flex flex-column gap-3">
+                            <h2 className="fw-bold space-mono-bold">TOP 5 MOST PLAYED COURSES</h2>
+                            <div className="d-flex justify-content-center">
+                                <PieChart width={320} height={320}>
+                                    <Pie
+                                        data={topPlayedCoursesData}
+                                        cx={150}
+                                        cy={150}
+                                        labelLine={false}
+                                        label={renderCustomizedLabel}
+                                        outerRadius={150}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {topPlayedCoursesData.map((entry, index) => ( <Cell key={`cell-${index}`} fill={entry.color} /> ))}
+                                    </Pie>
+                                </PieChart>
+                            </div>
+                            <div className="d-flex align-items-start flex-wrap gap-3">
                             </div>
                         </div>
                     </div>
@@ -323,17 +230,17 @@ const ClientDashboard = () => {
             <div className="row mt-3 mb-5">
                 <div className="col-12 col-sm-3">
                     <div className="p-2">
-                        <Button variant='warning' className='w-100 fw-bold' onClick={() => navigate('game/create')}>Create Game</Button> 
+                        <Button variant='warning' className='w-100 fw-bold'>Add Users</Button> 
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='danger' className='w-100 fw-bold'>Join Game</Button> 
+                        <Button variant='danger' className='w-100 fw-bold' onClick={() => navigate('staff/courses/create')}>Add Golf Course</Button> 
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='primary' className='w-100 fw-bold'>Game History</Button> 
+                        <Button variant='primary' className='w-100 fw-bold' onClick={() => navigate('contests')}>View Contests</Button>
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 
@@ -346,4 +253,4 @@ const ClientDashboard = () => {
     )
 }
 
-export default ClientDashboard;
+export default StaffDashboard;

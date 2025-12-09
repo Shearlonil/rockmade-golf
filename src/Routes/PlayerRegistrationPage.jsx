@@ -26,13 +26,16 @@ import { gender } from "../Utils/data";
 import handleErrMsg from "../Utils/error-handler";
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
 import { useAuthUser } from "../app-context/user-context";
+import { useAuth } from "../app-context/auth-context";
 import useGenericController from '../api-controllers/generic-controller-hook';
 import useUserController from "../api-controllers/user-controller-hook";
+import cryptoHelper from "../Utils/crypto-helper";
 
 const PlayerRegistrationPage = () => {
     const navigate = useNavigate();
     const controllerRef = useRef(new AbortController());
     
+    const { clientLogin } = useAuth();
     const { performGetRequests, requestOTP } = useGenericController();
     const { onboard } = useUserController();
     const { authUser } = useAuthUser();
@@ -87,11 +90,7 @@ const PlayerRegistrationPage = () => {
 
     const initialize = async () => {
         try {
-            // Cancel any previous in-flight request
-            if (controllerRef.current) {
-                controllerRef.current.abort();
-            }
-            controllerRef.current = new AbortController();
+            resetAbortController();
             const urls = [ '/countries/active/all', '/courses/onboarding/active/all' ];
             const response = await performGetRequests(urls, controllerRef.current.signal);
             const { 0: countriesRequest, 1: coursesRequest } = response;
@@ -149,15 +148,12 @@ const PlayerRegistrationPage = () => {
 
         // on successful email validation, engage server side
         try {
-            // Cancel previous request if it exists
-            if (controllerRef.current) {
-                controllerRef.current.abort();
-            }
-            controllerRef.current = new AbortController();
+            resetAbortController();
             setNetworkRequest(true);
             data.email = emailRef.current.value;
             data.file = dp;
             await onboard(controllerRef.current.signal, data);
+            await clientLogin({email: data.email, pw: cryptoHelper.encrypt(data.pw)});
             setNetworkRequest(false);
             navigate("/memberships");
         } catch (error) {
@@ -168,6 +164,14 @@ const PlayerRegistrationPage = () => {
             setNetworkRequest(false);
             toast.error(handleErrMsg(error).msg);
         }
+    };
+
+    const resetAbortController = () => {
+        // Cancel previous request if it exists
+        if (controllerRef.current) {
+            controllerRef.current.abort();
+        }
+        controllerRef.current = new AbortController();
     };
 
     return (

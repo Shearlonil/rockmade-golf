@@ -11,15 +11,15 @@ import { TbRestore } from "react-icons/tb";
 import { Table, IconButton, Input, NumberInput, DatePicker } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
-import IMAGES from "../../../assets/images";
-import { useAuthUser } from "../../../app-context/user-context";
-import useCourseController from "../../../api-controllers/course-controller-hook";
-import handleErrMsg from "../../../Utils/error-handler";
-import { statusOptions, pageSizeOptions } from "../../../Utils/data";
-import PaginationLite from '../../../Components/PaginationLite';
-import RsuiteTableSkeletonLoader from "../../../Components/RsuiteTableSkeletonLoader";
-import ConfirmDialog from "../../../Components/DialogBoxes/ConfirmDialog";
-import cryptoHelper from "../../../Utils/crypto-helper";
+import IMAGES from "../../../../assets/images";
+import { useAuthUser } from "../../../../app-context/user-context";
+import useCourseController from "../../../../api-controllers/course-controller-hook";
+import handleErrMsg from "../../../../Utils/error-handler";
+import { statusOptions, pageSizeOptions } from "../../../../Utils/data";
+import PaginationLite from '../../../../Components/PaginationLite';
+import RsuiteTableSkeletonLoader from "../../../../Components/RsuiteTableSkeletonLoader";
+import ConfirmDialog from "../../../../Components/DialogBoxes/ConfirmDialog";
+import cryptoHelper from "../../../../Utils/crypto-helper";
 
 const columns = [
     {
@@ -95,7 +95,7 @@ const EditableCell = ({ rowData, dataType, dataKey, onChange, onEdit, ...props }
     );
 };
 
-const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onRestore, onSave, onViewCourse, ...props }) => {
+const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onSave, onViewCourse, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
             <IconButton icon={<GrView color='green' />} onClick={() => { onViewCourse(rowData.id); }}  />

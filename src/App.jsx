@@ -12,12 +12,13 @@ import ScoreTable from './Routes/ScoreTable';
 import PageNotFound from './Routes/PageNotFound';
 import { ProtectedRoute } from './Routes/ProtectedRoute';
 import StaffLogin from "./Routes/StaffLogin.jsx";
-import GolfCourseCreation from "./Routes/GolfCourseCreation.jsx";
-import Dashboard from "./Routes/MainDashboard.jsx";
-import Courses from "./Routes/staff-dashboard/courses/Courses.jsx";
-import GolfCourseView from "./Routes/staff-dashboard/courses/GolfCourseView.jsx";
-import Contests from "./Routes/staff-dashboard/Contests.jsx";
-import Staff from "./Routes/staff-dashboard/users/Staff.jsx";
+import GolfCourseCreation from "./Routes/Dashboard/staff-dashboard/GolfCourseCreation.jsx";
+import Courses from "./Routes/Dashboard/staff-dashboard/courses/Courses.jsx";
+import GolfCourseView from "./Routes/Dashboard/staff-dashboard/courses/GolfCourseView.jsx";
+import Contests from "./Routes/Dashboard/staff-dashboard/Contests.jsx";
+import Staff from "./Routes/Dashboard/staff-dashboard/users/Staff.jsx";
+import GameBoard from "./Routes/Dashboard/client-dashboard/game-board/GameBoard.jsx";
+import Dashboard from "./Routes/Dashboard/MainDashboard.jsx";
 
 function App() {
     return (
@@ -42,6 +43,9 @@ function App() {
 				            <Route path="create" element={<GolfCourseCreation />} />
 				            <Route path="" element={<Courses />} />
                         </Route>
+                    </Route>
+                    <Route path="client" >
+                        <Route path=":id/game/:name" element={<GameBoard />} />
                     </Route>
 					<Route path={""} element={<Dashboard />} />
                 </Route>

@@ -17,6 +17,7 @@ import NavBar from "./Components/NavBar.jsx";
 import { TokenProvider } from "./app-context/token-context.js";
 import { UserProvider } from "./app-context/user-context.js";
 import { ProfileImgProvider } from "./app-context/dp-context.js";
+import { ActiveCoursesProvider } from "./app-context/active-courses-context.js";
 
 createRoot(document.getElementById("root")).render(
     <StrictMode>
@@ -26,9 +27,11 @@ createRoot(document.getElementById("root")).render(
                 <AuthProvider>
                     <UserProvider>
                         <ProfileImgProvider>
-                            <NavBar />
-                            <App />
-                            <Footer />
+                            <ActiveCoursesProvider>
+                                <NavBar />
+                                <App />
+                                <Footer />
+                            </ActiveCoursesProvider>
                         </ProfileImgProvider>
                     </UserProvider>
                 </AuthProvider>

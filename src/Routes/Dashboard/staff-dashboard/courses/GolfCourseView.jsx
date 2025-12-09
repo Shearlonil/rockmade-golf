@@ -17,18 +17,18 @@ import { format } from "date-fns";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import { useAuthUser } from "../../../app-context/user-context";
-import IMAGES from "../../../assets/images";
-import handleErrMsg from "../../../Utils/error-handler";
-import { dynamic18Fields, dynamic9Fields, holeMode } from "../../../Utils/data";
-import ErrorMessage from "../../../Components/ErrorMessage";
-import ConfirmDialog from "../../../Components/DialogBoxes/ConfirmDialog";
-import { ThreeDotLoading } from "../../../Components/react-loading-indicators/Indicator";
-import useCourseController from "../../../api-controllers/course-controller-hook";
-import useGenericController from "../../../api-controllers/generic-controller-hook";
-import useContestController from "../../../api-controllers/contest-controller-hook";
-import CourseHoleModeUpdateDialog from "../../../Components/DialogBoxes/CourseHoleModeUpdateDialog";
-import HoleHcpParUpdateDialog from "../../../Components/DialogBoxes/HoleHcpParUpdateDialog";
+import { useAuthUser } from "../../../../app-context/user-context";
+import IMAGES from "../../../../assets/images";
+import handleErrMsg from "../../../../Utils/error-handler";
+import { dynamic18Fields, dynamic9Fields, holeMode } from "../../../../Utils/data";
+import ErrorMessage from "../../../../Components/ErrorMessage";
+import ConfirmDialog from "../../../../Components/DialogBoxes/ConfirmDialog";
+import { ThreeDotLoading } from "../../../../Components/react-loading-indicators/Indicator";
+import useCourseController from "../../../../api-controllers/course-controller-hook";
+import useGenericController from "../../../../api-controllers/generic-controller-hook";
+import useContestController from "../../../../api-controllers/contest-controller-hook";
+import CourseHoleModeUpdateDialog from "../../../../Components/DialogBoxes/CourseHoleModeUpdateDialog";
+import HoleHcpParUpdateDialog from "../../../../Components/DialogBoxes/HoleHcpParUpdateDialog";
 
 // Function to generate dynamic Yup schema
 const generateYupSchema = (fields) => {

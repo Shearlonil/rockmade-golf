@@ -1,8 +1,8 @@
 import React from "react";
-import { useAuthUser } from "../app-context/user-context";
+import { useAuthUser } from "../../app-context/user-context";
 import StaffDashboard from "./staff-dashboard/StaffDashboard";
 import ClientDashboard from "./client-dashboard/ClientDashboard";
-import cryptoHelper from "../Utils/crypto-helper";
+import cryptoHelper from "../../Utils/crypto-helper";
 
 const Dashboard = () => {
 

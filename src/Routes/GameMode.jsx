@@ -30,6 +30,7 @@ import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicato
 import { useAuthUser } from "../app-context/user-context";
 import useCourseController from "../api-controllers/course-controller-hook";
 import useGameController from "../api-controllers/game-controller-hook";
+import CourseSetup from "../Components/CourseSetup";
 
 const GameMode = () => {
     const controllerRef = useRef(new AbortController());
@@ -50,6 +51,7 @@ const GameMode = () => {
 	const [holeOptions, setHoleOptions] = useState([]);
 	const [holesLoading, setHolesLoading] = useState(true);
 	const [holesContestData, setHolesContestData] = useState([]);
+	const [courseSettingData, setCourseSettingData] = useState(null);
     
     // Global states for selections
     const [gameMode, setGameMode] = useState("");
@@ -78,7 +80,7 @@ const GameMode = () => {
 		register,
 		handleSubmit: handleGolfCourseSelectionSubmit,
 		control: courseSelectionControl,
-		reset: courseSelectionReset,
+		reset,
 		setValue,
 		formState: { errors: golfCourseSelectionErrors },
 	} = useForm({
@@ -217,6 +219,7 @@ const GameMode = () => {
 
 	const submitCourse = (data) => {
         setCourse(data);
+        setCourseSettingData(data);
         setStep(3);
         const arr = [];
         data.course?.value?.Holes?.forEach(hole => {
@@ -243,6 +246,7 @@ const GameMode = () => {
         const c = {...course};
         c.contests = arr;
         setCourse(c);
+        setCourseSettingData(c);
     }
 
     const setUpGame = async () => {
@@ -287,9 +291,7 @@ const GameMode = () => {
     const viewerSlotIndex = players.findIndex((p) => p && p.name === user.name);
 
     // score table players to display (only those selected)
-    const activePlayers = players
-        .map((p, idx) => ({ p, idx }))
-        .filter((x) => x.p);
+    const activePlayers = players.map((p, idx) => ({ p, idx })).filter((x) => x.p);
 
     return (
         <>
@@ -336,13 +338,15 @@ const GameMode = () => {
                     </div>
                 )}
 
+                {/* {step === 2 && <CourseSetup data={courseSettingData} gameMode={gameMode.name} handleSaveCourseSetting={submitCourse} handleCancel={() => setStep(1)} btnRedText='Back' btnBlueText='Next' />} */}
+
                 {step === 2 && (
                     <div className="d-flex flex-column justify-content-center align-items-center text-center p-md-5 p-3 border rounded-4 bg-light shadow mb-5">
                         <h2 className="mb-4">
                             Select Course & Hole Type{" "}
                             {gameMode && (
                                 <span className="badge text-bg-info">
-                                    <small>{gameMode.name}</small>
+                                    <small className="fw-bold text-white">{gameMode.name}</small>
                                 </span>
                             )}
                         </h2>

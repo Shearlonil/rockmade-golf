@@ -10,16 +10,16 @@ import { TbRestore } from "react-icons/tb";
 import { Table, IconButton, Input, NumberInput, DatePicker } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
-import { useAuthUser } from "../../app-context/user-context";
-import useContestController from "../../api-controllers/contest-controller-hook";
-import handleErrMsg from "../../Utils/error-handler";
-import IMAGES from "../../assets/images";
-import ConfirmDialog from "../../Components/DialogBoxes/ConfirmDialog";
-import PaginationLite from "../../Components/PaginationLite";
-import { statusOptions, pageSizeOptions } from "../../Utils/data";
-import RsuiteTableSkeletonLoader from "../../Components/RsuiteTableSkeletonLoader";
-import InputDialog from '../../Components/DialogBoxes/InputDialog';
-import cryptoHelper from "../../Utils/crypto-helper";
+import { useAuthUser } from "../../../app-context/user-context";
+import useContestController from "../../../api-controllers/contest-controller-hook";
+import handleErrMsg from "../../../Utils/error-handler";
+import IMAGES from "../../../assets/images";
+import ConfirmDialog from "../../../Components/DialogBoxes/ConfirmDialog";
+import PaginationLite from "../../../Components/PaginationLite";
+import { statusOptions, pageSizeOptions } from "../../../Utils/data";
+import RsuiteTableSkeletonLoader from "../../../Components/RsuiteTableSkeletonLoader";
+import InputDialog from '../../../Components/DialogBoxes/InputDialog';
+import cryptoHelper from "../../../Utils/crypto-helper";
 
 const columns = [
     {

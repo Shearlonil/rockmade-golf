@@ -8,13 +8,13 @@ const useGameController = () => {
         return await xhrAios.post(`/games/create`, data, {signal});
     }
 
-    const getAxios = () => {
-        return xhrAios;
+    const findOngoingRoundById = async (signal, id) => {
+        return await xhrAios.get(`/games/rounds/ongoing/${id}`,{signal});;
     }
     
     return {
         createGame,
-        getAxios,
+        findOngoingRoundById,
     }
 }
 
