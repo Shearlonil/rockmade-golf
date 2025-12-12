@@ -125,7 +125,7 @@ export default function GolfCourseView() {
             let courseHoles = [];
             if(courseReq && courseReq.data){
                 setCourse(courseReq.data);
-                courseHoles = courseReq.data.Holes;
+                courseHoles = courseReq.data.holes;
                 setHoleCount(courseReq.data.no_of_holes);
             }
             
@@ -200,7 +200,7 @@ export default function GolfCourseView() {
             setShowCourseHoleModeUpdate(false);
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -210,7 +210,7 @@ export default function GolfCourseView() {
     };
 
     const editHole = (hole, val) => {
-        setHoleCredentials({ ...val, id: hole.id, no: hole.hole_no });
+        setHoleCredentials({ ...val, id: hole.CourseHoles.id, no: hole.CourseHoles.hole_no });
         setShowHoleHcpParUpdate(true);
     };
 
@@ -228,7 +228,7 @@ export default function GolfCourseView() {
             hole.par = data.par;
             setCourse(c);
         } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -263,7 +263,7 @@ export default function GolfCourseView() {
             setContestArrOptions(arrOptions);
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -291,7 +291,7 @@ export default function GolfCourseView() {
             setNetworkRequest(false);
             setHoleToRemoveProp(null);
         } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -350,9 +350,9 @@ export default function GolfCourseView() {
                 });
             }
             return objArr.map((val, idx) => {
-                const hole = course.Holes.find(c => c.hole_no === idx + 1);
-                set18HoleValue(val.hole.name, hole.hcp_idx);
-                set18HoleValue(val.par.name, hole.par);
+                const hole = course.holes.find(c => c.hole_no === idx + 1);
+                set18HoleValue(val.hole.name, hole.CourseHoles.hcp_idx);
+                set18HoleValue(val.par.name, hole.CourseHoles.par);
                 return <div className="shadow border p-3 rounded mt-2 mb-4" key={idx}>
                    <div className="d-flex justify-content-between">
                          <span className="fw-bold text-success">Hole {idx + 1}</span>
