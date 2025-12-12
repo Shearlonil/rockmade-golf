@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, Form, } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
+import AsyncSelect from 'react-select/async';
 import Select from "react-select";
 import Datetime from 'react-datetime';
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,14 +12,12 @@ import ErrorMessage from "./ErrorMessage";
 import { useActiveCourses } from "../app-context/active-courses-context";
 
 
-const CourseSetup = ({data, gameMode, handleSaveCourseSetting, btnRedText = 'Cancel', btnBlueText = 'Save', handleCancel}) => {
+const CourseSetup = ({data, gameMode, handleSaveCourseSetting, btnRedText = 'Cancel', btnBlueText = 'Save', handleCancel, asyncCourseSearch}) => {
 
-    const { courses, loadingCourses } = useActiveCourses();
+    const { courses } = useActiveCourses();
     const activeCourses = courses();
-    const coursesLoading = loadingCourses();
 
     const [ golfCourseOptions, setGolfCourseOptions ] = useState(null);
-    const [ golfCoursesLoading, setGolfCoursesLoading ] = useState(true);
 	const [holeOptions, setHoleOptions] = useState([]);
 	const [holesLoading, setHolesLoading] = useState(true);
 
@@ -29,7 +28,6 @@ const CourseSetup = ({data, gameMode, handleSaveCourseSetting, btnRedText = 'Can
 		register,
 		handleSubmit,
 		control,
-		reset,
 		setValue,
 		formState: { errors },
 	} = useForm({
@@ -43,7 +41,6 @@ const CourseSetup = ({data, gameMode, handleSaveCourseSetting, btnRedText = 'Can
     useEffect(() => {
         const options = activeCourses?.map(course => ({label: course.name, value: course}));
         setGolfCourseOptions(options);
-        setGolfCoursesLoading(coursesLoading);
         if(data){
             /*  this component can be loaded from different pages:
                 1.  from GameMode to create new game
@@ -178,18 +175,21 @@ const CourseSetup = ({data, gameMode, handleSaveCourseSetting, btnRedText = 'Can
                             name="course"
                             control={control}
                             render={({ field: { onChange, value } }) => (
-                                <Select
-                                    required
+                                <AsyncSelect
                                     name="course"
-                                    placeholder="Select Golf Course..."
-                                    className="text-dark"
-                                    isLoading={golfCoursesLoading}
-                                    options={golfCourseOptions}
                                     value={value}
+                                    className="text-dark w-100"
+                                    isClearable
+                                    // getOptionLabel={getOptionLabel}
+                                    getOptionValue={(option) => option}
+                                    // defaultValue={initialObject}
+                                    defaultOptions={golfCourseOptions}
+                                    cacheOptions
+                                    loadOptions={asyncCourseSearch}
                                     onChange={(val) => {
                                         onChange(val);
-                                        handleGolfCourseChange(val);
-                                    }}
+                                        handleGolfCourseChange(val)} 
+                                    }
                                 />
                             )}
                         />

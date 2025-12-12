@@ -8,12 +8,22 @@ const useGameController = () => {
         return await xhrAios.post(`/games/create`, data, {signal});
     }
 
+    const updateGame = async (signal, data) => {
+        return await xhrAios.post(`/games/update`, data, {signal});
+    }
+
+    const updateGameContests = async (signal, data) => {
+        return await xhrAios.post(`/games/contests/update`, data, {signal});
+    }
+
     const findOngoingRoundById = async (signal, id) => {
         return await xhrAios.get(`/games/rounds/ongoing/${id}`,{signal});;
     }
     
     return {
         createGame,
+        updateGame,
+        updateGameContests,
         findOngoingRoundById,
     }
 }

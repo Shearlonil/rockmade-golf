@@ -8,8 +8,6 @@ const ActiveCoursesContext = createContext();
 export const ActiveCoursesProvider = ({ children }) => {
     const [ activeCourses, setActiveCourses ] = useState([]);
 	const [coursesLoading, setCoursesLoading] = useState(true);
-	// const [holeOpts, setHoleOpts] = useState([]);
-	// const [holesLoading, setHolesLoading] = useState(true);
     
     const courses = () => {
         return activeCourses;
@@ -26,23 +24,6 @@ export const ActiveCoursesProvider = ({ children }) => {
     const setLoadingCourses = (val) => {
         setCoursesLoading(val);
     };
-    
-    // TODO: clean out comments
-    // const holeOptions = () => {
-    //     return holeOpts;
-    // };
-    
-    // const setHoleOptions = (options) => {
-    //     setHoleOpts(options);
-    // };
-    
-    // const loadingHoles = () => {
-    //     return holesLoading;
-    // };
-    
-    // const setLoadingHoles = (val) => {
-    //     setHolesLoading(val);
-    // };
 
     const value = useMemo(
         () => ({
@@ -50,10 +31,6 @@ export const ActiveCoursesProvider = ({ children }) => {
             setCourses,
             loadingCourses,
             setLoadingCourses,
-            // holeOptions,
-            // setHoleOptions,
-            // loadingHoles,
-            // setLoadingHoles,
         }),
         [activeCourses, coursesLoading]
     );

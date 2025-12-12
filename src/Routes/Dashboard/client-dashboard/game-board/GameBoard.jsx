@@ -10,7 +10,6 @@ import cryptoHelper from '../../../../Utils/crypto-helper';
 import { useAuth } from '../../../../app-context/auth-context';
 import { useAuthUser } from '../../../../app-context/user-context';
 import handleErrMsg from '../../../../Utils/error-handler';
-import useGenericController from '../../../../api-controllers/generic-controller-hook';
 import OffcanvasMenu from '../../../../Components/OffcanvasMenu';
 import { OrbitalLoading } from '../../../../Components/react-loading-indicators/Indicator';
 import GroupScore from './GroupScore';
@@ -21,6 +20,9 @@ import { useActiveCourses } from '../../../../app-context/active-courses-context
 import ConfirmDialog from '../../../../Components/DialogBoxes/ConfirmDialog';
 import GameSetup from '../../../../Components/GameSetup';
 import HolesContestsDialog from '../../../../Components/DialogBoxes/HolesContestsDialog';
+import useGenericController from '../../../../api-controllers/generic-controller-hook';
+import useCourseController from '../../../../api-controllers/course-controller-hook';
+import useGameController from '../../../../api-controllers/game-controller-hook';
 
 const GameBoard = () => {
     const controllerRef = useRef(new AbortController());
@@ -31,16 +33,20 @@ const GameBoard = () => {
 
     const { setCourses, setLoadingCourses } = useActiveCourses();
     const { logout } = useAuth();
+    const { gameCourseSearch,  } = useCourseController();
     const { performGetRequests } = useGenericController();
+    const { updateGameContests, updateGame } = useGameController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
+    const [showOrbitalLoader, setShowOrbitalLoader] = useState(false);
 	const [holesContestData, setHolesContestData] = useState([]);
     // course data
     const [ongoingRound, setOngoingRound] = useState(null);
+    const [courseId, setCourseId] = useState(0);
     // Game data
-    const [gameData, setGameData] = useState(null);
+    const [gameContests, setGameContests] = useState([]); // new contests to send to backend  
     const [playerScores, setPlayerScores] = useState([]);
     const [pageNumber, setPageNumber] = useState(1);
     const [gameMode, setGameMode] = useState(null);
@@ -56,7 +62,7 @@ const GameBoard = () => {
         { label: "Leaderboards", onClickParams: {evtName: 'leaderboards'} },
         { label: "Settings", onClickParams: {evtName: 'settings'} },
     ];
-    
+
     useEffect(() => {
         if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
             logoutUnauthorized();
@@ -78,13 +84,69 @@ const GameBoard = () => {
     const initialize = async () => {
         try {
             setNetworkRequest(true);
+            setShowOrbitalLoader(true);
             resetAbortController();
-            const urls = [ `/games/rounds/ongoing/${id}`, '/courses/active/all' ];
+            const urls = [ `/games/rounds/ongoing/${id}`, `/courses/games/init/10` ];
             const response = await performGetRequests(urls, controllerRef.current.signal);
             const { 0: ongoingRoundsReq, 1: coursesReq } = response;
 
             if(ongoingRoundsReq && ongoingRoundsReq.data){
                 setOngoingRound(ongoingRoundsReq.data);
+                setCourseId(ongoingRoundsReq.data.course_id)
+                const arr = [];
+                let startHole = 0;
+                let endHole = 0
+                switch (ongoingRoundsReq.data.hole_mode) {
+                    case 1:
+                        startHole = 1;
+                        endHole = 18;
+                        break;
+                    case 2:
+                        startHole = 1;
+                        endHole = 9;
+                        break;
+                    case 3:
+                        startHole = 10;
+                        endHole = 18;
+                        break;
+                }
+                // setup contests data for HolesContestsDialog
+                ongoingRoundsReq.data.Course?.Holes?.forEach(hole => {
+                    if(hole.hole_no >= startHole && hole.hole_no <= endHole){
+                        hole.contest.forEach(contest => {
+                            const c = arr.find(obj => obj.id === contest.id);
+                            if(c){
+                                c.holes?.push({holeNo: hole.hole_no, id: hole.id, canPick: true});
+                            }else {
+                                arr.push({
+                                    id: contest.id,
+                                    name: contest.name,
+                                    holes: [{holeNo: hole.hole_no, id: hole.id, canPick: true}],
+                                    selectedHoles: []
+                                });
+                            }
+                        })
+                    }
+                });
+                ongoingRoundsReq.data.GameHoleContests.forEach(gameHoleContest => {
+                    const c = arr.find(temp => temp.id === gameHoleContest.contest_id);
+                    if(c) {
+                        // hole newly selected. Add to list and set canPick for same hole in other contests to false
+                        // find hole number in Courses.Holes using hole_id in gameHoleContest
+                        const hole = ongoingRoundsReq.data.Course.Holes.find(hole => hole.id === gameHoleContest.hole_id)
+                        c.selectedHoles.push(hole.hole_no);
+                        arr.filter(tempContest => tempContest.id !== gameHoleContest.contest_id).forEach(tempContest => {
+                            const temp = tempContest.holes.find(h => h.holeNo === hole.hole_no);
+                            if(temp){
+                                temp.canPick = false;
+                            }
+                        });
+                    }else {
+                        toast.error("An unexpected error occured. Can't update holes. Please refresh page");
+                    }
+                });
+                setHolesContestData(arr);
+                setGameContests(arr);
                 switch (ongoingRoundsReq.data.mode) {
                     case 1:
                         setGameMode('Tournament');
@@ -105,12 +167,15 @@ const GameBoard = () => {
                 setLoadingCourses(false);
             }
             setNetworkRequest(false);
+            setShowOrbitalLoader(false);
         } catch (error) {
+            console.log(error);
             if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
             setNetworkRequest(false);
+            setShowOrbitalLoader(false);
             toast.error(handleErrMsg(error).msg);
         }
     }
@@ -133,12 +198,38 @@ const GameBoard = () => {
         setPageNumber(pageNumber);
     }
 
+    const asyncCourseSearch = async (inputValue, callback) => {
+        /*  refs: https://stackoverflow.com/questions/65963103/how-can-i-setup-react-select-to-work-correctly-with-server-side-data-by-using  */
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const response = await gameCourseSearch(controllerRef.current.signal, inputValue);
+            const results = response.data.map(course => ({label: course.name, value: course}));
+            setCourses(response.data);
+            setNetworkRequest(false);
+            callback(results);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
     const handleSaveCourseSetting = (data) => {
         setConfirmDialogEvtName('save')
-        setDisplayMsg('Update Course for the ongoing game??');
+        setDisplayMsg('Update Course for the ongoing game?');
         setShowConfirmModal(true);
         setUpdatedCoureData(data);
     }
+
+    const handleUpdateGameContests = async () => {
+        setConfirmDialogEvtName('updateHoleContests')
+        setDisplayMsg('Update Game with new contests?');
+        setShowConfirmModal(true);
+    };
 
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
@@ -154,53 +245,68 @@ const GameBoard = () => {
                 break;
             case 'save':
                 updateGameCourse();
+                break;
+            case 'updateHoleContests':
+                saveUpdatedHolesContests();
+                break;
         }
     };
 
     const updateHolesContest = (data) => {
         const arr = [];
         data.filter(datum => datum.selectedHoles.length > 0).forEach(datum => arr.push({id: datum.id, name: datum.name, holes: datum.selectedHoles}));
-        // const c = {...course};
-        // c.contests = arr;
-        // setCourse(c);
-        // setCourseSettingData(c);
+        setGameContests(arr);
     }
 
     const updateGameCourse = async () => {
         try {
             setNetworkRequest(true);
+            setShowOrbitalLoader(true);
             resetAbortController();
-            console.log(updatedCourseData, ongoingRound);
-            // await update(controllerRef.current.signal, {id: editedContest.id, name: editedContest.name, location: editedContest.location});
+            const data = {
+                game_id: id,
+                startDate: updatedCourseData.startDate,
+                course_id: updatedCourseData.course.value.id,
+                hole_mode: updatedCourseData.hole_mode.value,
+                name: updatedCourseData.name,
+            };
+            await updateGame(controllerRef.current.signal, data);
             setConfirmDialogEvtName(null);
             setNetworkRequest(false);
-            setUpdatedCoureData(null);
+            setShowOrbitalLoader(false);
+            toast.info('Update successful');
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
             setNetworkRequest(false);
+            setShowOrbitalLoader(false);
             toast.error(handleErrMsg(error).msg);
         }
     }
 
-    const setUpGame = async () => {
+    const saveUpdatedHolesContests = async () => {
         try {
-            // Cancel previous request if it exists
-            if (controllerRef.current) {
-                controllerRef.current.abort();
-            }
-            controllerRef.current = new AbortController();
+            resetAbortController();
             setNetworkRequest(true);
-            // await createGame(controllerRef.current.signal, data);
+            setShowOrbitalLoader(true);
+            const data = {
+                game_id: id,
+                course_id: courseId,
+                contests: gameContests 
+            }
+            await updateGameContests(controllerRef.current.signal, data);
             setNetworkRequest(false);
+            setShowOrbitalLoader(false);
+            toast.info('Update successful');
         } catch (error) {
             if (error.name === 'AbortError') {
                 // Request was aborted, handle silently
                 return;
             }
             setNetworkRequest(false);
+            setShowOrbitalLoader(false);
             toast.error(handleErrMsg(error).msg);
         }
     };
@@ -230,7 +336,7 @@ const GameBoard = () => {
 
                     <div className="d-flex flex-column gap-1 align-items-center justify-content-center col-12 col-md-4">
                         <span className="fw-bold h6">Location</span>
-                        <span className="fw-bold text-success h4">{ongoingRound?.course_name}</span>
+                        <span className="fw-bold text-success h4">{ongoingRound?.Course.name}</span>
                     </div>
 
                     <div className="d-flex flex-column gap-1 align-items-center justify-content-center col-12 col-md-4">
@@ -240,7 +346,7 @@ const GameBoard = () => {
                 </div>
             </Row>
             <div className="justify-content-center d-flex">
-                {networkRequest && <OrbitalLoading color='red' />}
+                {showOrbitalLoader && <OrbitalLoading color='red' />}
             </div>
             {pageNumber === 1 && <GroupScore holeMode={ongoingRound?.hole_mode} playerScores={playerScores} />}
             {pageNumber === 2 && <LeaderBoards />}
@@ -248,12 +354,18 @@ const GameBoard = () => {
             {pageNumber === 4 && 
                 <GameSetup 
                     gameMode={gameMode} 
-                    course={gameData} 
-                    setUpGame={setUpGame} 
+                    data={ongoingRound} 
+                    setUpGame={handleUpdateGameContests} 
                     handleCancel={() => setPageNumber(3)} 
                     networkRequest={networkRequest}
                     setShowHolesContestsModal={setShowHolesContestsModal} />}
-            {pageNumber === 5 && <CourseSetup gameMode={gameMode} data={ongoingRound} handleSaveCourseSetting={handleSaveCourseSetting} handleCancel={() => setPageNumber(3)}  />}
+            {pageNumber === 5 && 
+                <CourseSetup 
+                    gameMode={gameMode} 
+                    data={ongoingRound} 
+                    handleSaveCourseSetting={handleSaveCourseSetting} 
+                    handleCancel={() => setPageNumber(3)} 
+                    asyncCourseSearch={asyncCourseSearch} />}
 			<ConfirmDialog
 				show={showConfirmModal}
 				handleClose={handleCloseModal}

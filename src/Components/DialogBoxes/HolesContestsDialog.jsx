@@ -24,18 +24,18 @@ const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data }) =>
                 // hole was previously selected. Now deselect and set canPick for same hole in other contests to true
                 c.selectedHoles.splice(idx, 1);
                 arr.filter(tempContest => tempContest.id !== contest.id).forEach(tempContest => {
-                    const tempArr = tempContest.holes.filter(h => h.holeNo === hole.holeNo);
-                    if(tempArr.length > 0){
-                        tempArr[0].canPick = true
+                    const temp = tempContest.holes.find(h => h.holeNo === hole.holeNo);
+                    if(temp){
+                        temp.canPick = true
                     }
                 });
             }else {
                 // hole newly selected. Add to list and set canPick for same hole in other contests to false
                 c.selectedHoles.push(hole.holeNo);
                 arr.filter(tempContest => tempContest.id !== contest.id).forEach(tempContest => {
-                    const tempArr = tempContest.holes.filter(h => h.holeNo === hole.holeNo);
-                    if(tempArr.length > 0){
-                        tempArr[0].canPick = false
+                    const temp = tempContest.holes.find(h => h.holeNo === hole.holeNo);
+                    if(temp){
+                        temp.canPick = false
                     }
                 });
             }
@@ -60,7 +60,7 @@ const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data }) =>
                     contest.holes.map(
                         (hole, index) => 
                             <Button variant="outline-danger" disabled={!hole.canPick} key={index}  onClick={() => holeClicked(hole, contest)} style={{minWidth: '45px'}}
-                                    className={`shadow ${contest.selectedHoles.includes(hole.holeNo) ? 'bg-danger text-white' : ''} ${!hole.canPick ? 'bg-danger-subtle text-dark' : ''}`}>
+                                    className={`shadow ${contest.selectedHoles.includes(hole.holeNo) ? 'bg-danger text-white' : ''} ${!hole.canPick ? 'bg-danger-subtle text-dark' : '' }`}>
                                 {hole.holeNo}
                             </Button>
                     )
@@ -69,7 +69,7 @@ const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data }) =>
         </Accordion.Item>
     }
 
-    const buildAccordion = data.map((datum, i) => { return buildAccordionItem(datum, i) });
+    const buildAccordion = holesContestData.map((datum, i) => { return buildAccordionItem(datum, i) });
 
     return (
         <Modal show={show} onHide={minimizeModal} onEntered={modalLoaded}>
@@ -79,7 +79,7 @@ const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data }) =>
             </Modal.Header>
             <Modal.Body>
                 <Accordion defaultActiveKey={['0']} alwaysOpen>
-                    {data && data.length > 0 && buildAccordion}
+                    {holesContestData && holesContestData.length > 0 && buildAccordion}
                 </Accordion>
             </Modal.Body>
             <Modal.Footer>

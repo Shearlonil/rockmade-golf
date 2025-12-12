@@ -8,14 +8,6 @@ const useCourseController = () => {
         return await xhrAios.get(`/courses/search/${id}`, {signal});
     }
     
-    const courseSearch = async (signal, data) => {
-        return await xhrAios.get(`/courses/query`, {
-            params: {
-                str: data.inputValue, status: data.courseStatus
-            }
-        }, {signal});
-    }
-    
     const fetchAllActive = async (signal) => {
         return await xhrAios.get(`/courses/active/all`, {signal});
     }
@@ -24,12 +16,32 @@ const useCourseController = () => {
         return await xhrAios.get(`/courses/active/init/${pageSize}`, {signal});
     }
     
+    const courseSearch = async (signal, data) => {
+        return await xhrAios.get(`/courses/query`, {
+            params: {
+                str: data.inputValue, status: data.courseStatus
+            }
+        }, {signal});
+    }
+    
     const paginateFetch = async (signal, data) => {
         return await xhrAios.get(`/courses/search/page/${data.page}`, {
             params: {
                 pageSize: data.pageSize, status: data.courseStatus, page: data.page
             }
         }, {signal});
+    }
+    
+    const gameCourseSearch = async (signal, inputValue) => {
+        return await xhrAios.get(`/courses/games/search`, {
+            params: {
+                str: inputValue
+            }
+        }, {signal});
+    }
+    
+    const limitGameCourseSearch = async (signal, pageSize) => {
+        return await xhrAios.get(`/courses/games/init/${pageSize}`, {signal});
     }
     
     const createCourse = async (signal, data) => {
@@ -59,6 +71,8 @@ const useCourseController = () => {
         fetchAllActive,
         activeCoursesPageInit,
         paginateFetch,
+        gameCourseSearch,
+        limitGameCourseSearch,
         createCourse,
         updateCourseHoleCount,
         updateCourseHole,

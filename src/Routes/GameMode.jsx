@@ -26,6 +26,7 @@ import useCourseController from "../api-controllers/course-controller-hook";
 import useGameController from "../api-controllers/game-controller-hook";
 import CourseSetup from "../Components/CourseSetup";
 import { useActiveCourses } from "../app-context/active-courses-context";
+import GameSetup from "../Components/GameSetup";
 
 const GameMode = () => {
     const controllerRef = useRef(new AbortController());
@@ -34,7 +35,7 @@ const GameMode = () => {
     const location = useLocation();
 
     const { setCourses, setLoadingCourses } = useActiveCourses();
-    const { fetchAllActive } = useCourseController();
+    const { limitGameCourseSearch, gameCourseSearch } = useCourseController();
     const { createGame } = useGameController();
     const { authUser } = useAuthUser();
     const user = authUser();
@@ -129,7 +130,7 @@ const GameMode = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const response = await fetchAllActive(controllerRef.current.signal);
+            const response = await limitGameCourseSearch(controllerRef.current.signal, 10);
             setCourses(response.data);
             setLoadingCourses(false);
 
@@ -179,21 +180,40 @@ const GameMode = () => {
         setCourse(data);
         setCourseSettingData(data);
         setStep(3);
+        // setup contests data for HolesContestsDialog
         const arr = [];
+        let startHole = 0;
+        let endHole = 0
+        switch (data.hole_mode.value) {
+            case 1:
+                startHole = 1;
+                endHole = 18;
+                break;
+            case 2:
+                startHole = 1;
+                endHole = 9;
+                break;
+            case 3:
+                startHole = 10;
+                endHole = 18;
+                break;
+        }
         data.course?.value?.Holes?.forEach(hole => {
-            hole.contest.forEach(contest => {
-                const c = arr.find(obj => obj.id === contest.id);
-                if(c){
-                    c.holes?.push({holeNo: hole.hole_no, id: hole.id, canPick: true});
-                }else {
-                    arr.push({
-                        id: contest.id,
-                        name: contest.name,
-                        holes: [{holeNo: hole.hole_no, id: hole.id, canPick: true}],
-                        selectedHoles: []
-                    });
-                }
-            })
+            if(hole.hole_no >= startHole && hole.hole_no <= endHole){
+                hole.contest.forEach(contest => {
+                    const c = arr.find(obj => obj.id === contest.id);
+                    if(c){
+                        c.holes?.push({holeNo: hole.hole_no, id: hole.id, canPick: true});
+                    }else {
+                        arr.push({
+                            id: contest.id,
+                            name: contest.name,
+                            holes: [{holeNo: hole.hole_no, id: hole.id, canPick: true}],
+                            selectedHoles: []
+                        });
+                    }
+                })
+            }
         });
         setHolesContestData(arr);
     };
@@ -236,6 +256,26 @@ const GameMode = () => {
         }
     };
 
+    const asyncCourseSearch = async (inputValue, callback) => {
+        /*  refs: https://stackoverflow.com/questions/65963103/how-can-i-setup-react-select-to-work-correctly-with-server-side-data-by-using  */
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const response = await gameCourseSearch(controllerRef.current.signal, inputValue);
+            const results = response.data.map(course => ({label: course.name, value: course}));
+            setCourses(response.data);
+            setNetworkRequest(false);
+            callback(results);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
     const saveScores = () => {
         // implement persist to backend here
         alert("Scores saved (console logged).");
@@ -250,6 +290,15 @@ const GameMode = () => {
 
     // score table players to display (only those selected)
     const activePlayers = players.map((p, idx) => ({ p, idx })).filter((x) => x.p);
+  
+
+    const resetAbortController = () => {
+        // Cancel previous request if it exists
+        if (controllerRef.current) {
+            controllerRef.current.abort();
+        }
+        controllerRef.current = new AbortController();
+    };
 
     return (
         <>
@@ -301,54 +350,18 @@ const GameMode = () => {
                         data={courseSettingData} 
                         gameMode={gameMode.name} 
                         handleSaveCourseSetting={submitCourse} 
+                        asyncCourseSearch={asyncCourseSearch}
                         handleCancel={() => setStep(1)} 
                         btnRedText='Back' btnBlueText='Next' />}
-
-                {step === 3 && (
-                    <div className="p-5 border rounded-4 bg-light shadow mb-5">
-                        <h2 className="mb-4 text-center">{gameMode.name} Setup</h2>
-
-                        <div className="row">
-                            <div className="col-12 col-md-6 d-flex flex-column mt-3">
-                                <Form.Label className="fw-bold">Golf Course</Form.Label>
-                                <Form.Label className="text-primary fw-bold h3">{course.course.label}</Form.Label>
-                            </div>
-                            <div className="col-12 col-md-6 d-flex flex-column mt-3">
-                                <Form.Label className="fw-bold">Game Name</Form.Label>
-                                <Form.Label className="text-primary fw-bold h3">{course.name}</Form.Label>
-                            </div>
-                        </div>
-
-                        <div className="row">
-                            <div className="col-12 col-md-6 d-flex flex-column mt-3">
-                                <Form.Label className="fw-bold">Game Date</Form.Label>
-                                <Form.Label className="text-primary fw-bold h3">{format(course.startDate, "yyyy-MM-dd")}</Form.Label>
-                            </div>
-                            <div className="col-12 col-md-6 d-flex flex-column mt-3">
-                                <div className="d-flex gap-5">
-                                    <div className="d-flex flex-column">
-                                        <Form.Label className="fw-bold">Holes</Form.Label>
-                                        <Form.Label className="text-primary fw-bold h3">{course.hole_mode.label}</Form.Label>
-                                    </div>
-                                    <div className="d-flex flex-column">
-                                        <Form.Label className="fw-bold">Contests</Form.Label>
-                                        <Button className="btn-success fw-bold" onClick={() => setShowHolesContestsModal(true)}>Add Contests</Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse mt-4">
-                            <Button onClick={ setUpGame } className="me-2 btn-primary col-md-4 col-sm-12" disabled={networkRequest}>
-                                {!networkRequest && 'Next'}
-                                {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
-                            </Button>
-                            <Button variant="secondary" onClick={() => setStep(2)} className="me-2 btn-danger col-md-4 col-sm-12" disabled={networkRequest} >
-                                {!networkRequest && 'Back'}
-                                {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                {step === 3 && 
+                    <GameSetup 
+                        gameMode={gameMode.name} 
+                        data={course} 
+                        setUpGame={setUpGame} 
+                        handleCancel={() => setStep(2)} 
+                        networkRequest={networkRequest}
+                        btnRedText={'Back'}
+                        setShowHolesContestsModal={setShowHolesContestsModal} />}
 
                 {step === 4 && (
                     <div className="p-5 border rounded-4 bg-light shadow mb-5">
