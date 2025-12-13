@@ -135,6 +135,7 @@ export default function GolfCourseView() {
             
             setNetworkRequest(false);
         } catch (error) {
+            console.log(error);
             setNetworkRequest(false);
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
@@ -172,7 +173,7 @@ export default function GolfCourseView() {
             }
         }
         if(tempContests.length > 0){
-            setHolesToUpdate({contests: [...tempContests]});
+            setHolesToUpdate({contests: [...tempContests], course_id: id});
             setDisplayMsg(`Update Holes with Contests ?`);
             setShowConfirmModal(true);
             setConfirmDialogEvtName('updateHoles');
@@ -451,7 +452,7 @@ export default function GolfCourseView() {
                 /*  if hole has contest, add to list of contest holes to display under the Contest dropdown.
                     Else, add to options to display in dropdown of contest
                 */
-                let f = hole.contest?.find(contest => contest.id === datum.id);
+                let f = hole.contests?.find(contest => contest.id === datum.id);
                 if(f){
                     datum.holes.push({id: hole.id, hole_no: hole.hole_no});
                 }else {
