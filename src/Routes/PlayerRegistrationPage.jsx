@@ -12,6 +12,7 @@ import {
 import { IoShieldCheckmarkSharp } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Button, Form } from "react-bootstrap";
+import AsyncSelect from 'react-select/async';
 import Select from "react-select";
 import Datetime from "react-datetime";
 import { Controller, useForm } from "react-hook-form";
@@ -27,15 +28,17 @@ import handleErrMsg from "../Utils/error-handler";
 import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
 import { useAuthUser } from "../app-context/user-context";
 import { useAuth } from "../app-context/auth-context";
+import cryptoHelper from "../Utils/crypto-helper";
 import useGenericController from '../api-controllers/generic-controller-hook';
 import useUserController from "../api-controllers/user-controller-hook";
-import cryptoHelper from "../Utils/crypto-helper";
+import useCourseController from "../api-controllers/course-controller-hook";
 
 const PlayerRegistrationPage = () => {
     const navigate = useNavigate();
     const controllerRef = useRef(new AbortController());
     
     const { clientLogin } = useAuth();
+    const { courseSearch, onboardingCourseSearch } = useCourseController();
     const { performGetRequests, requestOTP } = useGenericController();
     const { onboard } = useUserController();
     const { authUser } = useAuthUser();
@@ -91,7 +94,7 @@ const PlayerRegistrationPage = () => {
     const initialize = async () => {
         try {
             resetAbortController();
-            const urls = [ '/countries/active/all', '/courses/onboarding/active/all' ];
+            const urls = [ '/countries/active/all', '/courses/onboarding/active' ];
             const response = await performGetRequests(urls, controllerRef.current.signal);
             const { 0: countriesRequest, 1: coursesRequest } = response;
 
@@ -107,7 +110,7 @@ const PlayerRegistrationPage = () => {
                 setCourseOptions(coursesRequest.data.map( course => ({label: course.name, value: course})));
             }
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -129,7 +132,7 @@ const PlayerRegistrationPage = () => {
 			toast.info(`OTP sent to ${emailRef.current.email}. If not found in your inbox, please check you spam`);
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -157,7 +160,27 @@ const PlayerRegistrationPage = () => {
             setNetworkRequest(false);
             navigate("/memberships");
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
+    const asyncCourseSearch = async (inputValue, callback) => {
+        /*  refs: https://stackoverflow.com/questions/65963103/how-can-i-setup-react-select-to-work-correctly-with-server-side-data-by-using  */
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const response = await onboardingCourseSearch(controllerRef.current.signal, {inputValue});
+            const results = response.data.map(course => ({label: course.name, value: course}));
+            setCourseOptions(results);
+            setNetworkRequest(false);
+            callback(results);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -432,15 +455,18 @@ const PlayerRegistrationPage = () => {
                                                     <span className="input-group-text bg-light">
                                                         <RiBuildingLine size={18} />
                                                     </span>
-                                                    <Select
-                                                        required
+                                                    <AsyncSelect
                                                         name="home_club"
-                                                        placeholder="Select Home Club..."
                                                         className="text-dark form-control"
-                                                        options={courseOptions}
-                                                        isLoading={coursesLoading}
-                                                        onChange={(val) => onChange(val)}
+                                                        isClearable
+                                                        // getOptionLabel={getOptionLabel}
+                                                        getOptionValue={(option) => option}
+                                                        // defaultValue={initialObject}
+                                                        defaultOptions={courseOptions}
+                                                        cacheOptions
+                                                        loadOptions={asyncCourseSearch}
                                                         value={value}
+                                                        onChange={(val) => onChange(val) }
                                                     />
                                                 </div>
                                             )}

@@ -6,6 +6,7 @@ import { VscRemove } from 'react-icons/vsc';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { isAfter } from 'date-fns';
 import { Table, IconButton } from 'rsuite';
 const { Column, HeaderCell } = Table;
 
@@ -192,6 +193,15 @@ const ClientDashboard = () => {
         navigate(`/dashboard/client/${data.id}/game/${strName}`);
     }
 
+    const createGame = () => {
+        if(user && user.sub && isAfter(new Date(), new Date(cryptoHelper.decryptData(user.sub)).setHours(23, 59, 59, 0))){
+            // navigate to sub page
+            navigate('/memberships');
+            return;
+        }
+        navigate('game/create');
+    }
+
     const resetAbortController = () => {
         // Cancel previous request if it exists
         if (controllerRef.current) {
@@ -343,7 +353,7 @@ const ClientDashboard = () => {
             <div className="row mt-3 mb-5">
                 <div className="col-12 col-sm-3">
                     <div className="p-2">
-                        <Button variant='warning' className='w-100 fw-bold' onClick={() => navigate('game/create')}>Create Game</Button> 
+                        <Button variant='warning' className='w-100 fw-bold' onClick={createGame}>Create Game</Button> 
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 

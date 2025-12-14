@@ -163,18 +163,6 @@ const dynamic18Hcp = [
     { name: 'hcpEighteen', type: 'number', label: 'HCP', required: true, min: 1 },
 ]
 
-const dynamic9Pars = [
-    { name: 'parOne', type: 'number', label: 'PAR', required: true, min: 1 },
-    { name: 'parTwo', type: 'number', label: 'PAR', required: true, min: 1 },
-    { name: 'parThree', type: 'number', label: 'PAR', required: true, min: 1 },
-    { name: 'parFour', type: 'number', label: 'PAR', required: true, min: 1 },
-    { name: 'parFive', type: 'number', label: 'PAR', required: true, min: 1 },
-    { name: 'parSix', type: 'number', label: 'PAR', required: true, min: 1 },
-    { name: 'parSeven', type: 'number', label: 'PAR', required: true, min: 1 },
-    { name: 'parEight', type: 'number', label: 'PAR', required: true, min: 1 },
-    { name: 'parNine', type: 'number', label: 'PAR', required: true, min: 1 },
-]
-
 const dynamic18Pars = [
     { name: 'parOne', type: 'number', label: 'PAR', required: true, min: 1 },
     { name: 'parTwo', type: 'number', label: 'PAR', required: true, min: 1 },

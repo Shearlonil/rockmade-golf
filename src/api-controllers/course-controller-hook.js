@@ -4,6 +4,18 @@ import { useAxiosInterceptor } from '../axios/axios-interceptors';
 const useCourseController = () => {
     const { xhrAios } = useAxiosInterceptor();
     
+    const onboardingCourseSearch = async (signal, data) => {
+        return await xhrAios.get(`/courses/onboarding/query`, {
+            params: {
+                str: data.inputValue
+            }
+        }, {signal});
+    }
+    
+    const onboardingCoursesInit = async (signal) => {
+        return await xhrAios.get(`/courses/onboarding/active`, {signal});
+    }
+    
     const finById = async (signal, id) => {
         return await xhrAios.get(`/courses/search/${id}`, {signal});
     }
@@ -68,6 +80,8 @@ const useCourseController = () => {
 
     return {
         finById,
+        onboardingCourseSearch,
+        onboardingCoursesInit,
         fetchAllActive,
         activeCoursesPageInit,
         paginateFetch,

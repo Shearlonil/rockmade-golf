@@ -19,7 +19,6 @@ import CourseSetup from '../../../../Components/CourseSetup';
 import { useActiveCourses } from '../../../../app-context/active-courses-context';
 import ConfirmDialog from '../../../../Components/DialogBoxes/ConfirmDialog';
 import GameSetup from '../../../../Components/GameSetup';
-import HolesContestsDialog from '../../../../Components/DialogBoxes/HolesContestsDialog';
 import useGenericController from '../../../../api-controllers/generic-controller-hook';
 import useCourseController from '../../../../api-controllers/course-controller-hook';
 import useGameController from '../../../../api-controllers/game-controller-hook';
@@ -31,7 +30,7 @@ const GameBoard = () => {
     const location = useLocation();
     const { id } = useParams();
 
-    const { setCourses, setLoadingCourses } = useActiveCourses();
+    const { setCourses, setLoading } = useActiveCourses();
     const { logout } = useAuth();
     const { gameCourseSearch,  } = useCourseController();
     const { performGetRequests } = useGenericController();
@@ -41,7 +40,6 @@ const GameBoard = () => {
 
     const [networkRequest, setNetworkRequest] = useState(false);
     const [showOrbitalLoader, setShowOrbitalLoader] = useState(false);
-	const [holesContestData, setHolesContestData] = useState([]);
     // course data
     const [ongoingRound, setOngoingRound] = useState(null);
     const [courseId, setCourseId] = useState(0);
@@ -55,7 +53,6 @@ const GameBoard = () => {
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
     const [updatedCourseData, setUpdatedCoureData] = useState(null);
-	const [showHolesContestsModal, setShowHolesContestsModal] = useState(false);
 
     const offCanvasMenu = [
         { label: "Enter Score", onClickParams: {evtName: 'enterScore'} },
@@ -91,63 +88,12 @@ const GameBoard = () => {
             const { 0: ongoingRoundsReq, 1: coursesReq } = response;
 
             if(ongoingRoundsReq && ongoingRoundsReq.data){
-                setOngoingRound(ongoingRoundsReq.data);
-                setCourseId(ongoingRoundsReq.data.course_id)
-                const arr = [];
-                let startHole = 0;
-                let endHole = 0
-                switch (ongoingRoundsReq.data.hole_mode) {
-                    case 1:
-                        startHole = 1;
-                        endHole = 18;
-                        break;
-                    case 2:
-                        startHole = 1;
-                        endHole = 9;
-                        break;
-                    case 3:
-                        startHole = 10;
-                        endHole = 18;
-                        break;
-                }
-                // setup contests data for HolesContestsDialog
-                ongoingRoundsReq.data.Course?.Holes?.forEach(hole => {
-                    if(hole.hole_no >= startHole && hole.hole_no <= endHole){
-                        hole.contest.forEach(contest => {
-                            const c = arr.find(obj => obj.id === contest.id);
-                            if(c){
-                                c.holes?.push({holeNo: hole.hole_no, id: hole.id, canPick: true});
-                            }else {
-                                arr.push({
-                                    id: contest.id,
-                                    name: contest.name,
-                                    holes: [{holeNo: hole.hole_no, id: hole.id, canPick: true}],
-                                    selectedHoles: []
-                                });
-                            }
-                        })
-                    }
-                });
-                ongoingRoundsReq.data.GameHoleContests.forEach(gameHoleContest => {
-                    const c = arr.find(temp => temp.id === gameHoleContest.contest_id);
-                    if(c) {
-                        // hole newly selected. Add to list and set canPick for same hole in other contests to false
-                        // find hole number in Courses.Holes using hole_id in gameHoleContest
-                        const hole = ongoingRoundsReq.data.Course.Holes.find(hole => hole.id === gameHoleContest.hole_id)
-                        c.selectedHoles.push(hole.hole_no);
-                        arr.filter(tempContest => tempContest.id !== gameHoleContest.contest_id).forEach(tempContest => {
-                            const temp = tempContest.holes.find(h => h.holeNo === hole.hole_no);
-                            if(temp){
-                                temp.canPick = false;
-                            }
-                        });
-                    }else {
-                        toast.error("An unexpected error occured. Can't update holes. Please refresh page");
-                    }
-                });
-                setHolesContestData(arr);
-                setGameContests(arr);
-                switch (ongoingRoundsReq.data.mode) {
+                const game = ongoingRoundsReq.data.game;
+                // overwrite the Course prop in game object returned from backend
+                game.Course = ongoingRoundsReq.data.course;
+                setOngoingRound(game);
+                setCourseId(game.course_id);
+                switch (game.mode) {
                     case 1:
                         setGameMode('Tournament');
                         break;
@@ -164,13 +110,12 @@ const GameBoard = () => {
 
             if(coursesReq && coursesReq.data){
                 setCourses(coursesReq.data);
-                setLoadingCourses(false);
+                setLoading(false);
             }
             setNetworkRequest(false);
             setShowOrbitalLoader(false);
         } catch (error) {
-            console.log(error);
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -233,7 +178,6 @@ const GameBoard = () => {
 
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
-        setShowHolesContestsModal(false);
     };
   
     const handleConfirm = async () => {
@@ -251,10 +195,8 @@ const GameBoard = () => {
                 break;
         }
     };
-
-    const updateHolesContest = (data) => {
-        const arr = [];
-        data.filter(datum => datum.selectedHoles.length > 0).forEach(datum => arr.push({id: datum.id, name: datum.name, holes: datum.selectedHoles}));
+    
+    const setHolesContests = (arr) => {
         setGameContests(arr);
     }
 
@@ -301,7 +243,7 @@ const GameBoard = () => {
             setShowOrbitalLoader(false);
             toast.info('Update successful');
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was aborted, handle silently
                 return;
             }
@@ -358,7 +300,7 @@ const GameBoard = () => {
                     setUpGame={handleUpdateGameContests} 
                     handleCancel={() => setPageNumber(3)} 
                     networkRequest={networkRequest}
-                    setShowHolesContestsModal={setShowHolesContestsModal} />}
+                    setHolesContests={setHolesContests} />}
             {pageNumber === 5 && 
                 <CourseSetup 
                     gameMode={gameMode} 
@@ -372,12 +314,6 @@ const GameBoard = () => {
 				handleConfirm={handleConfirm}
 				message={displayMsg}
 			/>
-            <HolesContestsDialog
-                show={showHolesContestsModal}
-                handleClose={handleCloseModal}
-                data={holesContestData}
-                updateHolesContest={updateHolesContest}
-            />
         </section>
     )
 }

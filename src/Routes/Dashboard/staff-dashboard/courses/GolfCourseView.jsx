@@ -135,7 +135,6 @@ export default function GolfCourseView() {
             
             setNetworkRequest(false);
         } catch (error) {
-            console.log(error);
             setNetworkRequest(false);
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
@@ -147,7 +146,7 @@ export default function GolfCourseView() {
 
     const askToRemove = (hole_id, hole_no, contest_id, contest_name) => {
         setDisplayMsg(`Remove hole ${hole_no} from ${contest_name} ?`);
-        setHoleToRemoveProp({hole_id, contest_id, hole_no});
+        setHoleToRemoveProp({hole_id, contest_id, course_id: id});
         setShowConfirmModal(true);
         setConfirmDialogEvtName('removeHole');
     };
@@ -311,7 +310,7 @@ export default function GolfCourseView() {
                 });
             }
             return objArr.map((val, idx) => {
-                const hole = course.Holes.find(c => c.hole_no === idx + 1);
+                const hole = course?.holes?.find(c => c.hole_no === idx + 1);
                 set9HoleValue(val.hole.name, hole.hcp_idx);
                 set9HoleValue(val.par.name, hole.par);
                 return <div className="shadow border p-3 rounded mt-2 mb-4" key={idx}>
@@ -351,7 +350,7 @@ export default function GolfCourseView() {
                 });
             }
             return objArr.map((val, idx) => {
-                const hole = course.holes.find(c => c.hole_no === idx + 1);
+                const hole = course?.holes?.find(c => c.hole_no === idx + 1);
                 set18HoleValue(val.hole.name, hole.CourseHoles.hcp_idx);
                 set18HoleValue(val.par.name, hole.CourseHoles.par);
                 return <div className="shadow border p-3 rounded mt-2 mb-4" key={idx}>

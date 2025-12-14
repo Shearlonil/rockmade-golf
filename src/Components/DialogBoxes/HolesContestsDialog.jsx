@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Modal, Button, Accordion } from "react-bootstrap";
 import { toast } from "react-toastify";
 
-const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data }) => {
+const HolesContestsDialog = ({ show, handleClose, updateHolesContests, data }) => {
     const [holesContestData, setHolesContestData] = useState([]);
 
     const modalLoaded = () => {
@@ -10,7 +10,7 @@ const HolesContestsDialog = ({ show, handleClose, updateHolesContest, data }) =>
     };
 
     const minimizeModal = () => {
-        updateHolesContest(holesContestData);
+        updateHolesContests(holesContestData);
         handleClose();
     }
 

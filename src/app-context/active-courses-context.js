@@ -7,6 +7,7 @@ const ActiveCoursesContext = createContext();
 */
 export const ActiveCoursesProvider = ({ children }) => {
     const [ activeCourses, setActiveCourses ] = useState([]);
+    const [ coursesHolesContests, setCousesHolesContests ] = useState({});
 	const [coursesLoading, setCoursesLoading] = useState(true);
     
     const courses = () => {
@@ -17,11 +18,21 @@ export const ActiveCoursesProvider = ({ children }) => {
         setActiveCourses(courses);
     };
     
-    const loadingCourses = () => {
+    const courseHolesContests = (course_id) => {
+        return coursesHolesContests[course_id];
+    };
+    
+    const updateCoursesHolesContests = (val) => {
+        const temp = {...coursesHolesContests};
+        temp[val.id] = {id: val.id, holes: val.holes};
+        setCousesHolesContests(temp);
+    };
+    
+    const loading = () => {
         return coursesLoading;
     };
     
-    const setLoadingCourses = (val) => {
+    const setLoading = (val) => {
         setCoursesLoading(val);
     };
 
@@ -29,10 +40,12 @@ export const ActiveCoursesProvider = ({ children }) => {
         () => ({
             courses,
             setCourses,
-            loadingCourses,
-            setLoadingCourses,
+            loading,
+            setLoading,
+            courseHolesContests,
+            updateCoursesHolesContests,
         }),
-        [activeCourses, coursesLoading]
+        [activeCourses, coursesLoading, coursesHolesContests]
     );
 
     return <ActiveCoursesContext.Provider value={value}>{children}</ActiveCoursesContext.Provider>;

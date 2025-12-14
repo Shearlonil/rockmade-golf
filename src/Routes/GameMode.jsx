@@ -3,7 +3,6 @@ import {
     Button,
     Row,
     Col,
-    Form,
     Container,
     Modal,
     ToggleButton,
@@ -11,16 +10,14 @@ import {
 } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
-import { format, isAfter } from 'date-fns';
+import { isAfter } from 'date-fns';
 
 import { GameModeCard } from "../Styles/HomeStyle";
 import HeroComp from "../Components/HeroComp";
 import IMAGES from "../assets/images";
 import crypt from "../Utils/crypto-helper";
 import { gameModes } from "../Utils/data";
-import HolesContestsDialog from "../Components/DialogBoxes/HolesContestsDialog";
 import handleErrMsg from '../Utils/error-handler';
-import { ThreeDotLoading } from "../Components/react-loading-indicators/Indicator";
 import { useAuthUser } from "../app-context/user-context";
 import useCourseController from "../api-controllers/course-controller-hook";
 import useGameController from "../api-controllers/game-controller-hook";
@@ -34,7 +31,7 @@ const GameMode = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { setCourses, setLoadingCourses } = useActiveCourses();
+    const { setCourses, setLoading } = useActiveCourses();
     const { limitGameCourseSearch, gameCourseSearch } = useCourseController();
     const { createGame } = useGameController();
     const { authUser } = useAuthUser();
@@ -43,7 +40,6 @@ const GameMode = () => {
     const [step, setStep] = useState(1);
     
     const [networkRequest, setNetworkRequest] = useState(false);
-	const [holesContestData, setHolesContestData] = useState([]);
 	const [courseSettingData, setCourseSettingData] = useState(null);
     
     // Global states for selections
@@ -52,7 +48,6 @@ const GameMode = () => {
     const [holeType, setHoleType] = useState("18");
     const [gameFormat, setGameFormat] = useState("Stroke Play");
     const [features, setFeatures] = useState({});
-	const [showHolesContestsModal, setShowHolesContestsModal] = useState(false);
 
     // players: slot contains either null or a player object {name,image,handicap,tee}
     const [players, setPlayers] = useState([user, null, null, null]); // 4 slots
@@ -93,14 +88,14 @@ const GameMode = () => {
     useEffect(() => {
         if(user && crypt.decryptData(user.mode) === '0'){
             // staff now allowed, because user.sub for staff will be undefined
-            toast.info("Only subscribed memebers are allowed to create games")
+            toast.info("Only subscribed memebers are allowed to create games");
             // navigate to dashboard
-            navigate('/dashboard')
+            navigate('/dashboard');
             return;
         }
         if(user && user.sub && isAfter(new Date(), new Date(crypt.decryptData(user.sub)).setHours(23, 59, 59, 0))){
             // navigate to sub page
-            navigate('/memberships')
+            navigate('/memberships');
             return;
         }
         // Cancel any previous in-flight request
@@ -132,7 +127,7 @@ const GameMode = () => {
             setNetworkRequest(true);
             const response = await limitGameCourseSearch(controllerRef.current.signal, 10);
             setCourses(response.data);
-            setLoadingCourses(false);
+            setLoading(false);
 
             setNetworkRequest(false);
         } catch (error) {
@@ -144,8 +139,6 @@ const GameMode = () => {
             toast.error(handleErrMsg(error).msg);
         }
     }
-
-    const handleCloseModal = () => setShowHolesContestsModal(false);
 
     const selectPlayerForSlot = (slotIdx, playerObj) => {
         setPlayers((prev) => {
@@ -180,47 +173,9 @@ const GameMode = () => {
         setCourse(data);
         setCourseSettingData(data);
         setStep(3);
-        // setup contests data for HolesContestsDialog
-        const arr = [];
-        let startHole = 0;
-        let endHole = 0
-        switch (data.hole_mode.value) {
-            case 1:
-                startHole = 1;
-                endHole = 18;
-                break;
-            case 2:
-                startHole = 1;
-                endHole = 9;
-                break;
-            case 3:
-                startHole = 10;
-                endHole = 18;
-                break;
-        }
-        data.course?.value?.Holes?.forEach(hole => {
-            if(hole.hole_no >= startHole && hole.hole_no <= endHole){
-                hole.contest.forEach(contest => {
-                    const c = arr.find(obj => obj.id === contest.id);
-                    if(c){
-                        c.holes?.push({holeNo: hole.hole_no, id: hole.id, canPick: true});
-                    }else {
-                        arr.push({
-                            id: contest.id,
-                            name: contest.name,
-                            holes: [{holeNo: hole.hole_no, id: hole.id, canPick: true}],
-                            selectedHoles: []
-                        });
-                    }
-                })
-            }
-        });
-        setHolesContestData(arr);
     };
 
-    const updateHolesContest = (data) => {
-        const arr = [];
-        data.filter(datum => datum.selectedHoles.length > 0).forEach(datum => arr.push({id: datum.id, name: datum.name, holes: datum.selectedHoles}));
+    const setHolesContests = (arr) => {
         const c = {...course};
         c.contests = arr;
         setCourse(c);
@@ -247,7 +202,7 @@ const GameMode = () => {
             setStep(4);
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was aborted, handle silently
                 return;
             }
@@ -290,7 +245,6 @@ const GameMode = () => {
 
     // score table players to display (only those selected)
     const activePlayers = players.map((p, idx) => ({ p, idx })).filter((x) => x.p);
-  
 
     const resetAbortController = () => {
         // Cancel previous request if it exists
@@ -361,7 +315,7 @@ const GameMode = () => {
                         handleCancel={() => setStep(2)} 
                         networkRequest={networkRequest}
                         btnRedText={'Back'}
-                        setShowHolesContestsModal={setShowHolesContestsModal} />}
+                        setHolesContests={setHolesContests} />}
 
                 {step === 4 && (
                     <div className="p-5 border rounded-4 bg-light shadow mb-5">
@@ -646,12 +600,6 @@ const GameMode = () => {
                     </div>
                 )}
             </Container>
-            <HolesContestsDialog
-                show={showHolesContestsModal}
-                handleClose={handleCloseModal}
-                data={holesContestData}
-                updateHolesContest={updateHolesContest}
-            />
         </>
     );
 };
