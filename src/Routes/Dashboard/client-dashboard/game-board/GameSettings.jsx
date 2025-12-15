@@ -48,7 +48,7 @@ const GameSettings = ({changePageNumber}) => {
                                 <li> Add player to groups </li>
                             </ul>
                             <span>Create groups and add players as needed</span>
-                            <Button variant='danger'>Setup</Button>
+                            <Button variant='danger' onClick={() => changePageNumber(6)}>Setup</Button>
                         </div>
                     </div>
                 </div>

@@ -22,6 +22,7 @@ import GameSetup from '../../../../Components/GameSetup';
 import useGenericController from '../../../../api-controllers/generic-controller-hook';
 import useCourseController from '../../../../api-controllers/course-controller-hook';
 import useGameController from '../../../../api-controllers/game-controller-hook';
+import PlayerSelection from '../../../../Components/PlayerSelection';
 
 const GameBoard = () => {
     const controllerRef = useRef(new AbortController());
@@ -89,7 +90,6 @@ const GameBoard = () => {
 
             if(ongoingRoundsReq && ongoingRoundsReq.data){
                 const game = ongoingRoundsReq.data.game;
-                // overwrite the Course prop in game object returned from backend
                 game.Course = ongoingRoundsReq.data.course;
                 setOngoingRound(game);
                 setCourseId(game.course_id);
@@ -212,7 +212,12 @@ const GameBoard = () => {
                 hole_mode: updatedCourseData.hole_mode.value,
                 name: updatedCourseData.name,
             };
-            await updateGame(controllerRef.current.signal, data);
+            const response = await updateGame(controllerRef.current.signal, data);
+            if(response && response.data){
+                const game = response.data.g;
+                game.Course = response.data.course;
+                setOngoingRound(game);
+            }
             setConfirmDialogEvtName(null);
             setNetworkRequest(false);
             setShowOrbitalLoader(false);
@@ -308,6 +313,7 @@ const GameBoard = () => {
                     handleSaveCourseSetting={handleSaveCourseSetting} 
                     handleCancel={() => setPageNumber(3)} 
                     asyncCourseSearch={asyncCourseSearch} />}
+            {pageNumber === 6 && <PlayerSelection changePageNumber={changePageNumber} />}
 			<ConfirmDialog
 				show={showConfirmModal}
 				handleClose={handleCloseModal}
