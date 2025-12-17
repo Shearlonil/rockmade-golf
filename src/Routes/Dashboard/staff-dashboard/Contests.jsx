@@ -406,7 +406,7 @@ const Contests = () => {
                     </div>
                 </div>
                 <div className=" col-12 col-md-2 mt-4">
-                    <Button variant="success fw-bold d-flex gap-3 align-items-center justify-content-center" className="w-100" onClick={handleAddContest}>
+                    <Button variant="success" className="w-100 fw-bold d-flex gap-3 align-items-center justify-content-center" onClick={handleAddContest}>
                         <IoMdAddCircle size='32px' /> Add
                     </Button>
                 </div>

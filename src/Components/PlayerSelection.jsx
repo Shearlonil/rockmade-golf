@@ -1,16 +1,21 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, Modal } from 'react-bootstrap';
+import { IoMdAddCircle } from "react-icons/io";
+import Select from 'react-select';
 
 import { useAuthUser } from '../app-context/user-context';
 import IMAGES from '../assets/images';
+import { grouSizeOptions } from '../Utils/data';
 
-const PlayerSelection = () => {
+const PlayerSelection = ({gameGroupArr = [], groupSize}) => {
     const { authUser } = useAuthUser();
     const user = authUser();
 
-    const [players, setPlayers] = useState([user, null, null, null]); // 4 slots
+    // const [players, setPlayers] = useState([user, null, null, null]); // 4 slots
     const [showModal, setShowModal] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState(null);
+    const [players, setPlayers] = useState([]);
+
     const registeredPlayers = [
         {
             name: "Obarinsola Olatunji",
@@ -35,29 +40,83 @@ const PlayerSelection = () => {
         },
     ];
 
-    const selectPlayerForSlot = (slotIdx, playerObj) => {
-        setPlayers((prev) => {
-            const copy = [...prev];
-            copy[slotIdx] = playerObj;
-            return copy;
-        });
+    useEffect(() => {
+    }, [gameGroupArr]);
+
+    // const selectPlayerForSlot = (slotIdx, playerObj) => {
+    //     setPlayers((prev) => {
+    //         const copy = [...prev];
+    //         copy[slotIdx] = playerObj;
+    //         return copy;
+    //     });
+    // };
+
+    // const unselectPlayer = (slotIdx) => {
+    //     setPlayers((prev) => {
+    //         const copy = [...prev];
+    //         copy[slotIdx] = null;
+    //         return copy;
+    //     });
+    // };
+
+    const handleAddGroup = () => {
+        new Array(groupSize).fill(1).map((val, index) => {
+            console.log(val, index);
+        })
     };
 
-    const unselectPlayer = (slotIdx) => {
-        setPlayers((prev) => {
-            const copy = [...prev];
-            copy[slotIdx] = null;
-            return copy;
-        });
+    const handleGroupSizeChanged = () => {
     };
+
+    const buildGroup = (datum, idx) => {
+        console.log(datum);
+        return <div className='card border-0 rounded-4 bg-light shadow'>
+            <div className='d-flex flex-wrap'>
+                {new Array(groupSize).fill(1).map((val, index) => {
+                    return <div className='w-50'>
+                        {datum.members[index]?.fname}
+                    </div>
+                })}
+            </div>
+            <div className="card-footer fw-bold bg-primary text-white">
+                Group {datum.name}
+            </div>
+        </div>
+    };
+
+    const buildPlayerGroups = gameGroupArr.map((datum, i) => { return buildGroup(datum, i) });
 
     return (
-        <div className="p-5 border rounded-4 bg-light shadow mb-5">
-            <div className="text-center">
-                <h2 className="mb-4">Add Players</h2>
+        <div className="mb-5">
+            <div className="text-center container">
+                <div className='row'>
+                    <div className="col-sm-12 col-md-4 mb-3 d-flex gap-3 align-items-center justify-content-center">
+                        <Button variant="success" className="fw-bold col-12 col-md-6" onClick={handleAddGroup}>
+                            <IoMdAddCircle size='32px' /> Add
+                        </Button>
+                    </div>
+                    <h2 className="mb-3 col-12 col-md-4">Players</h2>
+                    <div className="d-flex gap-4 align-items-center justify-content-center col-12 col-md-4 mb-3">
+                        <div className="d-flex flex-column w-100 gap-2">
+                            <span className="align-self-start fw-bold">Group Size</span>
+                            <Select
+                                required
+                                name="filter"
+                                placeholder="Filter..."
+                                className="text-dark col-12 col-md-5"
+                                defaultValue={grouSizeOptions[2]}
+                                options={grouSizeOptions}
+                                onChange={(val) => { handleGroupSizeChanged(val) }}
+                            />
+                        </div>
+                    </div>
+                </div>
 
                 {/* PLAYER GRID */}
-                <div className="mb-4">
+                <div className="mb-4 row">
+                    <div className="col-md-4 col-sm-12">
+                        {buildPlayerGroups}
+                    </div>
                     <h5 className="text-start fw-bold mb-3">Group 1</h5>
 
                     <div className="player-grid"

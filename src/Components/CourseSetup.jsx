@@ -51,7 +51,7 @@ const CourseSetup = ({data, gameMode, handleSaveCourseSetting, btnRedText = 'Can
             setValue('name', data.name);
             data.startDate ? newSetup(options) : oldSetup(options);
         }
-    }, []);
+    }, [data]);
 
     //  Handle golf course selection change
     const handleGolfCourseChange = (selectedCourse) => {

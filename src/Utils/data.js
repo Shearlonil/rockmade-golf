@@ -21,6 +21,25 @@ const gameModes = [
     },
 ];
 
+const grouSizeOptions = [
+	{
+		label: '2',
+		value: 2
+	},
+	{
+		label: '3',
+		value: 3
+	},
+	{
+		label: '4',
+		value: 4
+	},
+	{
+		label: '5',
+		value: 5
+	}
+]
+
 const gender = [
 	{
 		label: 'Male',
@@ -30,7 +49,7 @@ const gender = [
 		label: 'Female',
 		value: "F"
 	}
-]
+];
 
 const holeMode = [
 	{
@@ -41,7 +60,7 @@ const holeMode = [
 		label: '9 Holes',
 		value: 9
 	}
-]
+];
 
 const statusOptions = [
 	{
@@ -52,7 +71,7 @@ const statusOptions = [
 		label: 'Inactive',
 		value: false
 	}
-]
+];
 
 const pageSizeOptions = [
 	{
@@ -79,7 +98,7 @@ const pageSizeOptions = [
 		label: '1000',
 		value: 1000
 	}
-]
+];
 
 // Dynamic form field configuration
 const dynamic18Fields = [
@@ -161,7 +180,7 @@ const dynamic18Hcp = [
     { name: 'hcpSixteen', type: 'number', label: 'HCP', required: true, min: 1 },
     { name: 'hcpSeventeen', type: 'number', label: 'HCP', required: true, min: 1 },
     { name: 'hcpEighteen', type: 'number', label: 'HCP', required: true, min: 1 },
-]
+];
 
 const dynamic18Pars = [
     { name: 'parOne', type: 'number', label: 'PAR', required: true, min: 1 },
@@ -182,10 +201,11 @@ const dynamic18Pars = [
     { name: 'parSixteen', type: 'number', label: 'PAR', required: true, min: 1 },
     { name: 'parSeventeen', type: 'number', label: 'PAR', required: true, min: 1 },
     { name: 'parEighteen', type: 'number', label: 'PAR', required: true, min: 1 },
-]
+];
 
 export {
 	gameModes,
+    grouSizeOptions,
 	gender,
 	holeMode,
 	dynamic18Fields,

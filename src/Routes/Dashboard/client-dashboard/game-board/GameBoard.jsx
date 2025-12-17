@@ -47,6 +47,7 @@ const GameBoard = () => {
     // Game data
     const [gameContests, setGameContests] = useState([]); // new contests to send to backend  
     const [playerScores, setPlayerScores] = useState([]);
+    const [gameGroupArr, setGameGroupArr] = useState([]);
     const [pageNumber, setPageNumber] = useState(1);
     const [gameMode, setGameMode] = useState(null);
     
@@ -106,6 +107,7 @@ const GameBoard = () => {
                     default:
                         break;
                 }
+                buildGameGroup(game);
             }
 
             if(coursesReq && coursesReq.data){
@@ -257,7 +259,24 @@ const GameBoard = () => {
             toast.error(handleErrMsg(error).msg);
         }
     };
-  
+
+	const buildGameGroup = (game) => {
+        const arr = [];
+        game.users.forEach(user => {
+            if(user.UserGameGroup.round_no === game.current_round){
+                const group = arr.find(g => g.name === user.UserGameGroup.name);
+                if(group){
+                    group.members.push(user);
+                }else {
+                    arr.push({
+                        name: user.UserGameGroup.name,
+                        members: [user]
+                    })
+                }
+            }
+        });
+        setGameGroupArr(arr);
+    };
 
     const resetAbortController = () => {
         // Cancel previous request if it exists
@@ -313,7 +332,7 @@ const GameBoard = () => {
                     handleSaveCourseSetting={handleSaveCourseSetting} 
                     handleCancel={() => setPageNumber(3)} 
                     asyncCourseSearch={asyncCourseSearch} />}
-            {pageNumber === 6 && <PlayerSelection changePageNumber={changePageNumber} />}
+            {pageNumber === 6 && <PlayerSelection changePageNumber={changePageNumber} gameGroupArr={gameGroupArr} groupSize={ongoingRound.group_size} />}
 			<ConfirmDialog
 				show={showConfirmModal}
 				handleClose={handleCloseModal}
