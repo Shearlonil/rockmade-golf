@@ -8,6 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import 'react-toastify/dist/ReactToastify.css';
 import "react-datetime/css/react-datetime.css";
 import 'rsuite/dist/rsuite.min.css';
+import 'react-lazy-load-image-component/src/effects/blur.css'
 
 import { BrowserRouter } from "react-router-dom";
 import GlobalStyle from "./Styles/GlobalStyles.js";

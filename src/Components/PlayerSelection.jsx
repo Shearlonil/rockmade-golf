@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { Button, Modal } from 'react-bootstrap';
 import { IoMdAddCircle } from "react-icons/io";
 import Select from 'react-select';
+import { Controller, useForm } from 'react-hook-form';
 
 import { useAuthUser } from '../app-context/user-context';
 import IMAGES from '../assets/images';
-import { grouSizeOptions } from '../Utils/data';
+import { groupSizeOptions } from '../Utils/data';
+import ImageComponent from './ImageComponent';
 
-const PlayerSelection = ({gameGroupArr = [], groupSize}) => {
+const PlayerSelection = ({gameGroupArr = [], groupSize = 4}) => {
     const { authUser } = useAuthUser();
     const user = authUser();
 
@@ -15,6 +17,13 @@ const PlayerSelection = ({gameGroupArr = [], groupSize}) => {
     const [showModal, setShowModal] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [players, setPlayers] = useState([]);
+    const [sizeOfGroup, setSizeOfGroup] = useState(groupSize);
+    const [groupArr, setGroupArr] = useState(gameGroupArr);
+    
+    const {
+        control,
+        setValue,
+    } = useForm({});
 
     const registeredPlayers = [
         {
@@ -41,7 +50,9 @@ const PlayerSelection = ({gameGroupArr = [], groupSize}) => {
     ];
 
     useEffect(() => {
-    }, [gameGroupArr]);
+        const defaultGroupSize = groupSizeOptions.find(a => a.value === sizeOfGroup );
+        setValue('group_size', defaultGroupSize);
+    }, [groupArr, sizeOfGroup]);
 
     // const selectPlayerForSlot = (slotIdx, playerObj) => {
     //     setPlayers((prev) => {
@@ -51,40 +62,54 @@ const PlayerSelection = ({gameGroupArr = [], groupSize}) => {
     //     });
     // };
 
-    // const unselectPlayer = (slotIdx) => {
-    //     setPlayers((prev) => {
-    //         const copy = [...prev];
-    //         copy[slotIdx] = null;
-    //         return copy;
-    //     });
-    // };
-
-    const handleAddGroup = () => {
-        new Array(groupSize).fill(1).map((val, index) => {
-            console.log(val, index);
-        })
+    const handlePlayerButton = (data) => {
+        console.log(data);
     };
 
-    const handleGroupSizeChanged = () => {
+    const handleAddGroup = () => {
+        const temp = {
+            name: groupArr.length + 1,
+            members: []
+        };
+        setGroupArr([...groupArr, temp]);
+    };
+
+    const handleGroupSizeChanged = (val) => {
+        setSizeOfGroup(val.value);
     };
 
     const buildGroup = (datum, idx) => {
-        console.log(datum);
-        return <div className='card border-0 rounded-4 bg-light shadow'>
-            <div className='d-flex flex-wrap'>
-                {new Array(groupSize).fill(1).map((val, index) => {
-                    return <div className='w-50'>
-                        {datum.members[index]?.fname}
-                    </div>
-                })}
-            </div>
-            <div className="card-footer fw-bold bg-primary text-white">
-                Group {datum.name}
+        // console.log(datum);
+        return <div className='col-md-4 col-sm-12 mb-3'>
+            <div className='card border-0 rounded-4 bg-light shadow'>
+                <div className='d-flex flex-wrap p-2'>
+                    {new Array(sizeOfGroup).fill(1).map((val, index) => {
+                        if(datum.members[index]){
+                            return <div className='p-1 w-50 d-flex gap-2 align-items-center mb-1 mt-1 text-start' key={index} onClick={() => handlePlayerButton(datum)}>
+                                {datum.members[index].ClientImgBlurhash && <ImageComponent image={datum.members[index].ClientImgBlurhash} width={'30px'} height={'30px'} round={true} />}
+                                {!datum.members[index].ClientImgBlurhash && <img src={IMAGES.svg_user} width={'30px'} height={'30px'} className='rounded-circle' />}
+                                <span className='d-flex flex-column align-items-start gap-1'>
+                                    <span className='fw-bold' style={{fontSize: '12px'}}> {datum.members[index]?.fname} {datum.members[index]?.lname} </span>
+                                    <div> HCP: <span className='fw-bold'>{datum.members[index]?.hcp}</span> </div>
+                                </span>
+                            </div>
+                        }else {
+                            return <span className='p-1 w-50 mb-1 mt-1'>
+                                <Button variant="success" className="fw-bold w-100" onClick={() => handlePlayerButton()} key={index}>
+                                    <IoMdAddCircle size='25px' /> Add Player
+                                </Button>
+                            </span>
+                        }
+                    })}
+                </div>
+                <div className="card-footer fw-bold bg-primary text-white">
+                    Group {datum.name}
+                </div>
             </div>
         </div>
     };
 
-    const buildPlayerGroups = gameGroupArr.map((datum, i) => { return buildGroup(datum, i) });
+    const buildPlayerGroups = groupArr.map((datum, i) => { return buildGroup(datum, i) });
 
     return (
         <div className="mb-5">
@@ -99,14 +124,21 @@ const PlayerSelection = ({gameGroupArr = [], groupSize}) => {
                     <div className="d-flex gap-4 align-items-center justify-content-center col-12 col-md-4 mb-3">
                         <div className="d-flex flex-column w-100 gap-2">
                             <span className="align-self-start fw-bold">Group Size</span>
-                            <Select
-                                required
-                                name="filter"
-                                placeholder="Filter..."
-                                className="text-dark col-12 col-md-5"
-                                defaultValue={grouSizeOptions[2]}
-                                options={grouSizeOptions}
-                                onChange={(val) => { handleGroupSizeChanged(val) }}
+                            <Controller
+                                name="group_size"
+                                control={control}
+                                render={({ field: { onChange, value } }) => (
+                                    <Select
+                                        required
+                                        name="filter"
+                                        placeholder="Filter..."
+                                        className="text-dark col-12 col-md-5"
+                                        defaultValue={groupSizeOptions[2]}
+                                        options={groupSizeOptions}
+                                        onChange={(val) => { handleGroupSizeChanged(val) }}
+                                        value={value}
+                                    />
+                                )}
                             />
                         </div>
                     </div>
@@ -114,10 +146,7 @@ const PlayerSelection = ({gameGroupArr = [], groupSize}) => {
 
                 {/* PLAYER GRID */}
                 <div className="mb-4 row">
-                    <div className="col-md-4 col-sm-12">
-                        {buildPlayerGroups}
-                    </div>
-                    <h5 className="text-start fw-bold mb-3">Group 1</h5>
+                    {buildPlayerGroups}
 
                     <div className="player-grid"
                         style={{
@@ -195,13 +224,6 @@ const PlayerSelection = ({gameGroupArr = [], groupSize}) => {
                             </div>
                         ))}
                     </div>
-                </div>
-
-                {/* NAVIGATION */}
-                <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse">
-                    <Button onClick={ () => setStep(5)} className="me-2 btn-success col-md-4 col-sm-12">
-                        Start Game
-                    </Button>
                 </div>
             </div>
 

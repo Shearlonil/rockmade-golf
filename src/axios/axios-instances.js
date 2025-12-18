@@ -29,7 +29,7 @@ export const printerAxios = axios.create({
     // baseURL: 'http://192.168.0.102:8084'
 });
 
-axios.defaults.baseURL = "http://localhost:2025";
+// axios.defaults.baseURL = "http://localhost:2025";
 
 // ref: https://stackoverflow.com/questions/43002444/make-axios-send-cookies-in-its-requests-automatically
-axios.defaults.withCredentials = true;
+// axios.defaults.withCredentials = true;

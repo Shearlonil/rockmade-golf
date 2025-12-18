@@ -21,7 +21,7 @@ const gameModes = [
     },
 ];
 
-const grouSizeOptions = [
+const groupSizeOptions = [
 	{
 		label: '2',
 		value: 2
@@ -205,7 +205,7 @@ const dynamic18Pars = [
 
 export {
 	gameModes,
-    grouSizeOptions,
+    groupSizeOptions,
 	gender,
 	holeMode,
 	dynamic18Fields,

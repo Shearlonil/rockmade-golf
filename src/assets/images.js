@@ -35,6 +35,7 @@ const IMAGES = {
     svg_team_SECONDARY: new URL("./Svg/undraw_team_SECONDARY.svg", import.meta.url ).href,
     svg_team: new URL("./Svg/undraw_team.svg", import.meta.url).href,
     golf: new URL("./Svg/golf-svgrepo-com.svg", import.meta.url).href,
+    svg_user: new URL("./Svg/user-svgrepo-com.svg", import.meta.url).href,
 };
 
 export default IMAGES;

@@ -63,10 +63,12 @@ export const useAxiosInterceptor = () => {
         return Promise.reject(error);
     }
 
-    /* A Bug detected on signin in, Axios won't attach bearer token to request after first login. Will only start attaching after page refresh.
+    /*  A Bug detected on signin in, Axios won't attach bearer token to request after first login. Will only start attaching after page refresh.
         This method is a make shift to circumvent the bug. Called after successful login from the login implementation method
     */
     const setAxiosToken = (token) => setToken(token);
+
+    const getBaseURL = () => axiosInstance.defaults.baseURL;
 
     // Set up the interceptors with useEffect
     React.useEffect(() => {
@@ -87,5 +89,5 @@ export const useAxiosInterceptor = () => {
         }
     }, [token]);
 
-    return { xhrAios: axiosInstance, setAxiosToken };
+    return { xhrAios: axiosInstance, setAxiosToken, getBaseURL };
 }
