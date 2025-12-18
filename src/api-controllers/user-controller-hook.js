@@ -50,6 +50,14 @@ const useUserController = () => {
             }
         }, {signal});
     }
+    
+    const gameUserSearch = async (signal, data) => {
+        return await xhrAios.get(`/users/game/query`, {
+            params: {
+                str: data.inputValue
+            }
+        }, {signal});
+    }
 
     return {
         onboard,
@@ -58,6 +66,7 @@ const useUserController = () => {
         dashbaord,
         paginateFetch,
         userSearch,
+        gameUserSearch,
     }
 }
 
