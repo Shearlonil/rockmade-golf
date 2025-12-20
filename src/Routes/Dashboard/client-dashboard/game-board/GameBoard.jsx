@@ -332,7 +332,7 @@ const GameBoard = () => {
                     handleSaveCourseSetting={handleSaveCourseSetting} 
                     handleCancel={() => setPageNumber(3)} 
                     asyncCourseSearch={asyncCourseSearch} />}
-            {pageNumber === 6 && <PlayerSelection changePageNumber={changePageNumber} gameGroupArr={gameGroupArr} groupSize={ongoingRound.group_size} />}
+            {pageNumber === 6 && <PlayerSelection changePageNumber={changePageNumber} gameGroupArr={gameGroupArr} game={ongoingRound} />}
 			<ConfirmDialog
 				show={showConfirmModal}
 				handleClose={handleCloseModal}

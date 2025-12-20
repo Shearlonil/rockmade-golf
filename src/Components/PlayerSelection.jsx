@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button, Modal } from 'react-bootstrap';
 import { IoMdAddCircle } from "react-icons/io";
 import Select from 'react-select';
+import { toast } from 'react-toastify';
 import { Controller, useForm } from 'react-hook-form';
 
 import { useAuthUser } from '../app-context/user-context';
@@ -9,22 +10,25 @@ import IMAGES from '../assets/images';
 import { groupSizeOptions } from '../Utils/data';
 import ImageComponent from './ImageComponent';
 import PlayerSearchDialog from './DialogBoxes/PlayerSearchDialog';
-import { toast } from 'react-toastify';
+import useGameController from '../api-controllers/game-controller-hook';
+import handleErrMsg from '../Utils/error-handler';
 
-const PlayerSelection = ({gameGroupArr = [], groupSize = 4}) => {
+const PlayerSelection = ({gameGroupArr = [], game}) => {
+    const controllerRef = useRef(new AbortController());
+    const { addPlayers } = useGameController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
     // const [players, setPlayers] = useState([user, null, null, null]); // 4 slots
     const [showShowPlayerSearchDialog, setShowPlayerSearchDialog] = useState(false);
-    const [sizeOfGroup, setSizeOfGroup] = useState(groupSize);
+    const [sizeOfGroup, setSizeOfGroup] = useState(4);
     const [groupArr, setGroupArr] = useState(gameGroupArr);
 	const [displayMsg, setDisplayMsg] = useState("");
     // group which player is being added
 	const [activeGroup, setActiveGroup] = useState(null);
     // number of players to search in player dialog
-	const [numOfPlayers, setNumOfPlayers] = useState(groupSize);
+	const [numOfPlayers, setNumOfPlayers] = useState(4);
     
     const {
         control,
@@ -32,9 +36,12 @@ const PlayerSelection = ({gameGroupArr = [], groupSize = 4}) => {
     } = useForm({});
 
     useEffect(() => {
-        const defaultGroupSize = groupSizeOptions.find(a => a.value === sizeOfGroup );
-        setValue('group_size', defaultGroupSize);
-    }, [groupArr, sizeOfGroup]);
+        if(game){
+            setSizeOfGroup(game.group_size);
+            const defaultGroupSize = groupSizeOptions.find(a => a.value === game.group_size );
+            setValue('group_size', defaultGroupSize);
+        }
+    }, [gameGroupArr, game]);
 
 	const handleCloseModal = () => {
         setShowPlayerSearchDialog(false);
@@ -48,6 +55,36 @@ const PlayerSelection = ({gameGroupArr = [], groupSize = 4}) => {
         }
         try {
             if(data.length > 0){
+                const arr = [];
+                for (const datum of data) {
+                    groupArr.forEach(g => {
+                        const find = g.members.find(member => member.id === datum.id);
+                        if(find){
+                            toast.error(`${find.fname} ${find.lname} already added to group ${g.name}`);
+                            throw new Error('Cannot add player twice');
+                        }
+                    })
+                    arr.push(datum.id);
+                }
+                const payload = {
+                    game_id: game.id,
+                    currentGroupSize: sizeOfGroup,
+                    players: arr,
+                    groupProp: {
+                        round_no: game.current_round,
+                        group_name: activeGroup.name,
+                        isNew: activeGroup.isNew ? activeGroup.isNew : false,
+                    }
+                }
+                setNetworkRequest(true);
+                resetAbortController();
+                await addPlayers(controllerRef.current.signal, payload);
+                const temp = [...groupArr];
+                const g = temp.find(t => t.name === activeGroup.name);
+                g.members.push(...data);
+                setGroupArr(temp);
+                setNetworkRequest(false);
+                setActiveGroup(null);
             }else {
                 toast.info("Please select players");
                 throw new Error("Please select players");
@@ -61,7 +98,6 @@ const PlayerSelection = ({gameGroupArr = [], groupSize = 4}) => {
             toast.error(handleErrMsg(error).msg);
             throw new Error(handleErrMsg(error).msg);
         }
-        console.log(data, activeGroup);
         setShowPlayerSearchDialog(false);
     };
 
@@ -79,7 +115,8 @@ const PlayerSelection = ({gameGroupArr = [], groupSize = 4}) => {
     const handleAddGroup = () => {
         const temp = {
             name: groupArr.length + 1,
-            members: []
+            members: [],
+            isNew: true,
         };
         setGroupArr([...groupArr, temp]);
     };
@@ -89,8 +126,7 @@ const PlayerSelection = ({gameGroupArr = [], groupSize = 4}) => {
     };
 
     const buildGroup = (datum, idx) => {
-        // console.log(datum);
-        return <div className='col-md-4 col-sm-12 mb-3'>
+        return <div className='col-md-4 col-sm-12 mb-3' key={idx}>
             <div className='card border-0 rounded-4 bg-light shadow'>
                 <div className='d-flex flex-wrap p-2'>
                     {new Array(sizeOfGroup).fill(1).map((val, index) => {
@@ -121,6 +157,14 @@ const PlayerSelection = ({gameGroupArr = [], groupSize = 4}) => {
 
     const buildPlayerGroups = groupArr.map((datum, i) => { return buildGroup(datum, i) });
 
+    const resetAbortController = () => {
+        // Cancel previous request if it exists
+        if (controllerRef.current) {
+            controllerRef.current.abort();
+        }
+        controllerRef.current = new AbortController();
+    };
+
     return (
         <div className="mb-5">
             <div className="text-center container">
@@ -145,7 +189,10 @@ const PlayerSelection = ({gameGroupArr = [], groupSize = 4}) => {
                                         className="text-dark col-12 col-md-5"
                                         defaultValue={groupSizeOptions[2]}
                                         options={groupSizeOptions}
-                                        onChange={(val) => { handleGroupSizeChanged(val) }}
+                                        onChange={(val) => { 
+                                            handleGroupSizeChanged(val);
+                                            onChange(val);
+                                        }}
                                         value={value}
                                     />
                                 )}
