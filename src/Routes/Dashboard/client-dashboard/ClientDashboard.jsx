@@ -19,6 +19,9 @@ import { useAuth } from '../../../app-context/auth-context';
 import useUserController from '../../../api-controllers/user-controller-hook';
 import useGenericController from '../../../api-controllers/generic-controller-hook';
 import { OrbitalLoading } from '../../../Components/react-loading-indicators/Indicator';
+import ConfirmDialog from '../../../Components/DialogBoxes/ConfirmDialog';
+import useGameController from '../../../api-controllers/game-controller-hook';
+import ImageComponent from '../../../Components/ImageComponent';
 
 const columns = [
     {
@@ -49,7 +52,7 @@ const columns = [
         // width: 100
     },
     {
-        key: 'mode',
+        key: 'status',
         label: 'Game Status',
         flexGrow: 1,
         // width: 100
@@ -80,6 +83,7 @@ const ClientDashboard = () => {
     const { logout } = useAuth();
     const { imageBlob, setImageBlob } =  useProfileImg();
     const { performGetRequests, download } = useGenericController();
+    const { removeOngoingGame } = useGameController();
     const { dashbaord } = useUserController();
     const { authUser } = useAuthUser();
     const user = authUser();
@@ -88,13 +92,16 @@ const ClientDashboard = () => {
     const [topPlayedCoursesData, setTopPlayedCoursesData] = useState([ { name: "Fetching Data", value: 1, color: "#0088FE" } ]);
     const [mostPlayedContestsData, setMostPlayedContestsData] = useState([]);
 
-    const [hcp, setHcp] = useState(0);
+    const [roundToDel, setRoundToDel] = useState(null);
     const [coursesPlayed, setCoursesPlayed] = useState(0);
     const [gamesPlayed, setGamesPlayed] = useState(0);
     const [homeClub, setHomeClub] = useState("");
     const [ongoigRounds, setOngongRounds] = useState([]);
     const [recentGames, setRecentGames] = useState([]);
 
+	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [displayMsg, setDisplayMsg] = useState("");
+    const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
     
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8a2be2"];
     const months = ['Jan', 'Feb', 'Mar', 'April', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -133,6 +140,7 @@ const ClientDashboard = () => {
         setMostPlayedContestsData([{month: months[0], amount: 1000}]);
 
         initialize();
+        console.log(user.blur);
         return () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
             controllerRef.current.abort();
@@ -166,7 +174,7 @@ const ClientDashboard = () => {
                         name: r.name,
                         course_name: r.course_name,
                         date: r.date,
-                        mode: r.mode === 1 ? "Yet to play" : "In play",
+                        status: r.status === 1 ? "Yet to play" : "In play",
                         hole_mode: mode,
                         createdAt: r.createdAt
                     }
@@ -185,6 +193,10 @@ const ClientDashboard = () => {
     }
 
     const handleOngoingGameDelete = (data) => {
+        setRoundToDel(data);
+        setConfirmDialogEvtName('removeOngoing');
+        setDisplayMsg(`Delete ongoing round ${data.name}?. Action cannot be undone!`);
+        setShowConfirmModal(true);
     }
 
     const handleViewOngoingGame = (data) => {
@@ -202,6 +214,40 @@ const ClientDashboard = () => {
         navigate('game/create');
     }
 
+	const handleCloseModal = () => {
+        setShowConfirmModal(false);
+    };
+  
+    const handleConfirm = async () => {
+        setShowConfirmModal(false);
+        switch (confirmDialogEvtName) {
+            case "removeOngoing":
+                delOngoingGame();
+                break;
+        }
+    };
+
+	const delOngoingGame = async () => {
+        try {
+            resetAbortController();
+            setNetworkRequest(true);
+            await removeOngoingGame(controllerRef.current.signal, roundToDel.id);
+            // remove game from table data
+            const temp = [...ongoigRounds];
+            const idx = temp.findIndex(o => o.id === roundToDel.id);
+            temp.splice(idx, 1);
+            setOngongRounds(temp);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
     const resetAbortController = () => {
         // Cancel previous request if it exists
         if (controllerRef.current) {
@@ -213,8 +259,9 @@ const ClientDashboard = () => {
     return (
         <section className='container' style={{minHeight: '60vh'}}>
             <Row className='mt-4'>
-                <div className="d-flex flex-wrap gap-4 align-items-center" >
-                    <img src={IMAGES.image1} alt ="Avatar" className="rounded-circle" width={100} height={100} />
+                <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center col-md-6 col-sm-12" >
+                    {user.blur && <ImageComponent image={user.blur} width={'100px'} height={'100px'} round={true} />}
+                    {!user.blur && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={100} height={100} />}
                     <div className="d-flex flex-wrap gap-2 fw-bold h2">
                         <span>{user.firstName}</span>
                         <span> {user.lastName}</span>
@@ -293,7 +340,7 @@ const ClientDashboard = () => {
             </div>
             {ongoigRounds.length > 0 && <h2 className='mt-3'>Ongoing Games</h2>}
             {ongoigRounds.length > 0 && 
-                <Table rowKey="id" data={ongoigRounds} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true}>
+                <Table rowKey="id" data={ongoigRounds} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} className={` ${networkRequest ? 'disabledDiv' : ''}`}>
                     {columns.map((column, idx) => {
                         const { key, label, ...rest } = column;
                         return (
@@ -368,10 +415,16 @@ const ClientDashboard = () => {
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='success' className='w-100 fw-bold'>My Profile</Button> 
+                        <Button variant='success' className='w-100 fw-bold' onClick={() => navigate("profile")}>My Profile</Button> 
                     </div>
                 </div>
             </div>
+			<ConfirmDialog
+				show={showConfirmModal}
+				handleClose={handleCloseModal}
+				handleConfirm={handleConfirm}
+				message={displayMsg}
+			/>
         </section>
     )
 }

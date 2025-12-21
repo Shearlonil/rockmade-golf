@@ -24,7 +24,6 @@ const GameSetup = ({ data, gameMode, setUpGame, handleCancel, networkRequest, bt
 
     useEffect(() => {
         if(data){
-            console.log(data);
             /*  this component can be loaded from different pages:
                 1.  from GameMode to create new game
                 2.  from GameBoard to change settings of yet to play or in-play games

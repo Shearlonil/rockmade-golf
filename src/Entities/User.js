@@ -15,7 +15,8 @@ export default class User {
                 regDate: whom.regDate,
                 hcp: whom.hcp,
                 sub: whom.sub,
-                roles: whom.roles, // specifies 'E' or 'S'. Not available for staff 
+                blur: whom.blur,
+                roles: whom.roles,
             });
         }
     }
@@ -51,6 +52,10 @@ export default class User {
     get sub() { return _userProps.get(this).sub }
     
     set sub(sub) { _userProps.get(this).sub = sub }
+
+    get blur() { return _userProps.get(this).blur }
+    
+    set blur(blur) { _userProps.get(this).blur = blur }
 
     get hcp() { return _userProps.get(this).hcp }
     

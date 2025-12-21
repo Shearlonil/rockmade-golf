@@ -24,6 +24,7 @@ import useGameController from "../api-controllers/game-controller-hook";
 import CourseSetup from "../Components/CourseSetup";
 import { useActiveCourses } from "../app-context/active-courses-context";
 import GameSetup from "../Components/GameSetup";
+import PlayerSelection from "../Components/PlayerSelection";
 
 const GameMode = () => {
     const controllerRef = useRef(new AbortController());
@@ -45,7 +46,9 @@ const GameMode = () => {
     // Global states for selections
     const [gameMode, setGameMode] = useState("");
     const [course, setCourse] = useState({});
-    const [holeType, setHoleType] = useState("18");
+    const [gameGroupArr, setGameGroupArr] = useState([]);
+    const [ongoingRound, setOngoingRound] = useState(null);
+    const [heroText, setHeroText] = useState("Our Game Modes");
     const [gameFormat, setGameFormat] = useState("Stroke Play");
     const [features, setFeatures] = useState({});
 
@@ -55,35 +58,11 @@ const GameMode = () => {
     const [selectedSlot, setSelectedSlot] = useState(null);
 
     // live scores state: array of arrays: scores[playerIndex][holeIdx] = string/number
-    const holeCount = holeType === "18" ? 18 : 9;
+    const holeCount = 18;
     const [scores, setScores] = useState(() => players.map(() => Array(holeCount).fill("")) );
 
     // editMode: 'own' (default) or 'all' (host/scorekeeper)
     const [editMode, setEditMode] = useState("own");
-
-    const registeredPlayers = [
-        {
-            name: "Obarinsola Olatunji",
-            image: IMAGES.player1,
-            handicap: "+2",
-            tee: "60",
-        },
-        {
-            name: "Olumide Olumide",
-            image: IMAGES.player2,
-            handicap: "0",
-            tee: "58",
-        },
-        { name: "Joshua Josh", image: IMAGES.player3, handicap: "+1", tee: "59" },
-        { name: "Charles Bob", image: IMAGES.player4, handicap: "-1", tee: "61" },
-        { name: "Henry Danger", image: IMAGES.player5, handicap: "+3", tee: "62" },
-        {
-            name: "Jesse Lee Peterson",
-            image: IMAGES.player6,
-            handicap: "+4",
-            tee: "57",
-        },
-    ];
 
     useEffect(() => {
         if(user && crypt.decryptData(user.mode) === '0'){
@@ -103,23 +82,12 @@ const GameMode = () => {
             controllerRef.current.abort();
         }
         initialize();
-        // ensure scores has correct holeCount and player slots
-        setScores((prev) => {
-            const newScores = players.map((_, pIdx) => {
-                const existing = prev[pIdx] || [];
-                // trim or extend existing to holeCount
-                const copy = existing.slice(0, holeCount);
-                while (copy.length < holeCount) copy.push("");
-                return copy;
-            });
-            return newScores;
-        });
 
         return () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
             controllerRef.current.abort();
         };
-    }, [holeType, players, location.pathname]);
+    }, [location.pathname]);
 
     const initialize = async () => {
         try {
@@ -140,22 +108,6 @@ const GameMode = () => {
         }
     }
 
-    const selectPlayerForSlot = (slotIdx, playerObj) => {
-        setPlayers((prev) => {
-            const copy = [...prev];
-            copy[slotIdx] = playerObj;
-            return copy;
-        });
-    };
-
-    const unselectPlayer = (slotIdx) => {
-        setPlayers((prev) => {
-            const copy = [...prev];
-            copy[slotIdx] = null;
-            return copy;
-        });
-    };
-
     const handleScoreChange = (playerIdx, holeIdx, raw) => {
         // sanitize: allow only non-negative integers or empty string
         let v = raw === "" ? "" : parseInt(raw, 10);
@@ -172,6 +124,7 @@ const GameMode = () => {
 	const submitCourse = (data) => {
         setCourse(data);
         setCourseSettingData(data);
+        setHeroText('Add Contests to spice up game');
         setStep(3);
     };
 
@@ -198,7 +151,10 @@ const GameMode = () => {
                 name: course.name,
                 mode: gameMode.id
             };
-            await createGame(controllerRef.current.signal, data);
+            const response = await createGame(controllerRef.current.signal, data);
+            setOngoingRound(response.data);
+            buildGameGroup(response.data);
+            setHeroText('Create Groups and Add Players');
             setStep(4);
             setNetworkRequest(false);
         } catch (error) {
@@ -243,8 +199,23 @@ const GameMode = () => {
     // helper: find current user's slot index in players (by name)
     const viewerSlotIndex = players.findIndex((p) => p && p.name === user.name);
 
-    // score table players to display (only those selected)
-    const activePlayers = players.map((p, idx) => ({ p, idx })).filter((x) => x.p);
+	const buildGameGroup = (game) => {
+        const arr = [];
+        game.users.forEach(user => {
+            if(user.UserGameGroup.round_no === game.current_round){
+                const group = arr.find(g => g.name === user.UserGameGroup.name);
+                if(group){
+                    group.members.push(user);
+                }else {
+                    arr.push({
+                        name: user.UserGameGroup.name,
+                        members: [user]
+                    })
+                }
+            }
+        });
+        setGameGroupArr(arr);
+    };
 
     const resetAbortController = () => {
         // Cancel previous request if it exists
@@ -257,7 +228,7 @@ const GameMode = () => {
     return (
         <>
             <HeroComp $heroImage={IMAGES.image4}>
-                <h2 className="text-center mb-4 display-5 fw-bold">Our Game Modes</h2>
+                <h2 className="text-center mb-4 display-5 fw-bold"> { heroText }</h2>
             </HeroComp>
 
             <Container className="mt-5" id="section_3">
@@ -284,6 +255,7 @@ const GameMode = () => {
                                     onClick={() => {
                                         setGameMode(mode);
                                         setStep(2); // move immediately to next step
+                                        setHeroText('Golf Course Selection & Holes');
                                     }}
                                     style={{ cursor: "pointer" }}
                                 >
@@ -305,168 +277,25 @@ const GameMode = () => {
                         gameMode={gameMode.name} 
                         handleSaveCourseSetting={submitCourse} 
                         asyncCourseSearch={asyncCourseSearch}
-                        handleCancel={() => setStep(1)} 
+                        handleCancel={() => {
+                            setStep(1);
+                            setHeroText('Our Game Modes');
+                        }} 
                         btnRedText='Back' btnBlueText='Next' />}
                 {step === 3 && 
                     <GameSetup 
                         gameMode={gameMode.name} 
                         data={course} 
                         setUpGame={setUpGame} 
-                        handleCancel={() => setStep(2)} 
+                        handleCancel={() => {
+                            setStep(2);
+                            setHeroText('Golf Course Selection & Holes');
+                        }} 
                         networkRequest={networkRequest}
                         btnRedText={'Back'}
                         setHolesContests={setHolesContests} />}
 
-                {step === 4 && (
-                    <div className="p-5 border rounded-4 bg-light shadow mb-5">
-                        <div className="text-center">
-                            <h2 className="mb-4">Add Players</h2>
-
-                            {/* PLAYER GRID */}
-                            <div className="mb-4">
-                                <h5 className="text-start fw-bold mb-3">Group 1</h5>
-
-                                <div className="player-grid"
-                                    style={{
-                                        display: "grid",
-                                        gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-                                        gap: "1rem",
-                                    }}
-                                >
-                                    {players.map((player, idx) => (
-                                        <div key={idx}
-                                            className="position-relative p-3 border rounded bg-white d-flex flex-column align-items-center justify-content-center shadow-sm"
-                                            style={{
-                                                minHeight: "150px",
-                                                cursor: idx === 0 ? "default" : "pointer",
-                                            }}
-                                            onClick={() => {
-                                              if (idx !== 0) {
-                                                  setSelectedSlot(idx);
-                                                  setShowModal(true);
-                                              }
-                                            }}
-                                        >
-                                            {/* Unselect button (except maybe prevent unselecting host without confirmation) */}
-                                            {player && idx !== 0 && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        unselectPlayer(idx);
-                                                    }}
-                                                    className="btn btn-sm btn-outline-danger position-absolute"
-                                                    style={{ top: 8, right: 8 }}
-                                                >
-                                                    Remove
-                                                </button>
-                                            )}
-
-                                            {player ? (
-                                                <>
-                                                    <img
-                                                        src={player.image}
-                                                        alt={player.name}
-                                                        style={{
-                                                            width: "60px",
-                                                            height: "60px",
-                                                            borderRadius: "50%",
-                                                            objectFit: "cover",
-                                                            marginBottom: "0.5rem",
-                                                        }}
-                                                    />
-                                                    <h6 className="fw-bold">{player.name}</h6>
-                                                    <small className="text-muted">
-                                                        HC: {player.handicap} | Tee: {player.tee}
-                                                    </small>
-                                                </>
-                                            ) : (
-                                                <div className="text-center text-muted">
-                                                    <div
-                                                        style={{
-                                                            width: "50px",
-                                                            height: "50px",
-                                                            borderRadius: "50%",
-                                                            background: "#e9ecef",
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                            fontSize: "24px",
-                                                            margin: "0 auto 0.5rem",
-                                                        }}
-                                                    >
-                                                        +
-                                                    </div>
-                                                    <span>Add Player</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* NAVIGATION */}
-                            <div className="d-flex flex-row row justify-content-center container gap-3 flex-md-row-reverse">
-                                <Button onClick={ () => setStep(5)} className="me-2 btn-success col-md-4 col-sm-12">
-                                    Start Game
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* PLAYER SELECTION MODAL */}
-                        <Modal show={showModal}
-                            onHide={() => {
-                                setShowModal(false);
-                                setSelectedSlot(null);
-                            }}
-                            centered
-                        >
-                            <Modal.Header closeButton>
-                                <Modal.Title>Select a Player</Modal.Title>
-                            </Modal.Header>
-                            <Modal.Body>
-                                <div className="d-flex flex-column gap-2">
-                                    {registeredPlayers.map((rp, i) => {
-                                        const alreadyPicked = players.some((p) => p && p.name === rp.name);
-                                        return (
-                                            <div key={i}
-                                                className={`p-3 border rounded d-flex align-items-center shadow-sm ${alreadyPicked? "bg-dark-subtle text-muted" : "hover-bg-light"}`}
-                                                style={{ cursor: alreadyPicked ? "not-allowed" : "pointer",}}
-                                                onClick={() => {
-                                                    if (selectedSlot === null || alreadyPicked) return;
-                                                    selectPlayerForSlot(selectedSlot, rp);
-                                                    setShowModal(false);
-                                                    setSelectedSlot(null);
-                                                }}
-                                            >
-                                                <img src={rp.image} alt={rp.name}
-                                                    style={{
-                                                        width: 50,
-                                                        height: 50,
-                                                        borderRadius: "50%",
-                                                        objectFit: "cover",
-                                                        marginRight: "1rem",
-                                                        opacity: alreadyPicked ? 0.5 : 1,
-                                                    }}
-                                                />
-                                                <div className="flex-grow-1">
-                                                    <h6 className="fw-bold mb-0">{rp.name}</h6>
-                                                    <small className="text-muted">
-                                                        HC: {rp.handicap} | Tee: {rp.tee}
-                                                    </small>
-                                                </div>
-                                                {alreadyPicked && (
-                                                    <span className="badge bg-success" style={{ fontSize: 12 }}>
-                                                      ✓ Selected
-                                                    </span>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </Modal.Body>
-                        </Modal>
-                    </div>
-                )}
+                {step === 4 && <PlayerSelection gameGroupArr={gameGroupArr} game={ongoingRound} />}
 
                 {/* ---------- STEP 5: Live Game / Single Editable Table ---------- */}
                 {step === 5 && (

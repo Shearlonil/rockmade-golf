@@ -2,7 +2,7 @@ import { Button, Col, Row } from 'react-bootstrap';
 import { GiGamepadCross, GiPlayerTime } from "react-icons/gi";
 import IMAGES from '../../../../assets/images';
 
-const GameSettings = ({changePageNumber}) => {
+const GameSettings = ({changePageNumber, networkRequest}) => {
     return (
         <Row>
             <Col xs={12} md={4} sm={12} className="mb-2">
@@ -16,7 +16,7 @@ const GameSettings = ({changePageNumber}) => {
                                 <li> Add Contests to spice up games </li>
                             </ul>
                             <span>Setup Games as needed</span>
-                            <Button variant='primary' onClick={() => changePageNumber(4)}>Setup</Button>
+                            <Button variant='primary' onClick={() => changePageNumber(4)} disabled={networkRequest}>Setup</Button>
                         </div>
                     </div>
                 </div>
@@ -32,7 +32,7 @@ const GameSettings = ({changePageNumber}) => {
                                 <li> Adjust number of holes </li>
                             </ul>
                             <span>Setup Golf Course as needed</span>
-                            <Button variant='success' onClick={() => changePageNumber(5)}>Setup</Button>
+                            <Button variant='success' onClick={() => changePageNumber(5)} disabled={networkRequest}>Setup</Button>
                         </div>
                     </div>
                 </div>
@@ -48,7 +48,7 @@ const GameSettings = ({changePageNumber}) => {
                                 <li> Add player to groups </li>
                             </ul>
                             <span>Create groups and add players as needed</span>
-                            <Button variant='danger' onClick={() => changePageNumber(6)}>Setup</Button>
+                            <Button variant='danger' onClick={() => changePageNumber(6)} disabled={networkRequest}>Setup</Button>
                         </div>
                     </div>
                 </div>

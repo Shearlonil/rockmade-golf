@@ -39,7 +39,7 @@ const ImageComponent = ({ image, width, height, round }) => {
             key={image?.id}
             effect="blur"
             src={`${getBaseURL()}/users/dp/${image?.user_id}`}
-            placeholderSrc={IMAGES.logo}
+            placeholderSrc={IMAGES.member_icon}
             width={width || "100%"}
             height={height || 200}
             onLoad={handleLoad}

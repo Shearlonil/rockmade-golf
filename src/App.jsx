@@ -19,6 +19,7 @@ import Contests from "./Routes/Dashboard/staff-dashboard/Contests.jsx";
 import Staff from "./Routes/Dashboard/staff-dashboard/users/Staff.jsx";
 import GameBoard from "./Routes/Dashboard/client-dashboard/game-board/GameBoard.jsx";
 import Dashboard from "./Routes/Dashboard/MainDashboard.jsx";
+import Profile from "./Routes/Dashboard/MyProfilePage/MainProfile.jsx";
 
 function App() {
     return (
@@ -37,6 +38,7 @@ function App() {
                     <Route index path="game/create" element={<GameMode />} />
                     <Route index path="contests" element={<Contests />} />
                     <Route index path="users" element={<Staff />} />
+                    <Route index path="profile" element={<Profile />} />
                     <Route path="staff" >
                         <Route path="courses" >
                             <Route path=":id/view" element={<GolfCourseView />} />

@@ -11,19 +11,30 @@ import handleErrMsg from '../../../Utils/error-handler';
 import useGenericController from '../../../api-controllers/generic-controller-hook';
 import OffcanvasMenu from '../../../Components/OffcanvasMenu';
 import cryptoHelper from '../../../Utils/crypto-helper';
+import StaffCreationDialog from '../../../Components/DialogBoxes/StaffCreationDialog';
+import ConfirmDialog from '../../../Components/DialogBoxes/ConfirmDialog';
+import useStaffController from '../../../api-controllers/staff-controller';
 
 const StaffDashboard = () => {
     const controllerRef = useRef(new AbortController());
     
     const navigate = useNavigate();
     const location = useLocation();
-
+    
+    const { register } = useStaffController();
     const { imageBlob, setImageBlob } =  useProfileImg();
     const { performGetRequests } = useGenericController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
+    const [authOptions, setAuthOptions] = useState([]);
+    const [showStaffCreationModal, setShowStaffCreationModal] = useState(false);
+	const [showStaffProfileModal, setShowStaffProfileModal] = useState(false);
+	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [displayMsg, setDisplayMsg] = useState("");
+    const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
+    const [newUser, setNewUser] = useState(null);
     const [topPlayedCoursesData, setTopPlayedCoursesData] = useState([ { name: "Fetching Data", value: 1, color: "#0088FE" } ]);
     const [mostPlayedContestsData, setMostPlayedContestsData] = useState([]);
     
@@ -81,6 +92,13 @@ const StaffDashboard = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
+            const urls = [ '/staff/auths' ];
+            const response = await performGetRequests(urls, controllerRef.current.signal);
+            const { 0: authReq } = response;
+
+            if(authReq && authReq.data){
+                setAuthOptions(authReq.data.map(auth => ({label: auth.name, value: auth})));
+            }
 
             setNetworkRequest(false);
         } catch (error) {
@@ -91,6 +109,11 @@ const StaffDashboard = () => {
             setNetworkRequest(false);
             toast.error(handleErrMsg(error).msg);
         }
+    }
+
+    const handleAddStaff = () => {
+        setDisplayMsg('Add New Staff');
+        setShowStaffCreationModal(true);
     }
 
 	const handleOffCanvasMenuItemClick = async (onclickParams, e) => {
@@ -109,6 +132,78 @@ const StaffDashboard = () => {
                 break;
         }
 	}
+  
+    const handleCreateStaff = async () => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const authArr = newUser.authorities?.map(auth => auth.value.code);
+            const dto = {
+                fname: newUser.fname,
+                lname: newUser.lname,
+                phone: newUser.phone,
+                email: newUser.email,
+                sex: newUser.sex.value,
+                authorities: authArr ? authArr : []
+            }
+            const response = await register(controllerRef.current.signal, dto);
+            const user = {
+                id: response.data.id,
+                fname: newUser.fname,
+                lname: newUser.lname,
+                phone: newUser.phone,
+                email: newUser.email,
+                sex: newUser.sex.value,
+                status: 1,
+                createdAt: new Date(),
+            }
+            setNetworkRequest(false);
+            handleCloseModal();
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
+    const handleConfirmStaffCreation = staff => {
+        setNewUser(staff);
+        setDisplayMsg('Create new account?');
+        setConfirmDialogEvtName('create');
+        setShowConfirmModal(true);
+    };
+  
+    const handleConfirm = async () => {
+        setShowConfirmModal(false);
+        switch (confirmDialogEvtName) {
+            case "remove":
+                delUser();
+                break;
+            case "restore":
+                restoreUser();
+                break;
+            case "create":
+                handleCreateStaff();
+                break;
+        }
+    };
+
+	const handleCloseModal = () => {
+        setShowConfirmModal(false);
+        setShowStaffCreationModal(false);
+        setShowStaffProfileModal(false);
+    };
+
+    const resetAbortController = () => {
+        // Cancel previous request if it exists
+        if (controllerRef.current) {
+            controllerRef.current.abort();
+        }
+        controllerRef.current = new AbortController();
+    };
 
     return (
         <section className='container' style={{minHeight: '60vh'}}>
@@ -230,7 +325,7 @@ const StaffDashboard = () => {
             <div className="row mt-3 mb-5">
                 <div className="col-12 col-sm-3">
                     <div className="p-2">
-                        <Button variant='warning' className='w-100 fw-bold'>Add Users</Button> 
+                        <Button variant='warning' className='w-100 fw-bold' onClick={handleAddStaff}>Add Users</Button> 
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 
@@ -245,10 +340,25 @@ const StaffDashboard = () => {
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='success' className='w-100 fw-bold'>My Profile</Button> 
+                        <Button variant='success' className='w-100 fw-bold' onClick={() => navigate("profile")}>My Profile</Button> 
                     </div>
                 </div>
             </div>
+			<ConfirmDialog
+				show={showConfirmModal}
+				handleClose={handleCloseModal}
+				handleConfirm={handleConfirm}
+				message={displayMsg}
+			/>
+			<StaffCreationDialog
+				show={showStaffCreationModal}
+				handleClose={handleCloseModal}
+				handleConfirm={handleConfirmStaffCreation}
+				message={displayMsg}
+                networkRequest={networkRequest}
+                setNetworkREquest={setNetworkRequest}
+                authOptions={authOptions}
+			/>
         </section>
     )
 }

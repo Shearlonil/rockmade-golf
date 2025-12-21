@@ -316,7 +316,7 @@ const GameBoard = () => {
             </div>
             {pageNumber === 1 && <GroupScore holeMode={ongoingRound?.hole_mode} playerScores={playerScores} />}
             {pageNumber === 2 && <LeaderBoards />}
-            {pageNumber === 3 && <GameSettings changePageNumber={changePageNumber} />}
+            {pageNumber === 3 && <GameSettings changePageNumber={changePageNumber} networkRequest={networkRequest} />}
             {pageNumber === 4 && 
                 <GameSetup 
                     gameMode={gameMode} 

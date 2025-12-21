@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 import { Controller, useForm } from 'react-hook-form';
 import Select from "react-select";
@@ -17,6 +17,7 @@ import handleErrMsg from '../../Utils/error-handler';
 const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, networkRequest, authOptions, staff }) => {
 
     const controllerRef = useRef(new AbortController());
+    const [authsLoading, setAuthsLoading] = useState(false);
 
     const { findByIdWithAuths } = useStaffController();
 
@@ -36,32 +37,29 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
         try {
             //	check if the request to fetch authorities doesn't fail before setting values to display
             if(staff){
-				// setNetworkREquest(true);
-                controllerRef.current = new AbortController();
-                const response = await findByIdWithAuths(controllerRef.current.signal, staff.id)
-				const appliedAuths = response.data.Authorities?.map( auth => {
-                    const temp = {
-                        id: auth.id,
-                        name: auth.name,
-                        desc: auth.desc,
-                        code: auth.code,
-                    }
-                    return {label: temp.name, value: temp};
-                });
                 setValue('fname', staff.fname);
                 setValue('lname', staff.lname);
                 setValue('phone', staff.phone);
                 setValue('sex', staff.sex === 'M' ? 'Male' : "Female");
                 setValue('email', staff.email);
                 setValue('creator', staff.creator_fname + " " + staff.creator_lname);
-                setValue('authorities', appliedAuths);
+				setAuthsLoading(true);
+                controllerRef.current = new AbortController();
+                const response = await findByIdWithAuths(controllerRef.current.signal, staff.id);
+                const arr = [];
+                response.data.Authorities?.forEach(auth => {
+                    const a = authOptions.find(option => option.value.id === auth.id);
+                    arr.push(a);
+                });
+                setValue('authorities', arr);
+				setAuthsLoading(false);
             }
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
-            // setNetworkRequest(false);
+            setAuthsLoading(false);
             toast.error(handleErrMsg(error).msg);
         }
     };
@@ -194,6 +192,7 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
                                         name="authorities"
                                         placeholder="Select Authorities..."
                                         className="text-dark col-12"
+                                        isLoading={authsLoading}
                                         options={authOptions}
                                         onChange={(val) => onChange(val)}
                                         value={value}

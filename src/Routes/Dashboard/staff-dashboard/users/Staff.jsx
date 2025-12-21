@@ -299,28 +299,35 @@ const Staff = () => {
         setDisplayMsg('Profile View');
         setShowStaffProfileModal(true);
     };
+
+    const handleConfirmStaffCreation = staff => {
+        setEditedUser(staff);
+        setDisplayMsg('Create new account?');
+        setConfirmDialogEvtName('create');
+        setShowConfirmModal(true);
+    };
   
-    const handleCreateStaff = async (staff) => {
+    const handleCreateStaff = async () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const authArr = staff.authorities?.map(auth => auth.value.code);
+            const authArr = editedUser.authorities?.map(auth => auth.value.code);
             const dto = {
-                fname: staff.fname,
-                lname: staff.lname,
-                phone: staff.phone,
-                email: staff.email,
-                sex: staff.sex.value,
+                fname: editedUser.fname,
+                lname: editedUser.lname,
+                phone: editedUser.phone,
+                email: editedUser.email,
+                sex: editedUser.sex.value,
                 authorities: authArr ? authArr : []
             }
             const response = await register(controllerRef.current.signal, dto);
             const user = {
                 id: response.data.id,
-                fname: staff.fname,
-                lname: staff.lname,
-                phone: staff.phone,
-                email: staff.email,
-                sex: staff.sex.value,
+                fname: editedUser.fname,
+                lname: editedUser.lname,
+                phone: editedUser.phone,
+                email: editedUser.email,
+                sex: editedUser.sex.value,
                 status: 1,
                 createdAt: new Date(),
             }
@@ -380,6 +387,9 @@ const Staff = () => {
                 break;
             case "restore":
                 restoreUser();
+                break;
+            case "create":
+                handleCreateStaff();
                 break;
         }
     };
@@ -495,12 +505,11 @@ const Staff = () => {
 			<StaffCreationDialog
 				show={showStaffCreationModal}
 				handleClose={handleCloseModal}
-				handleConfirm={handleCreateStaff}
+				handleConfirm={handleConfirmStaffCreation}
 				message={displayMsg}
                 networkRequest={networkRequest}
                 setNetworkREquest={setNetworkRequest}
                 authOptions={authOptions}
-                staff={editedUser}
 			/>
 			<StaffProfileViewDialog
 				show={showStaffProfileModal}

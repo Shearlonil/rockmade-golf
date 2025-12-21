@@ -145,13 +145,13 @@ const StaffCreationDialog = ({ show, handleClose, handleConfirm, message, networ
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="danger" onClick={handleClose} disabled={networkRequest}>
+                    <Button variant="danger" onClick={handleClose} disabled={networkRequest} style={{minWidth: '150px'}}>
                         {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
                         {!networkRequest && 'Cancel'}
                     </Button>
-                    <Button variant="primary" onClick={handleSubmit(onSubmit)} disabled={networkRequest}>
+                    <Button variant="primary" onClick={handleSubmit(onSubmit)} disabled={networkRequest} style={{minWidth: '150px'}}>
                         {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
-                        {!networkRequest && 'Confirm'}
+                        {!networkRequest && 'Create Account'}
                     </Button>
                 </Modal.Footer>
             </Form>
