@@ -457,6 +457,7 @@ const PlayerRegistrationPage = () => {
                                                         name="home_club"
                                                         className="text-dark form-control"
                                                         isClearable
+                                                        placeholder="Search..."
                                                         // getOptionLabel={getOptionLabel}
                                                         getOptionValue={(option) => option}
                                                         // defaultValue={initialObject}

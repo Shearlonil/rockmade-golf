@@ -23,13 +23,15 @@ import cryptoHelper from "../../../Utils/crypto-helper";
 import useCourseController from "../../../api-controllers/course-controller-hook";
 import handleErrMsg from "../../../Utils/error-handler";
 import ErrorMessage from "../../../Components/ErrorMessage";
-import useGenericController from "../../../api-controllers/generic-controller-hook";
 import { ThreeDotLoading } from "../../../Components/react-loading-indicators/Indicator";
 import { emailSchema, pw_schema, otp_schema, hcp_schema } from "../../../Utils/yup-schema-validator/user-form-schema";
-import { useAuthUser } from "../../../app-context/user-context";
 import ConfirmDialog from "../../../Components/DialogBoxes/ConfirmDialog";
 import ClientProfileDialog from "../../../Components/DialogBoxes/ClientProfileDialog";
 import { useAuth } from "../../../app-context/auth-context";
+import { useAuthUser } from "../../../app-context/user-context";
+import { useActiveCourses } from "../../../app-context/active-courses-context";
+import useGenericController from "../../../api-controllers/generic-controller-hook";
+import useUserController from "../../../api-controllers/user-controller-hook";
 
 const ClientProfilePage = () => {
     const controllerRef = useRef(new AbortController());
@@ -37,8 +39,11 @@ const ClientProfilePage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { updatePersonalInfo } = useAuth();
+    const { updatePersonalInfo, updateHCP, updateEmail } = useAuth();
     const { onboardingCourseSearch } = useCourseController();
+    const { updateHomeClub } = useUserController();
+    const { userHomeClub, setUserHomeClub } = useActiveCourses();
+    const homeClub = userHomeClub();
     const { performGetRequests, requestOTP } = useGenericController();
     const { authUser } = useAuthUser();
     const user = authUser();
@@ -55,6 +60,8 @@ const ClientProfilePage = () => {
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
     const [updatedPersonalInfo, setUpdatedPersonalInfo] = useState(null);
+    const [updatedHomeClub, setUpdatedHomeClub] = useState(null);
+    const [hcp, setHCP] = useState(null);
 
     const emailRef = useRef();
     
@@ -68,6 +75,7 @@ const ClientProfilePage = () => {
     const {
         handleSubmit: hcHandleSubmit,
         control,
+        setValue: hcSetValue,
         formState: { errors },
     } = useForm({});
     
@@ -89,7 +97,8 @@ const ClientProfilePage = () => {
         }
 
         if(user){
-            hcpSetValue('hcp', user.hcp)
+            hcpSetValue('hcp', user.hcp);
+            hcSetValue('home_club', ({label: homeClub.name, value: homeClub}));
         }
         return () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
@@ -131,6 +140,12 @@ const ClientProfilePage = () => {
             case "personalInfo":
                 savePersonalInfo();
                 break;
+            case "homeClub":
+                saveHomeClub();
+                break;
+            case "hcp":
+                saveHCP();
+                break;
         }
     };
 
@@ -138,6 +153,20 @@ const ClientProfilePage = () => {
         setUpdatedPersonalInfo(data);
         setDisplayMsg("Update personal information?");
         setConfirmDialogEvtName('personalInfo');
+        setShowConfirmModal(true);
+    };
+
+    const updateHC = async (data) => {
+        setUpdatedHomeClub(data.home_club.value);
+        setDisplayMsg(`Update home club from ${homeClub.name} to ${data.home_club.value.name}?`);
+        setConfirmDialogEvtName('homeClub');
+        setShowConfirmModal(true);
+    };
+
+    const updateHCPIndex = async (data) => {
+        setHCP(data.hcp);
+        setDisplayMsg(`Update HCP?`);
+        setConfirmDialogEvtName('hcp');
         setShowConfirmModal(true);
     };
 
@@ -185,9 +214,13 @@ const ClientProfilePage = () => {
         }
     };
 
-    const updateHCP = async (data) => {
+    const saveHCP = async () => {
         try {
             setNetworkRequest(true);
+            resetAbortController();
+            await updateHCP(controllerRef.current.signal, { hcp });
+            toast.info('HCP updated successfully');
+            setHCP(null);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -199,9 +232,14 @@ const ClientProfilePage = () => {
         }
     };
 
-    const updateHomeClub = async (data) => {
+    const saveHomeClub = async () => {
         try {
             setNetworkRequest(true);
+            resetAbortController();
+            await updateHomeClub(controllerRef.current.signal, {id: updatedHomeClub.id});
+            setUserHomeClub(updatedHomeClub);
+            toast.info('Home Club updated successfully');
+            setUpdatedHomeClub(null);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -314,9 +352,8 @@ const ClientProfilePage = () => {
                                             name="home_club"
                                             className="text-dark form-control"
                                             isClearable
-                                            // getOptionLabel={getOptionLabel}
+                                            placeholder="Search..."
                                             getOptionValue={(option) => option}
-                                            // defaultValue={initialObject}
                                             defaultOptions={courseOptions}
                                             cacheOptions
                                             loadOptions={asyncCourseSearch}
@@ -328,7 +365,10 @@ const ClientProfilePage = () => {
                             />
                         </div>
                         <span className="col-md-4 col-sm-12 d-flex">
-                            <Button className="w-100" variant="success" onClick={hcHandleSubmit(updateHomeClub)}>Save Changes</Button>
+                            <Button className="w-100" variant="success" onClick={hcHandleSubmit(updateHC)} disabled={networkRequest}>
+                                {!networkRequest && 'Save Changes'}
+                                {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
+                            </Button>
                         </span>
                     </div>
                 </Col>
@@ -348,7 +388,10 @@ const ClientProfilePage = () => {
                             </div>
                         </div>
                         <span className="col-md-4 col-sm-12 d-flex">
-                            <Button className="w-100" variant="primary" onClick={hcpHandleSubmit(updateHCP)}>Update HCP</Button>
+                            <Button className="w-100" variant="primary" onClick={hcpHandleSubmit(updateHCPIndex)}>
+                                {!networkRequest && 'Update HCP'}
+                                {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
+                            </Button>
                         </span>
                         <ErrorMessage source={hcp_errors.hcp} />
                     </div>
@@ -436,7 +479,7 @@ const ClientProfilePage = () => {
                                 </div>
                             </div>
                             <div className="col-md-4 d-flex align-items-end justify-content-end">
-                                <Button type="button" className="btn btn-success w-100 fw-bold custom-btn" onClick={pwHandleSubmit(updatePassword)}>
+                                <Button type="button" className="btn btn-success w-100 fw-bold custom-btn" onClick={pwHandleSubmit(updatePassword)} disabled={networkRequest}>
                                     {!networkRequest && <span> Change Password</span>}
                                     {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
                                 </Button>
@@ -471,7 +514,7 @@ const ClientProfilePage = () => {
                                 </div>
                             </div>
                             <div className="col-md-4 d-flex align-items-end justify-content-end">
-                                <Button type="button" className="btn btn-success w-100 fw-bold" onClick={() => verifyEmail()}>
+                                <Button type="button" className="btn btn-success w-100 fw-bold" onClick={() => verifyEmail()} disabled={networkRequest}>
                                     {!networkRequest && <span><IoShieldCheckmarkSharp className="me-2" /> Verify</span>}
                                     {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
                                 </Button>

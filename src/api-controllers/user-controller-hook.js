@@ -23,6 +23,10 @@ const useUserController = () => {
         await xhrAios.post(`/users/onboarding`, formData, {signal})
     }
     
+    const updateHomeClub = async (signal, data) => {
+        return await xhrAios.put(`/users/profile/hc/update`, data, {signal});
+    }
+    
     const status = async (signal, data) => {
         return await xhrAios.put(`/users/status`, data, {signal});
     }
@@ -61,6 +65,7 @@ const useUserController = () => {
 
     return {
         onboard,
+        updateHomeClub,
         status,
         activeStaffPageInit,
         dashbaord,

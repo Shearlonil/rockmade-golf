@@ -9,6 +9,7 @@ export const ActiveCoursesProvider = ({ children }) => {
     const [ activeCourses, setActiveCourses ] = useState([]);
     const [ coursesHolesContests, setCousesHolesContests ] = useState({});
 	const [coursesLoading, setCoursesLoading] = useState(true);
+	const [homeClub, setHomeClub] = useState({});   //  storing user home club
     
     const courses = () => {
         return activeCourses;
@@ -35,6 +36,14 @@ export const ActiveCoursesProvider = ({ children }) => {
     const setLoading = (val) => {
         setCoursesLoading(val);
     };
+    
+    const userHomeClub = () => {
+        return homeClub;
+    };
+    
+    const setUserHomeClub = (val) => {
+        setHomeClub(val);
+    };
 
     const value = useMemo(
         () => ({
@@ -44,8 +53,10 @@ export const ActiveCoursesProvider = ({ children }) => {
             setLoading,
             courseHolesContests,
             updateCoursesHolesContests,
+            userHomeClub,
+            setUserHomeClub,
         }),
-        [activeCourses, coursesLoading, coursesHolesContests]
+        [activeCourses, coursesLoading, coursesHolesContests, homeClub]
     );
 
     return <ActiveCoursesContext.Provider value={value}>{children}</ActiveCoursesContext.Provider>;

@@ -11,7 +11,6 @@ import { Table, IconButton } from 'rsuite';
 const { Column, HeaderCell } = Table;
 
 import { useAuthUser } from '../../../app-context/user-context';
-import { useProfileImg } from '../../../app-context/dp-context';
 import IMAGES from '../../../assets/images';
 import handleErrMsg from '../../../Utils/error-handler';
 import cryptoHelper from '../../../Utils/crypto-helper';
@@ -22,6 +21,7 @@ import { OrbitalLoading } from '../../../Components/react-loading-indicators/Ind
 import ConfirmDialog from '../../../Components/DialogBoxes/ConfirmDialog';
 import useGameController from '../../../api-controllers/game-controller-hook';
 import ImageComponent from '../../../Components/ImageComponent';
+import { useActiveCourses } from '../../../app-context/active-courses-context';
 
 const columns = [
     {
@@ -81,7 +81,7 @@ const ClientDashboard = () => {
     const location = useLocation();
 
     const { logout } = useAuth();
-    const { imageBlob, setImageBlob } =  useProfileImg();
+    const { setUserHomeClub } =  useActiveCourses();
     const { performGetRequests, download } = useGenericController();
     const { removeOngoingGame } = useGameController();
     const { dashbaord } = useUserController();
@@ -161,6 +161,7 @@ const ClientDashboard = () => {
                 setCoursesPlayed(response.data.courses_played);
                 setGamesPlayed(response.data.games_played);
                 setHomeClub(response.data.home_club);
+                setUserHomeClub(response.data.home_club);
                 const rounds = response.data.ongoing_rounds.map(r => {
                     let mode = 'Full 18';
                     if(r.hole_mode === 2){
