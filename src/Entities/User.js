@@ -14,6 +14,7 @@ export default class User {
                 mode: whom.mode,
                 regDate: whom.regDate,
                 hcp: whom.hcp,
+                dob: whom.dob,
                 sub: whom.sub,
                 blur: whom.blur,
                 roles: whom.roles,
@@ -60,6 +61,10 @@ export default class User {
     get hcp() { return _userProps.get(this).hcp }
     
     set hcp(hcp) { _userProps.get(this).hcp = hcp }
+
+    get dob() { return _userProps.get(this).dob }
+    
+    set dob(dob) { _userProps.get(this).dob = dob }
 
     get regDate() { return _userProps.get(this).regDate }
     

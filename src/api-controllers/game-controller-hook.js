@@ -21,11 +21,11 @@ const useGameController = () => {
     }
 
     const findOngoingRoundById = async (signal, id) => {
-        return await xhrAios.get(`/games/rounds/ongoing/${id}`, {signal});;
+        return await xhrAios.get(`/games/rounds/ongoing/${id}`, {signal});
     }
 
     const addPlayers = async (signal, data) => {
-        return await xhrAios.post(`/games/rounds/ongoing/${data.game_id}/players/add`, data, {signal});;
+        return await xhrAios.post(`/games/rounds/ongoing/${data.game_id}/players/add`, data, {signal});
     }
     
     return {

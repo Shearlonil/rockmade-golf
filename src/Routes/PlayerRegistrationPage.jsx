@@ -38,7 +38,7 @@ const PlayerRegistrationPage = () => {
     const controllerRef = useRef(new AbortController());
     
     const { clientLogin } = useAuth();
-    const { courseSearch, onboardingCourseSearch } = useCourseController();
+    const { onboardingCourseSearch } = useCourseController();
     const { performGetRequests, requestOTP } = useGenericController();
     const { onboard } = useUserController();
     const { authUser } = useAuthUser();
@@ -75,7 +75,6 @@ const PlayerRegistrationPage = () => {
 	const [countrysLoading, setCountrysLoading] = useState(true);
 	// for courses
 	const [courseOptions, setCourseOptions] = useState([]);
-	const [coursesLoading, setCoursesLoading] = useState(true);
     
     useEffect(() => {
         initialize();
@@ -106,7 +105,6 @@ const PlayerRegistrationPage = () => {
 
             //	check if the request to fetch vendors doesn't fail before setting values to display
             if(coursesRequest){
-                setCoursesLoading(false);
                 setCourseOptions(coursesRequest.data.map( course => ({label: course.name, value: course})));
             }
         } catch (error) {
@@ -128,7 +126,8 @@ const PlayerRegistrationPage = () => {
             setNetworkRequest(true);
             emailSchema.validateSync(emailRef.current.value);
 			toast.info(`sending OTP to ${emailRef.current.value}.`);
-            await requestOTP(emailRef.current.value);
+            resetAbortController();
+            await requestOTP(emailRef.current.value, controllerRef.current.signal);
 			toast.info(`OTP sent to ${emailRef.current.email}. If not found in your inbox, please check you spam`);
             setNetworkRequest(false);
         } catch (error) {
@@ -273,7 +272,6 @@ const PlayerRegistrationPage = () => {
                                                         type="text"
                                                         placeholder="john@example.com"
                                                         className="form-control"
-                                                        // {...register("email")}
                                                         ref={emailRef}
                                                     />
                                                 </div>

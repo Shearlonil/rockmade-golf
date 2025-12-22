@@ -42,6 +42,18 @@ export const AuthProvider = ({ children }) => {
         setAxiosToken(jwt);
     };
 
+    // call this function when clients want to update personal info
+    const updatePersonalInfo = async (signal, data) => {
+        const response = await xhrAios.put(`/users/profile/info/update`, data, {signal});
+        //  remove the token prefix from the token for jwtDecode to decode the token
+        const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
+        setJwtTokenValue(jwt);
+        /*  Update token in axios. A Bug detected on signin in, Axios won't attach bearer token to request after first login. Will only start attaching after page refresh.
+            This is a make shift to circumvent the bug
+        */
+        setAxiosToken(jwt);
+    }
+
     // call this function to sign out logged in user
     const logout = async (route) => {
         await xhrAios.get("/auth/logout");
@@ -61,6 +73,7 @@ export const AuthProvider = ({ children }) => {
         () => ({
             clientLogin,
             staffLogin,
+            updatePersonalInfo,
             logout,
             getCurrentYear,
         }),

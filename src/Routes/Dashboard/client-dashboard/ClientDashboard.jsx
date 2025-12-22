@@ -140,7 +140,6 @@ const ClientDashboard = () => {
         setMostPlayedContestsData([{month: months[0], amount: 1000}]);
 
         initialize();
-        console.log(user.blur);
         return () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
             controllerRef.current.abort();
@@ -157,7 +156,7 @@ const ClientDashboard = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const response = await dashbaord();
+            const response = await dashbaord(controllerRef.current.signal);
             if(response && response.data){
                 setCoursesPlayed(response.data.courses_played);
                 setGamesPlayed(response.data.games_played);

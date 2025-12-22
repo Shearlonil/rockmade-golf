@@ -46,8 +46,8 @@ const useGenericController = () => {
         return await Promise.all(axiosReqs);
     }
     
-    async function requestOTP(email){
-        await xhrAios.post(`/auth/otp/${email}`)
+    async function requestOTP(email, signal){
+        await xhrAios.post(`/auth/otp/${email}`, {signal})
     }
     
     const getAxios = () => {
