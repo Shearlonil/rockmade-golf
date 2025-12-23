@@ -134,8 +134,8 @@ const PlayerSearchDialog = ({ show, handleClose, handleSubmitPlayers, message, m
                         return (
                             <div content={"X"} width={'100%'} shape="circle" size="xl" offset={[5, 15]} key={i} className="position-relative">
                                 <div key={i} className={`p-3 border rounded d-flex align-items-center shadow-sm gap-2 mt-3 w-100`} >
-                                    {sp.ClientImgBlurhash && <ImageComponent image={sp.ClientImgBlurhash} width={'30px'} height={'30px'} round={true} />}
-                                    {!sp.ClientImgBlurhash && <img src={IMAGES.svg_user} width={'30px'} height={'30px'} className='rounded-circle' />}
+                                    {sp.ProfileImgKeyhash && <ImageComponent image={sp.ProfileImgKeyhash} width={'30px'} height={'30px'} round={true} key_id={sp.ProfileImgKeyhash.key_hash} />}
+                                    {!sp.ProfileImgKeyhash && <img src={IMAGES.svg_user} width={'30px'} height={'30px'} className='rounded-circle' />}
                                     <div className="flex-grow-1">
                                         <h6 className="fw-bold mb-0">{sp.fname} {sp.lname}</h6>
                                         <small className="text-muted">

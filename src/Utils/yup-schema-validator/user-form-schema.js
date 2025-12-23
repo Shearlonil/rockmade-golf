@@ -25,7 +25,7 @@ export const personal_info_schema = yup.object().shape({
 });
 
 export const pw_schema = yup.object().shape({
-    old_pw: yup.string().required("Previous password is required"),
+    current_pw: yup.string().required("Current password is required"),
     pw: yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
     confirm_pw: yup.string().oneOf([yup.ref("pw"), null], "Passwords must match").required("Password needs confirmation"),
 });

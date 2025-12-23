@@ -31,6 +31,10 @@ const useUserController = () => {
         return await xhrAios.put(`/users/status`, data, {signal});
     }
     
+    const updatePassword = async (signal, data) => {
+        return await xhrAios.put(`/users/profile/pw/update`, data, {signal});
+    }
+    
     const activeStaffPageInit = async (signal, pageSize) => {
         return await xhrAios.get(`/users/active/init/${pageSize}`, {signal});
     }
@@ -67,6 +71,7 @@ const useUserController = () => {
         onboard,
         updateHomeClub,
         status,
+        updatePassword,
         activeStaffPageInit,
         dashbaord,
         paginateFetch,

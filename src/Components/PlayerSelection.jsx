@@ -132,15 +132,15 @@ const PlayerSelection = ({gameGroupArr = [], game}) => {
                     {new Array(sizeOfGroup).fill(1).map((val, index) => {
                         if(datum.members[index]){
                             return <div className='p-1 w-50 d-flex gap-2 align-items-center mb-1 mt-1 text-start' key={index} onClick={() => handlePlayerButton(datum)}>
-                                {datum.members[index].ClientImgBlurhash && <ImageComponent image={datum.members[index].ClientImgBlurhash} width={'30px'} height={'30px'} round={true} />}
-                                {!datum.members[index].ClientImgBlurhash && <img src={IMAGES.svg_user} width={'30px'} height={'30px'} className='rounded-circle' />}
+                                {datum.members[index].ProfileImgKeyhash && <ImageComponent image={datum.members[index].ProfileImgKeyhash} key_id={datum.members[index].ProfileImgKeyhash.key_hash} width={'30px'} height={'30px'} round={true} />}
+                                {!datum.members[index].ProfileImgKeyhash && <img src={IMAGES.svg_user} width={'30px'} height={'30px'} className='rounded-circle' />}
                                 <span className='d-flex flex-column align-items-start gap-1'>
                                     <span className='fw-bold' style={{fontSize: '12px'}}> {datum.members[index]?.fname} {datum.members[index]?.lname} </span>
                                     <div> HCP: <span className='fw-bold'>{datum.members[index]?.hcp}</span> </div>
                                 </span>
                             </div>
                         }else {
-                            return <span className='p-1 w-50 mb-1 mt-1'>
+                            return <span className='p-1 w-50 mb-1 mt-1' key={index}>
                                 <Button variant="success" className="fw-bold w-100" onClick={() => handleAddPlayerButton(datum)} key={index}>
                                     <IoMdAddCircle size='25px' /> Add Player
                                 </Button>

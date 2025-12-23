@@ -21,7 +21,7 @@ const ImageWrapper = styled.div`
 //   left: 0;
 // `;
 
-const ImageComponent = ({ image, width, height, round }) => {
+const ImageComponent = ({ image, width, height, round, key_id }) => {
     const [isLoaded, setLoaded] = useState(false);
     const [isLoadStarted, setLoadStarted] = useState(false);
     const { getBaseURL } = useAxiosInterceptor();
@@ -34,29 +34,29 @@ const ImageComponent = ({ image, width, height, round }) => {
         setLoadStarted(true);
     };
     return (
-      <ImageWrapper>
-        <LazyLoadImage
-            key={image?.id}
-            effect="blur"
-            src={`${getBaseURL()}/users/dp/${image?.user_id}`}
-            placeholderSrc={IMAGES.member_icon}
-            width={width || "100%"}
-            height={height || 200}
-            onLoad={handleLoad}
-            beforeLoad={handleLoadStarted}
-            className={round ? 'rounded-circle' : ''}
-        />
-        {/* {!isLoaded && isLoadStarted && (
-          <StyledBlurhash
-              hash={image.blur_hash}
+        <ImageWrapper>
+          <LazyLoadImage
+              key={key_id}
+              effect="blur"
+              src={`${getBaseURL()}/users/dp/${image?.user_id}`}
+              placeholderSrc={IMAGES.member_icon}
               width={width || "100%"}
               height={height || 200}
-              resolutionX={32}
-              resolutionY={32}
-              punch={1}
+              onLoad={handleLoad}
+              beforeLoad={handleLoadStarted}
+              className={round ? 'rounded-circle' : ''}
           />
-        )} */}
-      </ImageWrapper>
+          {/* {!isLoaded && isLoadStarted && (
+            <StyledBlurhash
+                hash={image.blur_hash}
+                width={width || "100%"}
+                height={height || 200}
+                resolutionX={32}
+                resolutionY={32}
+                punch={1}
+            />
+          )} */}
+        </ImageWrapper>
     );
 };
 

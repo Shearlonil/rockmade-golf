@@ -75,6 +75,17 @@ export const AuthProvider = ({ children }) => {
         */
         setAxiosToken(jwt);
     }
+    
+    const updateProfileImg = async (signal, data) => {
+        const response = await xhrAios.post(`/users/profile/dp/update`, data, {signal});
+        //  remove the token prefix from the token for jwtDecode to decode the token
+        const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
+        setJwtTokenValue(jwt);
+        /*  Update token in axios. A Bug detected on signin in, Axios won't attach bearer token to request after first login. Will only start attaching after page refresh.
+            This is a make shift to circumvent the bug
+        */
+        setAxiosToken(jwt);
+    }
 
     // call this function to sign out logged in user
     const logout = async (route) => {
@@ -98,6 +109,7 @@ export const AuthProvider = ({ children }) => {
             updatePersonalInfo,
             updateHCP,
             updateEmail,
+            updateProfileImg,
             logout,
             getCurrentYear,
         }),

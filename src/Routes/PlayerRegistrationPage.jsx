@@ -136,7 +136,7 @@ const PlayerRegistrationPage = () => {
                 return;
             }
             setNetworkRequest(false);
-            toast.error(handleErrMsg(error.message).msg);
+            toast.error(handleErrMsg(error).msg);
         }
     };
 
@@ -145,7 +145,7 @@ const PlayerRegistrationPage = () => {
         try {
             emailSchema.validateSync(emailRef.current.value);
         } catch (error) {
-            toast.error(handleErrMsg(error.message).msg);
+            toast.error(handleErrMsg(error).msg);
         }
 
         // on successful email validation, engage server side

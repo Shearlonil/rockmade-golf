@@ -1,4 +1,7 @@
-import { useRef, useState } from 'react'
+import { useRef, useState } from 'react';
+import { Badge } from 'rsuite';
+import { IoAddCircle, IoAdd } from "react-icons/io5";
+
 import IMAGES from '../assets/images';
 
 /*  refs:
@@ -6,7 +9,7 @@ import IMAGES from '../assets/images';
     https://www.youtube.com/watch?v=nOqsd8LoUYs
 */
 const DpUploader = ({ setImageURL }) => {
-    const [avatarURL, setAvatarURL] = useState(IMAGES.image3);
+    const [avatarURL, setAvatarURL] = useState(IMAGES.member_icon);
 
     const fileUploadRef = useRef();
 
@@ -23,12 +26,14 @@ const DpUploader = ({ setImageURL }) => {
     }
 
     return (
-        <div className="position-relative m-1" style={{height: 200, width: 250}} onClick={() => handleImageUpload()}>
-            <img src={avatarURL} alt ="Avatar" className="h-100 w-100 rounded-circle" />
-            <div>
-                <input type="file" id="file" ref={fileUploadRef} onChange={uploadImageDisplay} hidden accept="image/jpeg"/>
-            </div>  
-        </div>
+        <Badge content={<IoAdd size={30} />} shape="circle" offset={[45, 25]} compact onClick={() => handleImageUpload()}>
+            <div className="position-relative m-1" style={{height: 200, width: 250}}>
+                <img src={avatarURL} alt ="Avatar" className="h-100 w-100 rounded-circle shadow" />
+                <div>
+                    <input type="file" id="file" ref={fileUploadRef} onChange={uploadImageDisplay} hidden accept="image/jpeg"/>
+                </div>  
+            </div>
+        </Badge>
     )
 }
 

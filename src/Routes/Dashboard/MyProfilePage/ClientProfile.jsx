@@ -32,6 +32,7 @@ import { useAuthUser } from "../../../app-context/user-context";
 import { useActiveCourses } from "../../../app-context/active-courses-context";
 import useGenericController from "../../../api-controllers/generic-controller-hook";
 import useUserController from "../../../api-controllers/user-controller-hook";
+import ProfileImgDialog from "../../../Components/DialogBoxes/ProfileImgDialog";
 
 const ClientProfilePage = () => {
     const controllerRef = useRef(new AbortController());
@@ -39,9 +40,9 @@ const ClientProfilePage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { updatePersonalInfo, updateHCP, updateEmail } = useAuth();
+    const { updatePersonalInfo, updateHCP, updateEmail, updateProfileImg } = useAuth();
     const { onboardingCourseSearch } = useCourseController();
-    const { updateHomeClub } = useUserController();
+    const { updateHomeClub, updatePassword } = useUserController();
     const { userHomeClub, setUserHomeClub } = useActiveCourses();
     const homeClub = userHomeClub();
     const { performGetRequests, requestOTP } = useGenericController();
@@ -54,14 +55,19 @@ const ClientProfilePage = () => {
     const [showOldPassword, setShowOldPassword] = useState(false);
     // for courses
     const [courseOptions, setCourseOptions] = useState([]);
+    const [keyHash, setKeyHash] = useState(user.blur.key_hash);
 
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [showClientProfileModal, setShowClientProfileModal] = useState(false);
+	const [showProfileImgModal, setShowProfileImgModal] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
     const [updatedPersonalInfo, setUpdatedPersonalInfo] = useState(null);
     const [updatedHomeClub, setUpdatedHomeClub] = useState(null);
     const [hcp, setHCP] = useState(null);
+    const [pwDetails, setPwDetails] = useState(null);
+    const [emailDetails, setEmailDetails] = useState(null);
+    const [imgFile, setImgFile] = useState(null);
 
     const emailRef = useRef();
     
@@ -130,6 +136,10 @@ const ClientProfilePage = () => {
         setShowClientProfileModal(false);
     };
 
+	const handleCloseProfileImgModal = () => {
+        setShowProfileImgModal(false);
+    };
+
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
     };
@@ -146,7 +156,23 @@ const ClientProfilePage = () => {
             case "hcp":
                 saveHCP();
                 break;
+            case "pw":
+                updatePass();
+                break;
+            case "email":
+                updateMail();
+                break;
+            case "dp":
+                updateDP();
+                break;
         }
+    };
+
+    const handleImgUpdate = async (file) => {
+        setImgFile(file);
+        setDisplayMsg("Update Profile image?");
+        setConfirmDialogEvtName('dp');
+        setShowConfirmModal(true);
     };
 
     const updateInfo = async (data) => {
@@ -170,6 +196,20 @@ const ClientProfilePage = () => {
         setShowConfirmModal(true);
     };
 
+    const handlePasswordUpdate = async (data) => {
+        setPwDetails(data);
+        setDisplayMsg(`Update Password?`);
+        setConfirmDialogEvtName('pw');
+        setShowConfirmModal(true);
+    };
+
+    const handleEmailUpdate = async (data) => {
+        setEmailDetails(data);
+        setDisplayMsg(`Update Email?`);
+        setConfirmDialogEvtName('email');
+        setShowConfirmModal(true);
+    };
+
     const verifyEmail = async () => {
         // validate email
         try {
@@ -186,7 +226,7 @@ const ClientProfilePage = () => {
                 return;
             }
             setNetworkRequest(false);
-            toast.error(handleErrMsg(error.message).msg);
+            toast.error(handleErrMsg(error).msg);
         }
     };
 
@@ -210,7 +250,7 @@ const ClientProfilePage = () => {
                 return;
             }
             setNetworkRequest(false);
-            toast.error(handleErrMsg(error.message).msg);
+            toast.error(handleErrMsg(error).msg);
         }
     };
 
@@ -228,7 +268,7 @@ const ClientProfilePage = () => {
                 return;
             }
             setNetworkRequest(false);
-            toast.error(handleErrMsg(error.message).msg);
+            toast.error(handleErrMsg(error).msg);
         }
     };
 
@@ -247,35 +287,64 @@ const ClientProfilePage = () => {
                 return;
             }
             setNetworkRequest(false);
-            toast.error(handleErrMsg(error.message).msg);
+            toast.error(handleErrMsg(error).msg);
         }
     };
 
-    const updatePassword = async (data) => {
+    const updatePass = async () => {
         try {
             setNetworkRequest(true);
+            resetAbortController();
+            await updatePassword(controllerRef.current.signal, {current_pw: cryptoHelper.encrypt(pwDetails.current_pw), pw: cryptoHelper.encrypt(pwDetails.pw)});
+            toast.info('Password update successful');
+            setPwDetails(null);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
+            console.log(error);
             setNetworkRequest(false);
-            toast.error(handleErrMsg(error.message).msg);
+            toast.error(handleErrMsg(error).msg);
         }
     };
 
-    const updateMail = async (data) => {
+    const updateMail = async () => {
         try {
             setNetworkRequest(true);
+            resetAbortController();
+            await updateEmail(controllerRef.current.signal, {otp: emailDetails.otp, email: emailRef.current.value});
             setNetworkRequest(false);
+            toast.info("Email update successful");
+            setEmailDetails(null);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
             setNetworkRequest(false);
-            toast.error(handleErrMsg(error.message).msg);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
+    const updateDP = async () => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            let formData = new FormData();
+            formData.append('img', imgFile);
+            await updateProfileImg(controllerRef.current.signal, formData);
+            setNetworkRequest(false);
+            toast.info("Profile Image update successful");
+            setImgFile(null);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
         }
     };
 
@@ -294,9 +363,9 @@ const ClientProfilePage = () => {
             </Row>
             <Row className='mt-4'>
                 <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center col-md-6 col-sm-12" >
-                    {user.blur && <ImageComponent image={user.blur} width={'200px'} height={'200px'} round={true} />}
+                    {user.blur && <ImageComponent image={user.blur} width={'200px'} height={'200px'} round={true} key_id={user.blur.key_hash} />}
                     {!user.blur && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={200} height={200} />}
-                    <Button variant="primary">Upload new photo</Button>
+                    <Button variant="primary" onClick={() => setShowProfileImgModal(true)}>Upload new photo</Button>
                 </div>
             </Row>
             <Row className="mt-3 shadow border-0 rounded-3 p-1">
@@ -407,15 +476,15 @@ const ClientProfilePage = () => {
                     <div className="d-flex flex-column mb-4">
                         <div className="row g-3">
                             <div className="col-md-8">
-                                <label className="form-label">Old Password</label>
+                                <label className="form-label">Current Password</label>
                                 <div className="input-group">
                                     <span className="input-group-text bg-light">
                                         <RiLockLine size={18} />
                                     </span>
                                     <Form.Control
                                         type={showOldPassword ? "text" : "password"}
-                                        placeholder="Enter Old password"
-                                        {...pwRegister("old_pw")} 
+                                        placeholder="Enter Current password"
+                                        {...pwRegister("current_pw")} 
                                     />
                                     <button type="button" className="btn btn-outline-secondary" onClick={() => setShowOldPassword(!showOldPassword)} >
                                         {showOldPassword ? (
@@ -425,7 +494,7 @@ const ClientProfilePage = () => {
                                         )}
                                     </button>
                                 </div>
-                                <ErrorMessage source={pw_errors.old_pw} />
+                                <ErrorMessage source={pw_errors.current_pw} />
                             </div>
                         </div>
                     </div>
@@ -479,7 +548,7 @@ const ClientProfilePage = () => {
                                 </div>
                             </div>
                             <div className="col-md-4 d-flex align-items-end justify-content-end">
-                                <Button type="button" className="btn btn-success w-100 fw-bold custom-btn" onClick={pwHandleSubmit(updatePassword)} disabled={networkRequest}>
+                                <Button type="button" className="btn btn-success w-100 fw-bold custom-btn" onClick={pwHandleSubmit(handlePasswordUpdate)} disabled={networkRequest}>
                                     {!networkRequest && <span> Change Password</span>}
                                     {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
                                 </Button>
@@ -538,7 +607,7 @@ const ClientProfilePage = () => {
                                 </div>
                             </div>
                             <div className="col-md-4 d-flex align-items-end justify-content-end">
-                                <Button type="button" className="btn btn-success w-100 fw-bold custom-btn" onClick={otpHandleSubmit(updateMail)}>
+                                <Button type="button" className="btn btn-success w-100 fw-bold custom-btn" onClick={otpHandleSubmit(handleEmailUpdate)}>
                                     {!networkRequest && <span><RiMailLine className="me-2" /> Update Email</span>}
                                     {networkRequest && <ThreeDotLoading color="#ffffff" size="small" />}
                                 </Button>
@@ -558,6 +627,12 @@ const ClientProfilePage = () => {
 				show={showClientProfileModal}
 				handleClose={handleCloseProfileModal}
 				handleConfirm={updateInfo}
+				networkRequest={networkRequest}
+			/>
+			<ProfileImgDialog
+				show={showProfileImgModal}
+				handleClose={handleCloseProfileImgModal}
+				handleConfirm={handleImgUpdate}
 				networkRequest={networkRequest}
 			/>
         </section>

@@ -260,7 +260,7 @@ const ClientDashboard = () => {
         <section className='container' style={{minHeight: '60vh'}}>
             <Row className='mt-4'>
                 <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center col-md-6 col-sm-12" >
-                    {user.blur && <ImageComponent image={user.blur} width={'100px'} height={'100px'} round={true} />}
+                    {user.blur && <ImageComponent image={user.blur} width={'100px'} height={'100px'} round={true} key_id={user.blur.key_hash} />}
                     {!user.blur && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={100} height={100} />}
                     <div className="d-flex flex-wrap gap-2 fw-bold h2">
                         <span>{user.firstName}</span>
