@@ -335,6 +335,7 @@ const ClientProfilePage = () => {
             let formData = new FormData();
             formData.append('img', imgFile);
             await updateProfileImg(controllerRef.current.signal, formData);
+            setShowProfileImgModal(false);
             setNetworkRequest(false);
             toast.info("Profile Image update successful");
             setImgFile(null);
@@ -365,7 +366,10 @@ const ClientProfilePage = () => {
                 <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center col-md-6 col-sm-12" >
                     {user.blur && <ImageComponent image={user.blur} width={'200px'} height={'200px'} round={true} key_id={user.blur.key_hash} />}
                     {!user.blur && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={200} height={200} />}
-                    <Button variant="primary" onClick={() => setShowProfileImgModal(true)}>Upload new photo</Button>
+                    <div className="d-flex flex-column gap-3 align-items-center">
+                        <Button variant="primary" onClick={() => setShowProfileImgModal(true)}>Upload new photo</Button>
+                        <p className="fw-bold">Upload an image not more than <span className="text-danger">5MB</span></p>
+                    </div>
                 </div>
             </Row>
             <Row className="mt-3 shadow border-0 rounded-3 p-1">

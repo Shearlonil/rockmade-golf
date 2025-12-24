@@ -38,7 +38,7 @@ const ImageComponent = ({ image, width, height, round, key_id }) => {
           <LazyLoadImage
               key={key_id}
               effect="blur"
-              src={`${getBaseURL()}/users/dp/${image?.user_id}`}
+              src={`${getBaseURL()}/users/dp/${image?.key_hash}`}
               placeholderSrc={IMAGES.member_icon}
               width={width || "100%"}
               height={height || 200}
