@@ -14,6 +14,20 @@ const useGenericController = () => {
         // axios.all() marked as deprecated, way forward is Promise.all();
         return await Promise.all(urls.map((url) => xhrAios.get(url, { signal })));
     }
+    
+    async function get(url, signal) {
+        // axios.all() marked as deprecated, way forward is Promise.all();
+        return await xhrAios.get(`${url}`, {signal});
+    }
+    
+    const paramGet = async (url, params, signal) => {
+        return await xhrAios.get(`${url}`, { params }, {signal});
+    }
+    
+    async function post(url, data, signal) {
+        // axios.all() marked as deprecated, way forward is Promise.all();
+        return await xhrAios.post(`${url}`, data, {signal});
+    }
 
     async function performRequests(axiosReqs) {
         /*  
@@ -47,7 +61,7 @@ const useGenericController = () => {
     }
     
     async function requestOTP(email, signal){
-        await xhrAios.post(`/auth/otp/${email}`, {signal})
+        await xhrAios.post(`/auth/otp/${email}`, {signal});
     }
     
     const getAxios = () => {
@@ -57,6 +71,9 @@ const useGenericController = () => {
     return {
         getAxios,
         download,
+        get,
+        paramGet,
+        post,
         performGetRequests,
         performRequests,
         requestOTP,

@@ -22,6 +22,9 @@ import ConfirmDialog from '../../../Components/DialogBoxes/ConfirmDialog';
 import useGameController from '../../../api-controllers/game-controller-hook';
 import ImageComponent from '../../../Components/ImageComponent';
 import { useActiveCourses } from '../../../app-context/active-courses-context';
+import InputDialog from '../../../Components/DialogBoxes/InputDialog';
+import AsyncSearchDialog from '../../../Components/DialogBoxes/AsyncSearchDialog';
+import useCourseController from '../../../api-controllers/course-controller-hook';
 
 const columns = [
     {
@@ -80,11 +83,12 @@ const ClientDashboard = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { logout } = useAuth();
+    const { logout, updateHCP } = useAuth();
     const { setUserHomeClub } =  useActiveCourses();
     const { performGetRequests, download } = useGenericController();
     const { removeOngoingGame } = useGameController();
-    const { dashbaord } = useUserController();
+    const { gameCourseSearch  } = useCourseController();
+    const { dashbaord, updateHomeClub } = useUserController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
@@ -102,6 +106,9 @@ const ClientDashboard = () => {
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
+    const [showAsyncSearchModal, setShowAsyncSearcModal] = useState(false);
+    //	for input dialog
+    const [showInputModal, setShowInputModal] = useState(false);
     
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8a2be2"];
     const months = ['Jan', 'Feb', 'Mar', 'April', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -183,7 +190,7 @@ const ClientDashboard = () => {
             }
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -216,6 +223,8 @@ const ClientDashboard = () => {
 
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
+        setShowInputModal(false);
+        setShowAsyncSearcModal(false);
     };
   
     const handleConfirm = async () => {
@@ -239,7 +248,7 @@ const ClientDashboard = () => {
             setOngongRounds(temp);
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -247,6 +256,58 @@ const ClientDashboard = () => {
             toast.error(handleErrMsg(error).msg);
         }
     };
+
+	const hcpUpdate = async (val) => {
+		try {
+			/*	text returned from input dialog is always a string but we can use a couple of techniques to convert it to a valid number
+				Technique 1: use the unary plus operator which is what i've adopted below
+				Technique 2: multiply by a number. 
+				etc	*/
+			if(!+val){
+				toast.error('Please enter a valid number');
+				return;
+			}
+			setNetworkRequest(true);
+			resetAbortController();
+	        await updateHCP(controllerRef.current.signal, { hcp: val });
+            setShowInputModal(false);
+            toast.info('HCP updated successfully');
+			setNetworkRequest(false);
+		} catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+		}
+	}
+
+    const saveHomeClub = async (homeClub) => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            await updateHomeClub(controllerRef.current.signal, {id: homeClub.id});
+            setHomeClub(homeClub);
+            setUserHomeClub(homeClub);
+            toast.info('Home Club updated successfully');
+            setShowAsyncSearcModal(false);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+    
+    const hcSearch = async (inputValue) => {
+        resetAbortController();
+        const response = await gameCourseSearch(controllerRef.current.signal, inputValue);
+        return response.data.map(entity => ({label: entity.name, value: entity}));
+    }
 
     const resetAbortController = () => {
         // Cancel previous request if it exists
@@ -275,7 +336,10 @@ const ClientDashboard = () => {
                             <div className="card-body">
                                 <div className='d-flex flex-column justify-content-between'>
                                     <span className='align-self-end'>
-                                        <IoSettings size={30} className='text-warning' onClick={() => null} />
+                                        <IoSettings size={30} className='text-warning' onClick={() => {
+                                            setDisplayMsg('Enter new HCP');
+                                            setShowInputModal(true);
+                                        }} />
                                     </span>
                                     <span className='h1 text-warning fw-bold' style={{fontSize: '50px'}}>{user?.hcp}</span>
                                 </div>
@@ -323,7 +387,10 @@ const ClientDashboard = () => {
                             <div className="card-body">
                                 <div className='d-flex flex-column justify-content-between'>
                                     <span className='align-self-end'>
-                                        <IoSettings size={30} style={{ color: 'green' }} onClick={() => null} />
+                                        <IoSettings size={30} style={{ color: 'green' }} onClick={() => {
+                                            setDisplayMsg('Search new Home Club');
+                                            setShowAsyncSearcModal(true);
+                                        }} />
                                     </span>
                                     <span className='text-success fw-bold' style={{fontSize: '25px'}}>{homeClub?.name}</span>
                                 </div>
@@ -425,6 +492,21 @@ const ClientDashboard = () => {
 				handleConfirm={handleConfirm}
 				message={displayMsg}
 			/>
+            <InputDialog
+                show={showInputModal}
+                handleClose={handleCloseModal}
+                handleConfirm={hcpUpdate}
+                message={displayMsg}
+                networkRequest={networkRequest}
+            />
+            <AsyncSearchDialog
+                show={showAsyncSearchModal}
+                handleClose={handleCloseModal}
+                handleSubmitResult={saveHomeClub}
+                message={displayMsg}
+                searchFn={hcSearch}
+                networkRequest={networkRequest}
+            />
         </section>
     )
 }

@@ -58,7 +58,7 @@ const PlayerRegistrationPage = () => {
             gender: "",
             hcp: "",
             country: null,
-            hc_id: null,
+            home_club: null,
 			dob: null,
 		},
 	});

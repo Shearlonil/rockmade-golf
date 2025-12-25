@@ -12,6 +12,8 @@ import ImageComponent from './ImageComponent';
 import PlayerSearchDialog from './DialogBoxes/PlayerSearchDialog';
 import useGameController from '../api-controllers/game-controller-hook';
 import handleErrMsg from '../Utils/error-handler';
+import GroupPlayerDialog from './DialogBoxes/GroupPlayerDialog';
+import ConfirmDialog from './DialogBoxes/ConfirmDialog';
 
 const PlayerSelection = ({gameGroupArr = [], game}) => {
     const controllerRef = useRef(new AbortController());
@@ -20,15 +22,19 @@ const PlayerSelection = ({gameGroupArr = [], game}) => {
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
-    // const [players, setPlayers] = useState([user, null, null, null]); // 4 slots
+    const [showGroupPlayer, setShowGroupPlayer] = useState(false);
     const [showShowPlayerSearchDialog, setShowPlayerSearchDialog] = useState(false);
     const [sizeOfGroup, setSizeOfGroup] = useState(4);
     const [groupArr, setGroupArr] = useState(gameGroupArr);
 	const [displayMsg, setDisplayMsg] = useState("");
+	const [selectedGroupPlayer, setSelectedGroupPlayer] = useState(null);
     // group which player is being added
 	const [activeGroup, setActiveGroup] = useState(null);
     // number of players to search in player dialog
 	const [numOfPlayers, setNumOfPlayers] = useState(4);
+
+	const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
     
     const {
         control,
@@ -45,6 +51,11 @@ const PlayerSelection = ({gameGroupArr = [], game}) => {
 
 	const handleCloseModal = () => {
         setShowPlayerSearchDialog(false);
+        setShowConfirmModal(false);
+    };
+
+	const handleCloseGroupPlayerModal = () => {
+        setShowGroupPlayer(false);
     };
   
     const handleSubmitPlayers = async (data) => {
@@ -101,8 +112,12 @@ const PlayerSelection = ({gameGroupArr = [], game}) => {
         setShowPlayerSearchDialog(false);
     };
 
-    const handlePlayerButton = (data) => {
-        console.log(data);
+    const handlePlayerClicked = (groupName, player) => {
+        setSelectedGroupPlayer({
+            group: groupName,
+            ...player
+        })
+        setShowGroupPlayer(true);
     };
 
     const handleAddPlayerButton = (group) => {
@@ -125,13 +140,49 @@ const PlayerSelection = ({gameGroupArr = [], game}) => {
         setSizeOfGroup(val.value);
     };
 
+    const handleDeleteGroupPlayer = () => {
+        setDisplayMsg(`Remove ${selectedGroupPlayer.fname} ${selectedGroupPlayer.lname} from game?`);
+        setConfirmDialogEvtName('delGroupPlayer');
+        setShowConfirmModal(true);
+    };
+  
+    const handleConfirm = async () => {
+        setShowConfirmModal(false);
+        switch (confirmDialogEvtName) {
+            case "delGroupPlayer":
+                deleteGroupPlayer();
+        }
+    };
+
+    const deleteGroupPlayer = async () => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const temp = [...groupArr];
+            const group = temp.find(arr => arr.name === selectedGroupPlayer.group);
+            const newMembers = group.members.filter(member => member.id !== selectedGroupPlayer.id);
+            group.members = newMembers;
+            setGroupArr(temp);
+            setSelectedGroupPlayer(null);
+            setShowGroupPlayer(false);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
     const buildGroup = (datum, idx) => {
         return <div className='col-md-4 col-sm-12 mb-3' key={idx}>
             <div className='card border-0 rounded-4 bg-light shadow'>
                 <div className='d-flex flex-wrap p-2'>
                     {new Array(sizeOfGroup).fill(1).map((val, index) => {
                         if(datum.members[index]){
-                            return <div className='p-1 w-50 d-flex gap-2 align-items-center mb-1 mt-1 text-start' key={index} onClick={() => handlePlayerButton(datum)}>
+                            return <div className='p-1 w-50 d-flex gap-2 align-items-center mb-1 mt-1 text-start' key={index} onClick={() => handlePlayerClicked(datum.name, datum.members[index])}>
                                 {datum.members[index].ProfileImgKeyhash && <ImageComponent image={datum.members[index].ProfileImgKeyhash} key_id={datum.members[index].ProfileImgKeyhash.key_hash} width={'30px'} height={'30px'} round={true} />}
                                 {!datum.members[index].ProfileImgKeyhash && <img src={IMAGES.svg_user} width={'30px'} height={'30px'} className='rounded-circle' />}
                                 <span className='d-flex flex-column align-items-start gap-1'>
@@ -214,6 +265,19 @@ const PlayerSelection = ({gameGroupArr = [], game}) => {
 				message={displayMsg}
                 size={numOfPlayers}
                 networkRequest={networkRequest}
+			/>
+			<GroupPlayerDialog
+				show={showGroupPlayer}
+				handleClose={handleCloseGroupPlayerModal}
+				handleDelete={handleDeleteGroupPlayer}
+                player={selectedGroupPlayer}
+				message={displayMsg}
+			/>
+			<ConfirmDialog
+				show={showConfirmModal}
+				handleClose={handleCloseModal}
+				handleConfirm={handleConfirm}
+				message={displayMsg}
 			/>
         </div>
     )

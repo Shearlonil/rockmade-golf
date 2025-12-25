@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Button, Form, Modal } from 'react-bootstrap';
+import { Button, Form, Modal, CloseButton } from 'react-bootstrap';
 import { Controller, useForm } from 'react-hook-form';
 import Select from "react-select";
 import {
@@ -18,6 +18,8 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
 
     const controllerRef = useRef(new AbortController());
     const [authsLoading, setAuthsLoading] = useState(false);
+    const [allowedAuths, setAllowedAuths] = useState([]);
+    const [selectOptions, setSelectOptions] = useState([]);
 
     const { findByIdWithAuths } = useStaffController();
 
@@ -29,11 +31,12 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
         formState: { errors },
     } = useForm();
     
-    const onSubmit = async (formData) => {
-        handleConfirm(formData.authorities);
+    const onSubmit = () => {
+        handleConfirm(allowedAuths);
     };
 
     const modalLoaded = async () => {
+        // console.log(authOptions);
         try {
             //	check if the request to fetch authorities doesn't fail before setting values to display
             if(staff){
@@ -47,11 +50,17 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
                 controllerRef.current = new AbortController();
                 const response = await findByIdWithAuths(controllerRef.current.signal, staff.id);
                 const arr = [];
-                response.data.Authorities?.forEach(auth => {
-                    const a = authOptions.find(option => option.value.id === auth.id);
-                    arr.push(a);
-                });
-                setValue('authorities', arr);
+                const options = []; // options for select
+                authOptions.forEach(authOption => {
+                    const found = response.data.Authorities?.find(a => authOption.value.id === a.id);
+                    if(found){
+                        arr.push(authOption.value);
+                    }else {
+                        options.push(authOption);
+                    }
+                })
+                setAllowedAuths(arr);
+                setSelectOptions(options);
 				setAuthsLoading(false);
             }
         } catch (error) {
@@ -72,10 +81,43 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
         setValue('sex', '');
         setValue('email', '');
         setValue('creator', "");
-        setValue('authorities', null);
         // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
         controllerRef.current.abort();
     };
+
+    const removeAuth = (auth) => {
+        const temp = [...allowedAuths];
+        const filtered = temp.filter(allowed => allowed.id !== auth.id);
+        setAllowedAuths(filtered);
+        // add back to options for react-select
+        const options = [...selectOptions];
+        // check if already added back to options
+        const found = options.find(option => option.value.id === auth.id);
+        if(!found){
+            options.push({label: auth.name, value: auth});
+            setSelectOptions(options);
+        }
+    };
+
+    const handleOptionChange = (auth) => {
+        if(auth){
+            const temp = [...allowedAuths];
+            // find if already exists in allowed auth
+            const found = temp.find(a => a.id === auth.value.id);
+            if(!found){
+                temp.push(auth.value);
+                setAllowedAuths(temp);
+            }
+            setValue('authorities', null);
+        }
+    };
+
+    const buildAuthBadges = allowedAuths.map((auth, index) => (
+        <div key={index}  className={`bg-success-subtle text-dark rounded-1 p-1 d-flex align-items-center justify-content-between`} >
+            <small className="pe-0 me-2 m-0">{auth.name}</small>
+            <CloseButton className="p-0 fw-bold" onClick={() => removeAuth(auth)} aria-label="Hide" />
+        </div>
+    ));
 
     return (
         <Modal show={show} onHide={handleClose} onEntered={modalLoaded} onExited={handleModalExited}>
@@ -188,18 +230,24 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
                                 control={control}
                                 render={({ field: { onChange, value } }) => (
                                     <Select
-                                        isMulti
+                                        isClearable
                                         name="authorities"
                                         placeholder="Select Authorities..."
                                         className="text-dark col-12"
                                         isLoading={authsLoading}
-                                        options={authOptions}
-                                        onChange={(val) => onChange(val)}
+                                        options={selectOptions}
+                                        onChange={(val) => {
+                                            handleOptionChange(val);
+                                            onChange(val);
+                                        }}
                                         value={value}
                                     />
                                 )}
                             />
                             <ErrorMessage source={errors.authorities} />
+                        </div>
+                        <div className='d-flex flex-wrap gap-2'>
+                            {allowedAuths.length > 0 && buildAuthBadges}
                         </div>
                     </div>
                 </Modal.Body>

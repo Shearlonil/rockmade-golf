@@ -351,7 +351,7 @@ const Staff = () => {
             setNetworkRequest(true);
             resetAbortController();
 
-            const authArr = auths.map(auth => ( {id: auth.value.id, code: auth.value.code} ));
+            const authArr = auths.map(auth => ( {id: auth.id, code: auth.code} ));
 
             await updateRoles(controllerRef.current.signal, {id: editedUser.id, authorities: authArr});
             
