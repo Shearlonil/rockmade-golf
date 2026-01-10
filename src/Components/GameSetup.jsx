@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import {
-    Button,
-    Form,
-} from "react-bootstrap";
+import { Button,  Form, } from "react-bootstrap";
+import { IoAddCircle, IoRemoveCircle } from "react-icons/io5";
 import { format } from 'date-fns';
 import { toast } from "react-toastify";
 
@@ -12,7 +10,7 @@ import { useActiveCourses } from "../app-context/active-courses-context";
 import handleErrMsg from "../Utils/error-handler";
 import useCourseController from "../api-controllers/course-controller-hook";
 
-const GameSetup = ({ data, gameMode, setUpGame, handleCancel, networkRequest, btnRedText = 'Cancel', btnBlueText = 'Save', setHolesContests }) => {
+const GameSetup = ({ data, gameMode, setUpGame, handleCancel, networkRequest, btnRedText = 'Cancel', btnBlueText = 'Save', setHolesContests, setRounds }) => {
     const controllerRef = useRef(new AbortController());
     const { courseHolesContests, updateCoursesHolesContests } = useActiveCourses();
     const { finById } = useCourseController();
@@ -42,6 +40,22 @@ const GameSetup = ({ data, gameMode, setUpGame, handleCancel, networkRequest, bt
         setHolesContests(arr)
     }
 
+    const incrementRounds = () => {
+        const temp = {...gameDetails};
+        ++temp.rounds;
+        setGameDetails(temp);
+        setRounds(temp.rounds);
+    }
+
+    const decrementRounds = () => {
+        const temp = {...gameDetails};
+        --temp.rounds;
+        if(temp.rounds > 0){
+            setGameDetails(temp);
+            setRounds(temp.rounds);
+        }
+    }
+
     const newSetup = () => {
         let courseContests = courseHolesContests(data.course.value.id);
         if(courseContests){
@@ -54,6 +68,7 @@ const GameSetup = ({ data, gameMode, setUpGame, handleCancel, networkRequest, bt
             courseName: data.course.label,
             gameName: data.name,
             startDate: data.startDate,
+            rounds: 1,
             holeMode: data.hole_mode.label,
         });
     }
@@ -127,10 +142,19 @@ const GameSetup = ({ data, gameMode, setUpGame, handleCancel, networkRequest, bt
             default:
                 break;
         }
+        /*  Possiblity of save button clicked without ever clicking the 'add' button to show contest dialog which builds the contests data (the dialog on minimize, set the holesContests). 
+            In this case, the holesContests array will be empty thereby clearing previously selected contests for this game. To prevent this, eagerly build the contests data and save in 
+            holesContestss.
+        */
+        const tempContests = [];
+        arr.filter(datum => datum.selectedHoles.length > 0).forEach(datum => tempContests.push({id: datum.id, name: datum.name, holes: datum.selectedHoles}));
+        setHolesContests(tempContests);
+
         setGameDetails({
             courseName: data.Course.name,
             gameName: data.name,
             startDate: data.date,
+            rounds: data.rounds,
             holeMode,
         });
     }
@@ -234,6 +258,25 @@ const GameSetup = ({ data, gameMode, setUpGame, handleCancel, networkRequest, bt
                             <Button className="btn-success fw-bold d-flex gap-3 align-items-center justify-content-center" style={{minWidth: '120px'}} onClick={() => setShowHolesContestsModal(true)} disabled={loadingContests}>
                                 {loadingContests && <OrbitalLoading color='white' style={{fontSize: '5px'}} /> } Add
                             </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="row">
+                <div className="col-12 col-md-6 d-flex flex-column mt-3">
+                    <div className="d-flex gap-5">
+                        <div className="d-flex flex-column">
+                            <Form.Label className="fw-bold">Rounds</Form.Label>
+                            <div className="d-flex">
+                                <span onClick={() => incrementRounds()} >
+                                    <IoAddCircle size={40} color="green" />
+                                </span>
+                                <Form.Label className="text-primary fw-bold h3 ms-2 me-2">{gameDetails?.rounds}</Form.Label>
+                                <span onClick={() => decrementRounds()}  >
+                                    <IoRemoveCircle size={40} color="red" />
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>

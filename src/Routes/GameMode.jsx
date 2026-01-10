@@ -4,11 +4,11 @@ import {
     Row,
     Col,
     Container,
-    Modal,
     ToggleButton,
     ButtonGroup,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
+import { GoArrowUpRight } from "react-icons/go";
 import { useNavigate, useLocation } from "react-router-dom";
 import { isAfter } from 'date-fns';
 
@@ -51,6 +51,7 @@ const GameMode = () => {
     const [heroText, setHeroText] = useState("Our Game Modes");
     const [gameFormat, setGameFormat] = useState("Stroke Play");
     const [features, setFeatures] = useState({});
+    const [rounds, setRounds] = useState(1); // rounds to send to backend
 
     // players: slot contains either null or a player object {name,image,handicap,tee}
     const [players, setPlayers] = useState([user, null, null, null]); // 4 slots
@@ -134,6 +135,10 @@ const GameMode = () => {
         setCourse(c);
         setCourseSettingData(c);
     }
+    
+    const setNewRounds = (round) => {
+        setRounds(round);
+    }
 
     const setUpGame = async () => {
         try {
@@ -149,7 +154,8 @@ const GameMode = () => {
                 course_id: course.course.value.id,
                 hole_mode: course.hole_mode.value,
                 name: course.name,
-                mode: gameMode.id
+                mode: gameMode.id,
+                rounds
             };
             const response = await createGame(controllerRef.current.signal, data);
             setOngoingRound(response.data);
@@ -185,6 +191,12 @@ const GameMode = () => {
             setNetworkRequest(false);
             toast.error(handleErrMsg(error).msg);
         }
+    };
+
+    const gotoGame = () => {
+        const nameArr = ongoingRound.name.split(' ');
+        const strName = nameArr.join('+');
+        navigate(`/dashboard/client/${ongoingRound.id}/game/${strName}`);
     };
 
     const saveScores = () => {
@@ -293,9 +305,19 @@ const GameMode = () => {
                         }} 
                         networkRequest={networkRequest}
                         btnRedText={'Back'}
-                        setHolesContests={setHolesContests} />}
+                        setHolesContests={setHolesContests}
+                        setRounds={setNewRounds} />}
 
                 {step === 4 && <PlayerSelection gameGroupArr={gameGroupArr} game={ongoingRound} />}
+                {step === 4 && 
+                    <div className='row mb-5'>
+                        <div className="col-12 d-flex align-items-center justify-content-center">
+                            <Button variant="success" className="fw-bold col-12 col-md-4" onClick={gotoGame} >
+                                <GoArrowUpRight size='32px' /> Go to game
+                            </Button>
+                        </div>
+                    </div>
+                }
 
                 {/* ---------- STEP 5: Live Game / Single Editable Table ---------- */}
                 {step === 5 && (

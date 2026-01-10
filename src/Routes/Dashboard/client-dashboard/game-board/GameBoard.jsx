@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { IoSettings } from "react-icons/io5";
 import { Row } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { format } from "date-fns";
+import { format, getTime } from "date-fns";
 
 import IMAGES from '../../../../assets/images';
 import cryptoHelper from '../../../../Utils/crypto-helper';
@@ -35,7 +35,7 @@ const GameBoard = () => {
     const { logout } = useAuth();
     const { gameCourseSearch,  } = useCourseController();
     const { performGetRequests } = useGenericController();
-    const { updateGameContests, updateGame } = useGameController();
+    const { updateGameSpices, updateGame } = useGameController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
@@ -45,7 +45,8 @@ const GameBoard = () => {
     const [ongoingRound, setOngoingRound] = useState(null);
     const [courseId, setCourseId] = useState(0);
     // Game data
-    const [gameContests, setGameContests] = useState([]); // new contests to send to backend  
+    const [gameContests, setGameContests] = useState([]); // new contests to send to backend
+    const [rounds, setRounds] = useState(1); // new rounds to send to backend
     const [playerScores, setPlayerScores] = useState([]);
     const [gameGroupArr, setGameGroupArr] = useState([]);
     const [pageNumber, setPageNumber] = useState(1);
@@ -55,12 +56,14 @@ const GameBoard = () => {
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
     const [updatedCourseData, setUpdatedCoureData] = useState(null);
-
+    
     const offCanvasMenu = [
         { label: "Enter Score", onClickParams: {evtName: 'enterScore'} },
         { label: "Leaderboards", onClickParams: {evtName: 'leaderboards'} },
         { label: "Settings", onClickParams: {evtName: 'settings'} },
+        { label: "Share Game", onClickParams: {evtName: 'share'} },
     ];
+    const [activeMenuItem, setActiveMenuItem] = useState(offCanvasMenu[0].label);
 
     useEffect(() => {
         if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
@@ -121,22 +124,31 @@ const GameBoard = () => {
                 // Request was intentionally aborted, handle silently
                 return;
             }
+            if(error.response.status === 404){
+                navigate('/dashboard')
+            }
             setNetworkRequest(false);
             setShowOrbitalLoader(false);
             toast.error(handleErrMsg(error).msg);
         }
     }
 
-	const handleOffCanvasMenuItemClick = async (onclickParams, e) => {
-		switch (onclickParams.evtName) {
+	const handleOffCanvasMenuItemClick = async (menus, e) => {
+		switch (menus.onClickParams.evtName) {
             case 'enterScore':
                 setPageNumber(1);
+                setActiveMenuItem(menus.label);
                 break;
             case 'leaderboards':
                 setPageNumber(2);
+                setActiveMenuItem(menus.label);
                 break;
             case 'settings':
                 setPageNumber(3);
+                setActiveMenuItem(menus.label);
+                break;
+            case 'share':
+                setActiveMenuItem(menus.label);
                 break;
         }
 	}
@@ -173,15 +185,20 @@ const GameBoard = () => {
     }
 
     const handleUpdateGameContests = async () => {
-        setConfirmDialogEvtName('updateHoleContests')
-        setDisplayMsg('Update Game with new contests?');
+        setConfirmDialogEvtName('updateHoleContests');
+        setDisplayMsg('Update Game with new contests and rounds?');
         setShowConfirmModal(true);
     };
 
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
     };
-  
+
+    const settingsClicked = () => {
+        setPageNumber(3);
+        setActiveMenuItem("Settings");
+    }
+
     const handleConfirm = async () => {
         setShowConfirmModal(false);
         switch (confirmDialogEvtName) {
@@ -200,6 +217,13 @@ const GameBoard = () => {
     
     const setHolesContests = (arr) => {
         setGameContests(arr);
+    }
+    
+    const setNewRounds = (round) => {
+        setRounds(round);
+        const order_id = getTime(new Date());
+        const tenDigitId = String(order_id).substring(3, 13) + new Date().toLocaleDateString('en-us', { weekday: 'short' }).toUpperCase();
+        console.log(tenDigitId);
     }
 
     const updateGameCourse = async () => {
@@ -243,9 +267,10 @@ const GameBoard = () => {
             const data = {
                 game_id: id,
                 course_id: courseId,
-                contests: gameContests 
+                contests: gameContests,
+                rounds
             }
-            await updateGameContests(controllerRef.current.signal, data);
+            await updateGameSpices(controllerRef.current.signal, data);
             setNetworkRequest(false);
             setShowOrbitalLoader(false);
             toast.info('Update successful');
@@ -288,7 +313,7 @@ const GameBoard = () => {
 
     return (
         <section className='container d-flex flex-column gap-4' style={{minHeight: '80vh'}}>
-            <OffcanvasMenu menuItems={offCanvasMenu} menuItemClick={handleOffCanvasMenuItemClick} variant='danger' />
+            <OffcanvasMenu menuItems={offCanvasMenu} menuItemClick={handleOffCanvasMenuItemClick} variant='danger' activeMenuItem={activeMenuItem} />
             {/* NOTE: setting z-index of this row because of rsuite table which conflicts the drop down menu of react-select */}
             <Row className="card shadow border-0 rounded-3 z-3 mt-5">
                 <div className="card-body row ms-0 me-0 d-flex justify-content-between">
@@ -306,7 +331,7 @@ const GameBoard = () => {
                     </div>
 
                     <div className="d-flex flex-column gap-1 align-items-center justify-content-center col-12 col-md-4">
-                        <IoSettings size={35} style={{ color: 'blue' }} onClick={() => setPageNumber(3)} />
+                        <IoSettings size={35} style={{ color: 'blue' }} onClick={ settingsClicked } />
                         <span className="fw-bold h6">Settings</span>
                     </div>
                 </div>
@@ -324,7 +349,8 @@ const GameBoard = () => {
                     setUpGame={handleUpdateGameContests} 
                     handleCancel={() => setPageNumber(3)} 
                     networkRequest={networkRequest}
-                    setHolesContests={setHolesContests} />}
+                    setHolesContests={setHolesContests}
+                    setRounds={setNewRounds} />}
             {pageNumber === 5 && 
                 <CourseSetup 
                     gameMode={gameMode} 
