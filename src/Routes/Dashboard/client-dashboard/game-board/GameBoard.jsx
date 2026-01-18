@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { IoSettings } from "react-icons/io5";
 import { Row } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { format, getTime } from "date-fns";
+import { format } from "date-fns";
 
 import IMAGES from '../../../../assets/images';
 import cryptoHelper from '../../../../Utils/crypto-helper';
@@ -23,6 +23,7 @@ import useGenericController from '../../../../api-controllers/generic-controller
 import useCourseController from '../../../../api-controllers/course-controller-hook';
 import useGameController from '../../../../api-controllers/game-controller-hook';
 import PlayerSelection from '../../../../Components/PlayerSelection';
+import GameCodesViewDialog from '../../../../Components/DialogBoxes/GameCodesViewDialog';
 
 const GameBoard = () => {
     const controllerRef = useRef(new AbortController());
@@ -52,6 +53,7 @@ const GameBoard = () => {
     const [pageNumber, setPageNumber] = useState(1);
     const [gameMode, setGameMode] = useState(null);
     
+	const [showGameCodesModal, setShowGameCodesModal] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
@@ -148,7 +150,7 @@ const GameBoard = () => {
                 setActiveMenuItem(menus.label);
                 break;
             case 'share':
-                setActiveMenuItem(menus.label);
+                setShowGameCodesModal(true);
                 break;
         }
 	}
@@ -192,6 +194,7 @@ const GameBoard = () => {
 
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
+        setShowGameCodesModal(false);
     };
 
     const settingsClicked = () => {
@@ -221,9 +224,6 @@ const GameBoard = () => {
     
     const setNewRounds = (round) => {
         setRounds(round);
-        const order_id = getTime(new Date());
-        const tenDigitId = String(order_id).substring(3, 13) + new Date().toLocaleDateString('en-us', { weekday: 'short' }).toUpperCase();
-        console.log(tenDigitId);
     }
 
     const updateGameCourse = async () => {
@@ -364,6 +364,12 @@ const GameBoard = () => {
 				handleClose={handleCloseModal}
 				handleConfirm={handleConfirm}
 				message={displayMsg}
+			/>
+
+            <GameCodesViewDialog
+				show={showGameCodesModal}
+				handleClose={handleCloseModal}
+				codes={ongoingRound?.GameCode}
 			/>
         </section>
     )

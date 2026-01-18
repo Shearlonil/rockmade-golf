@@ -4,8 +4,6 @@ import {
     Row,
     Col,
     Container,
-    ToggleButton,
-    ButtonGroup,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { GoArrowUpRight } from "react-icons/go";
@@ -53,18 +51,6 @@ const GameMode = () => {
     const [features, setFeatures] = useState({});
     const [rounds, setRounds] = useState(1); // rounds to send to backend
 
-    // players: slot contains either null or a player object {name,image,handicap,tee}
-    const [players, setPlayers] = useState([user, null, null, null]); // 4 slots
-    const [showModal, setShowModal] = useState(false);
-    const [selectedSlot, setSelectedSlot] = useState(null);
-
-    // live scores state: array of arrays: scores[playerIndex][holeIdx] = string/number
-    const holeCount = 18;
-    const [scores, setScores] = useState(() => players.map(() => Array(holeCount).fill("")) );
-
-    // editMode: 'own' (default) or 'all' (host/scorekeeper)
-    const [editMode, setEditMode] = useState("own");
-
     useEffect(() => {
         if(user && crypt.decryptData(user.mode) === '0'){
             // staff now allowed, because user.sub for staff will be undefined
@@ -108,19 +94,6 @@ const GameMode = () => {
             toast.error(handleErrMsg(error).msg);
         }
     }
-
-    const handleScoreChange = (playerIdx, holeIdx, raw) => {
-        // sanitize: allow only non-negative integers or empty string
-        let v = raw === "" ? "" : parseInt(raw, 10);
-        if (!Number.isFinite(v)) v = "";
-        if (v !== "" && v < 0) v = 0;
-        setScores((prev) => {
-            const copy = prev.map((r) => [...r]);
-            if (!copy[playerIdx]) copy[playerIdx] = Array(holeCount).fill("");
-            copy[playerIdx][holeIdx] = v === "" ? "" : String(v);
-            return copy;
-        });
-    };
 
 	const submitCourse = (data) => {
         setCourse(data);
@@ -198,18 +171,6 @@ const GameMode = () => {
         const strName = nameArr.join('+');
         navigate(`/dashboard/client/${ongoingRound.id}/game/${strName}`);
     };
-
-    const saveScores = () => {
-        // implement persist to backend here
-        alert("Scores saved (console logged).");
-    };
-
-    const resetScores = () => {
-        setScores(players.map(() => Array(holeCount).fill("")));
-    };
-
-    // helper: find current user's slot index in players (by name)
-    const viewerSlotIndex = players.findIndex((p) => p && p.name === user.name);
 
 	const buildGameGroup = (game) => {
         const arr = [];
@@ -318,138 +279,6 @@ const GameMode = () => {
                         </div>
                     </div>
                 }
-
-                {/* ---------- STEP 5: Live Game / Single Editable Table ---------- */}
-                {step === 5 && (
-                    <div className="p-5 border rounded-4 bg-light shadow">
-                        <div className="text-center mb-3">
-                            <h2 className="fw-bold text-success">Game In Progress</h2>
-                            <p className="text-muted mb-2">
-                                {course} • {holeCount} Holes • {gameFormat}
-                            </p>
-
-                            {/* edit mode toggle */}
-                            <div className="d-flex justify-content-center align-items-center gap-3">
-                                <small className="text-muted">Edit mode:</small>
-                                <ButtonGroup>
-                                    <ToggleButton id="toggle-own" type="radio" checked={editMode === "own"} onChange={() => setEditMode("own")}
-                                        variant={ editMode === "own" ? "outline-primary" : "outline-secondary" }
-                                    >
-                                        Own Only
-                                    </ToggleButton>
-                                    <ToggleButton id="toggle-all" type="radio" checked={editMode === "all"} onChange={() => setEditMode("all")}
-                                      variant={ editMode === "all" ? "outline-primary" : "outline-secondary" }
-                                    >
-                                        All Players
-                                    </ToggleButton>
-                                </ButtonGroup>
-                            </div>
-                        </div>
-
-                        {/* PLAYERS OVERVIEW */}
-                        <div className="d-flex justify-content-center flex-wrap gap-3 mb-4">
-                            {players
-                                .filter((p) => p)
-                                .map((p, idx) => (
-                                    <div key={idx} className="p-3 border rounded bg-white shadow-sm d-flex align-items-center" style={{ width: 230 }} >
-                                        <img src={p.image} alt={p.name}
-                                            style={{
-                                                width: 50,
-                                                height: 50,
-                                                borderRadius: "50%",
-                                                objectFit: "cover",
-                                                marginRight: "1rem",
-                                            }}
-                                        />
-                                        <div className="text-start">
-                                            <h6 className="fw-bold mb-0">{p.name}</h6>
-                                            <small className="text-muted">
-                                                HC: {p.handicap} | Tee: {p.tee}
-                                            </small>
-                                        </div>
-                                    </div>
-                              ))
-                            }
-                        </div>
-
-                        {/* SINGLE LIVE SCORE TABLE */}
-                        <div className="table-responsive">
-                            <table className="table table-bordered align-middle text-center bg-white shadow-sm">
-                                <thead className="table-success">
-                                    <tr>
-                                        <th>Hole</th>
-                                        {players.filter((p) => p).map((p, idx) => (<th key={idx}>{p.name}</th> ))}
-                                        <th>Hole Par / Features</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {Array.from({ length: holeCount }).map((_, holeIdx) => (
-                                        <tr key={holeIdx}>
-                                            <td>Hole {holeIdx + 1}</td>
-
-                                            {/* each player column (editable per permission) */}
-                                            {players.map((p, playerIdx) => {
-                                                if (!p) return <td key={playerIdx}>—</td>;
-
-                                                const viewerIsThisPlayer = playerIdx === viewerSlotIndex;
-                                                const canEdit = editMode === "all" || viewerIsThisPlayer;
-
-                                                return (
-                                                    <td key={playerIdx}>
-                                                        <input type="number" min="0"
-                                                            value={ scores[playerIdx] ? scores[playerIdx][holeIdx] : "" }
-                                                            onChange={(e) =>
-                                                                handleScoreChange(
-                                                                    playerIdx,
-                                                                    holeIdx,
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                            className="form-control text-center"
-                                                            style={{ maxWidth: 90, margin: "0 auto" }}
-                                                            disabled={!canEdit}
-                                                        />
-                                                    </td>
-                                                );
-                                            })}
-
-                                            {/* hole features column (optional display) */}
-                                            <td style={{ textAlign: "left" }}>
-                                                {features[holeIdx + 1] ? ( features[holeIdx + 1].join(", ") ) : ( <small className="text-muted">—</small>)}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-
-                                {/* totals row */}
-                                <tfoot>
-                                    <tr>
-                                        <th>Total</th>
-                                        {players.map((p, playerIdx) => {
-                                            if (!p) return <th key={playerIdx}>—</th>;
-                                            const total = (scores[playerIdx] || []).reduce((s, v) => s + (parseInt(v) || 0),0);
-                                            return <th key={playerIdx}>{total}</th>;
-                                        })}
-                                        <th />
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-
-                        {/* ACTIONS */}
-                        <div className="text-center mt-4">
-                            <Button variant="secondary" onClick={() => setStep(4)} className="me-2" >
-                                Back
-                            </Button>
-                            <Button variant="warning" onClick={resetScores} className="me-2">
-                                Reset
-                            </Button>
-                            <Button variant="primary" onClick={saveScores}>
-                                Save Scores
-                            </Button>
-                        </div>
-                    </div>
-                )}
             </Container>
         </>
     );
