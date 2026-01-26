@@ -4,48 +4,6 @@ const { Column, HeaderCell, Cell } = Table;
 
 import RsuiteTableSkeletonLoader from '../../../../Components/RsuiteTableSkeletonLoader';
 
-const columns = [
-    {
-        key: 'name',
-        label: 'Name',
-        fixed: true,
-        flexGrow: 2,
-        // width: 200
-    },
-    {
-        key: 'parHit',
-        label: '',
-        fixed: true,
-        flexGrow: 1,
-        // width: 200
-    },
-    {
-        key: 'location',
-        label: 'Location',
-        flexGrow: 1,
-        // fixed: true,
-        // width: 200
-    },
-    {
-        key: 'no_of_holes',
-        label: 'Number Of Holes',
-        flexGrow: 1,
-        // width: 100
-    },
-    {
-        key: 'createdAt',
-        label: 'Created At',
-        flexGrow: 1,
-        // width: 100
-    },
-    {
-        key: 'fname',
-        label: 'Creator',
-        flexGrow: 1,
-        // width: 100
-    },
-];
-
 function toValueString(value, dataType) {
     return (dataType === 'date') ? value?.toLocaleDateString() : value;
 }
@@ -85,6 +43,13 @@ const EditableCell = ({ rowData, dataType, dataKey, onChange, onEdit, ...props }
     );
 };
 
+const CustomHeader = ({ title, par }) => (
+    <div className='d-flex flex-column justify-content-center align-items-center fw-bold text-dark'>
+        <label className='fs-5'>{title}</label>
+        <label>Par {par}</label>
+    </div>
+);
+
 const ActionCell = ({ rowData, dataKey, onEdit, onSave, onViewCourse, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
@@ -94,7 +59,7 @@ const ActionCell = ({ rowData, dataKey, onEdit, onSave, onViewCourse, ...props }
   );
 };
 
-const GroupScore = ({holeMode, networkRequest, playerScores}) => {
+const GroupScore = ({columns = [], networkRequest, playerScores, holeProps}) => {
 
     const handleChange = (id, key, value) => {
         const nextData = Object.assign([], playerScores);
@@ -118,15 +83,17 @@ const GroupScore = ({holeMode, networkRequest, playerScores}) => {
     };
     
     return (
-        <Table loading={networkRequest} rowKey="id" data={playerScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true}
+        <Table loading={networkRequest} rowKey="id" data={playerScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
             renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} >
                 
             {columns.map((column, idx) => {
                 const { key, label, ...rest } = column;
                 if(idx > 1){
                     return (
-                        <Column {...rest} key={key}>
-                            <HeaderCell>{label}</HeaderCell>
+                        <Column {...rest} key={key} >
+                            <HeaderCell>
+                                <CustomHeader title={label} par={holeProps[key]?.par} />
+                            </HeaderCell>
                             <EditableCell
                                 dataKey={key}
                                 dataType="number"
@@ -139,15 +106,11 @@ const GroupScore = ({holeMode, networkRequest, playerScores}) => {
                 }
                 return (
                     <Column {...rest} key={key} fullText>
-                        <HeaderCell>{label}</HeaderCell>
+                        <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
                         <Cell dataKey={key} style={{ padding: 6 }} />
                     </Column>
                 );
             })}
-            <Column width={150} >
-                <HeaderCell>Actions...</HeaderCell>
-                <ActionCell onEdit={handleEdit} onSave={handleSave} />
-            </Column>
         </Table>
     )
 }

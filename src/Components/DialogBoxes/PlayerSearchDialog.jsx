@@ -101,7 +101,7 @@ const PlayerSearchDialog = ({ show, handleClose, handleSubmitPlayers, message, m
     };
 
     return (
-        <Modal show={show} onHide={minimizeModal} onEntered={modalLoaded}>
+        <Modal show={show} onHide={minimizeModal} onEntered={modalLoaded} backdrop="static">
             <Modal.Header closeButton>
                 <Modal.Title>{message}</Modal.Title>
             </Modal.Header>
@@ -132,7 +132,7 @@ const PlayerSearchDialog = ({ show, handleClose, handleSubmitPlayers, message, m
                     </div>
                     {multiSelect && selectedPlayers.map((sp, i) => {
                         return (
-                            <div content={"X"} width={'100%'} shape="circle" size="xl" offset={[5, 15]} key={i} className="position-relative">
+                            <div width={'100%'} key={i} className="position-relative">
                                 <div key={i} className={`p-3 border rounded d-flex align-items-center shadow-sm gap-2 mt-3 w-100`} >
                                     {sp.ProfileImgKeyhash && <ImageComponent image={sp.ProfileImgKeyhash} width={'30px'} height={'30px'} round={true} key_id={sp.ProfileImgKeyhash.key_hash} />}
                                     {!sp.ProfileImgKeyhash && <img src={IMAGES.svg_user} width={'30px'} height={'30px'} className='rounded-circle' />}

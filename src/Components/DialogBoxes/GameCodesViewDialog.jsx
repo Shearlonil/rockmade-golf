@@ -2,7 +2,7 @@ import { Modal, Button, Form } from "react-bootstrap";
 
 const GameCodesViewDialog = ({ show, handleClose, codes }) => {
     return (
-        <Modal show={show} onHide={handleClose}>
+        <Modal show={show} onHide={handleClose} backdrop='static'>
             <Modal.Header closeButton>
                 <Modal.Title className="text-success fw-bold">SHARE GAME</Modal.Title>
             </Modal.Header>

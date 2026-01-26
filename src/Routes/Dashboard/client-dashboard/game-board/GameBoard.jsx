@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { IoSettings } from "react-icons/io5";
+import { IoMdRefreshCircle } from "react-icons/io";
 import { Row } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { format } from "date-fns";
@@ -52,6 +53,24 @@ const GameBoard = () => {
     const [gameGroupArr, setGameGroupArr] = useState([]);
     const [pageNumber, setPageNumber] = useState(1);
     const [gameMode, setGameMode] = useState(null);
+    // column headers for table displayed in GroupScore component
+    const [columns, setColumns] = useState([
+        {
+            key: 'name',
+            label: 'Name',
+            fixed: true,
+            // flexGrow: 5,
+            width: 170,
+        },
+        {
+            key: 'toParVal',
+            label: '',
+            fixed: true,
+            // flexGrow: 1,
+            width: 80,
+        },
+    ]);
+    const [holeProps, setHoleProps] = useState();
     
 	const [showGameCodesModal, setShowGameCodesModal] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -113,6 +132,7 @@ const GameBoard = () => {
                         break;
                 }
                 buildGameGroup(game);
+                buildHoleProps(game.Course);
             }
 
             if(coursesReq && coursesReq.data){
@@ -200,7 +220,9 @@ const GameBoard = () => {
     const settingsClicked = () => {
         setPageNumber(3);
         setActiveMenuItem("Settings");
-    }
+    };
+
+    const refreshClicked = () => {};
 
     const handleConfirm = async () => {
         setShowConfirmModal(false);
@@ -301,6 +323,29 @@ const GameBoard = () => {
             }
         });
         setGameGroupArr(arr);
+        switch (game.hole_mode) {
+            case 1:
+                buildGroupScoreTableColumns(1, 18);
+                break;
+            case 2:
+                buildGroupScoreTableColumns(1, 9);
+                break;
+            case 3:
+                buildGroupScoreTableColumns(10, 18);
+                break;
+        }
+    };
+
+    const buildHoleProps = (course) => {
+        const obj = {};
+        course.holes.forEach(hole => {
+            const hole_no = hole.hole_no;
+            obj[hole_no] = {
+                hcp_idx: hole.CourseHoles.hcp_idx,
+                par: hole.CourseHoles.par
+            }
+        });
+        setHoleProps(obj);
     };
 
     const resetAbortController = () => {
@@ -309,6 +354,19 @@ const GameBoard = () => {
             controllerRef.current.abort();
         }
         controllerRef.current = new AbortController();
+    };
+
+    const buildGroupScoreTableColumns = (start, end) => {
+        const arr = [];
+        for(let i = start; i <= end; i++){
+            arr.push({
+                key: i,
+                label: i,
+                // flexGrow: 1,
+                width: 70,
+            });
+        }
+        setColumns([...columns, ...arr]);
     };
 
     return (
@@ -330,16 +388,23 @@ const GameBoard = () => {
                         <span className="fw-bold text-success h4">{ongoingRound?.Course.name}</span>
                     </div>
 
-                    <div className="d-flex flex-column gap-1 align-items-center justify-content-center col-12 col-md-4">
-                        <IoSettings size={35} style={{ color: 'blue' }} onClick={ settingsClicked } />
-                        <span className="fw-bold h6">Settings</span>
+                    <div className='d-flex col-12 col-md-4 gap-4 align-items-center justify-content-center'>
+                        <div className="d-flex flex-column gap-1 align-items-center">
+                            <IoSettings size={35} style={{ color: 'blue' }} onClick={ settingsClicked } />
+                            <span className="fw-bold h6">Settings</span>
+                        </div>
+
+                        <div className="d-flex flex-column gap-1 align-items-center">
+                            <IoMdRefreshCircle size={35} style={{ color: 'red' }} onClick={ refreshClicked } />
+                            <span className="fw-bold h6">Refresh</span>
+                        </div>
                     </div>
                 </div>
             </Row>
             <div className="justify-content-center d-flex">
                 {showOrbitalLoader && <OrbitalLoading color='red' />}
             </div>
-            {pageNumber === 1 && <GroupScore holeMode={ongoingRound?.hole_mode} playerScores={playerScores} />}
+            {pageNumber === 1 && <GroupScore holeMode={ongoingRound?.hole_mode} networkRequest={networkRequest} playerScores={playerScores} columns={columns} holeProps={holeProps} />}
             {pageNumber === 2 && <LeaderBoards />}
             {pageNumber === 3 && <GameSettings changePageNumber={changePageNumber} networkRequest={networkRequest} />}
             {pageNumber === 4 && 
