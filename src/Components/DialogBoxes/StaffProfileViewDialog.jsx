@@ -48,7 +48,8 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
                 setValue('creator', staff.creator_fname + " " + staff.creator_lname);
 				setAuthsLoading(true);
                 controllerRef.current = new AbortController();
-                const response = await findByIdWithAuths(controllerRef.current.signal, staff.id);
+                const decrypted_id = cryptoHelper.decryptData(editedUser.id);
+                const response = await findByIdWithAuths(controllerRef.current.signal, decrypted_id);
                 const arr = [];
                 const options = []; // options for select
                 authOptions.forEach(authOption => {

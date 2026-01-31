@@ -37,7 +37,7 @@ const GameBoard = () => {
     const { logout } = useAuth();
     const { gameCourseSearch,  } = useCourseController();
     const { performGetRequests } = useGenericController();
-    const { updateGameSpices, updateGame } = useGameController();
+    const { updateGameSpices, updateGame, updateGroupScores } = useGameController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
@@ -50,6 +50,8 @@ const GameBoard = () => {
     const [gameContests, setGameContests] = useState([]); // new contests to send to backend
     const [rounds, setRounds] = useState(1); // new rounds to send to backend
     const [playerScores, setPlayerScores] = useState([]);
+    // variable to note the group of user
+    const [myGroup, setMyGroup] = useState(null);
     const [gameGroupArr, setGameGroupArr] = useState([]);
     const [pageNumber, setPageNumber] = useState(1);
     const [gameMode, setGameMode] = useState(null);
@@ -308,8 +310,16 @@ const GameBoard = () => {
     };
 
 	const buildGameGroup = (game) => {
+        const decrypted_id = cryptoHelper.decryptData(user.id);
+        let myGroupHolder = 0;
+        const groupScores = [];
         const arr = [];
         game.users.forEach(user => {
+            if(user.id == decrypted_id){
+                setMyGroup(user.UserGameGroup.name);
+                // temporary store group of current user
+                myGroupHolder = user.UserGameGroup.name;
+            }
             if(user.UserGameGroup.round_no === game.current_round){
                 const group = arr.find(g => g.name === user.UserGameGroup.name);
                 if(group){
@@ -318,22 +328,32 @@ const GameBoard = () => {
                     arr.push({
                         name: user.UserGameGroup.name,
                         members: [user]
-                    })
+                    });
                 }
             }
         });
         setGameGroupArr(arr);
+        // get group of current user to build playerScores for the group
+        const group = arr.find(g => g.name === myGroupHolder);
+        group.members.forEach(member => groupScores.push({
+            id: member.id,
+            hcp: member.hcp,
+            ProfileImgKeyhash: member.ProfileImgKeyhash,
+            name: member.fname + ' ' + member.lname,
+            toParVal: '',
+        }))
         switch (game.hole_mode) {
             case 1:
-                buildGroupScoreTableColumns(1, 18);
+                buildGroupScoreTableColumns(1, 18, groupScores);
                 break;
             case 2:
-                buildGroupScoreTableColumns(1, 9);
+                buildGroupScoreTableColumns(1, 9, groupScores);
                 break;
             case 3:
-                buildGroupScoreTableColumns(10, 18);
+                buildGroupScoreTableColumns(10, 18, groupScores);
                 break;
         }
+        setPlayerScores(groupScores);
     };
 
     const buildHoleProps = (course) => {
@@ -356,7 +376,7 @@ const GameBoard = () => {
         controllerRef.current = new AbortController();
     };
 
-    const buildGroupScoreTableColumns = (start, end) => {
+    const buildGroupScoreTableColumns = (start, end, groupScores) => {
         const arr = [];
         for(let i = start; i <= end; i++){
             arr.push({
@@ -365,6 +385,7 @@ const GameBoard = () => {
                 // flexGrow: 1,
                 width: 70,
             });
+            groupScores.forEach(groupScore => groupScore[i] = '' );
         }
         setColumns([...columns, ...arr]);
     };
@@ -404,7 +425,7 @@ const GameBoard = () => {
             <div className="justify-content-center d-flex">
                 {showOrbitalLoader && <OrbitalLoading color='red' />}
             </div>
-            {pageNumber === 1 && <GroupScore holeMode={ongoingRound?.hole_mode} networkRequest={networkRequest} playerScores={playerScores} columns={columns} holeProps={holeProps} />}
+            {pageNumber === 1 && <GroupScore holeMode={ongoingRound?.hole_mode} playerScores={playerScores} columns={columns} holeProps={holeProps} myGroup={myGroup} game_id={ongoingRound.id} />}
             {pageNumber === 2 && <LeaderBoards />}
             {pageNumber === 3 && <GameSettings changePageNumber={changePageNumber} networkRequest={networkRequest} />}
             {pageNumber === 4 && 

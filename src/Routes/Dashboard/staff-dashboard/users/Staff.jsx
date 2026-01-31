@@ -22,6 +22,7 @@ import useStaffController from "../../../../api-controllers/staff-controller";
 import StaffCreationDialog from "../../../../Components/DialogBoxes/StaffCreationDialog";
 import useGenericController from "../../../../api-controllers/generic-controller-hook";
 import StaffProfileViewDialog from "../../../../Components/DialogBoxes/StaffProfileViewDialog";
+import cryptoHelper from "../../../../Utils/crypto-helper";
 
 const columns = [
     {
@@ -246,8 +247,9 @@ const Staff = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await status(controllerRef.current.signal, {id: editedUser.id, status: false});
-            setUsers(users.filter(staff => editedUser.id !== staff.id));
+            const decrypted_id = cryptoHelper.decryptData(editedUser.id);
+            await status(controllerRef.current.signal, {id: decrypted_id, status: false});
+            setUsers(users.filter(staff => decrypted_id !== staff.id));
             setTotalItemsCount(users.length - 1);
             setEditedUser(null);
             setNetworkRequest(false);
@@ -265,8 +267,9 @@ const Staff = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await status(controllerRef.current.signal, {id: editedUser.id, status: true});
-            setUsers(users.filter(staff => editedUser.id !== staff.id));
+            const decrypted_id = cryptoHelper.decryptData(editedUser.id);
+            await status(controllerRef.current.signal, {id: decrypted_id, status: true});
+            setUsers(users.filter(staff => decrypted_id !== staff.id));
             setTotalItemsCount(users.length - 1);
             setEditedUser(null);
             setNetworkRequest(false);
@@ -353,7 +356,7 @@ const Staff = () => {
 
             const authArr = auths.map(auth => ( {id: auth.id, code: auth.code} ));
 
-            await updateRoles(controllerRef.current.signal, {id: editedUser.id, authorities: authArr});
+            await updateRoles(controllerRef.current.signal, {id: cryptoHelper.decryptData(editedUser.id), authorities: authArr});
             
             setEditedUser(null);
             setNetworkRequest(false);
