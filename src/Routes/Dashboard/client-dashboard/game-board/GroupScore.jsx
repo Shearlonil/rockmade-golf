@@ -22,6 +22,7 @@ const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
     const [showGroupScoreInputDialog, setShowGroupScoreInputDialog] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
 	const [selectedCol, setSelectedCol] = useState(-1);
+	const [selectedColPar, setSelectedColPar] = useState(-1);
     const [networkRequest, setNetworkRequest] = useState(false);
 
     useEffect(() => {
@@ -43,17 +44,27 @@ const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
         // setCourses(nextData);
     };
 
-    const columnClicked = col => {
+    const columnClicked = (col, holePar) => {
         setDisplayMsg(`Hole ${col.label}`)
         setShowGroupScoreInputDialog(true);
         setSelectedCol(col.key);
+        setSelectedColPar(holePar);
     };
   
     const handleSubmitScores = async (scores) => {
         try {
             resetAbortController();
             setNetworkRequest(true);
-            await updateGroupScores(controllerRef.current.signal, game_id, scores);
+            const data = [];
+            for (const key in scores) {
+                if(scores[key] && scores[key] > 0){
+                    data.push({
+                        player: parseInt(key),
+                        score: parseInt(scores[key]),
+                    })
+                }
+            }
+            await updateGroupScores(controllerRef.current.signal, game_id, { hole_no: selectedCol, scores: data });
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -94,7 +105,7 @@ const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
                                 <Cell
                                     dataKey={key}
                                     style={{ padding: 6 }}
-                                    onClick={() => columnClicked(column)}
+                                    onClick={() => columnClicked(column, holeProps[key]?.par)}
                                 />
                             </Column>
                         )
@@ -112,6 +123,7 @@ const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
 				show={showGroupScoreInputDialog}
 				handleClose={handleCloseModal}
 				message={displayMsg}
+                par={selectedColPar}
 				networkRequest={networkRequest}
 				players={playerScores}
                 selectedCol={selectedCol}

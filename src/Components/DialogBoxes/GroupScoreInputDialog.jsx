@@ -7,7 +7,7 @@ import ImageComponent from '../ImageComponent';
 import IMAGES from '../../assets/images';
 import { Controller, useForm } from 'react-hook-form';
 
-const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, players, message, networkRequest, selectedCol = -1 }) => {
+const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, par, players, message, networkRequest, selectedCol = -1 }) => {
     const [groupPlayers, setGroupPlayers] = useState([]);
 
 	const {
@@ -43,7 +43,10 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, players,
     return (
         <Modal backdrop='static' keyboard={false} show={show} onHide={handleClose} onEntered={modalLoaded}>
             <Modal.Header closeButton>
-                <Modal.Title>{message}</Modal.Title>
+                <Modal.Title className='d-flex flex-column'>
+                    <span>{message}</span>
+                    <span className='fs-6'>PAR {par}</span>
+                </Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {players && players.map((sp, i) => {
@@ -54,7 +57,7 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, players,
                             <div className="flex-grow-1">
                                 <h6 className="fw-bold mb-0">{sp.name}</h6>
                                 <small className="text-muted">
-                                    HC: {sp.hcp}
+                                    HCP: {sp.hcp}
                                 </small>
                             </div>
                             <Controller

@@ -332,7 +332,6 @@ const GameBoard = () => {
                 }
             }
         });
-        setGameGroupArr(arr);
         // get group of current user to build playerScores for the group
         const group = arr.find(g => g.name === myGroupHolder);
         group.members.forEach(member => groupScores.push({
@@ -346,13 +345,17 @@ const GameBoard = () => {
             case 1:
                 buildGroupScoreTableColumns(1, 18, groupScores);
                 break;
-            case 2:
+                case 2:
                 buildGroupScoreTableColumns(1, 9, groupScores);
                 break;
             case 3:
                 buildGroupScoreTableColumns(10, 18, groupScores);
                 break;
-        }
+            }
+
+        const currentRoundScores = game.GameHoleRecords.filter(ghc => ghc.round_no === game.current_round);
+        buildGroupCuurentRoundScores(groupScores, currentRoundScores);
+        setGameGroupArr(arr);
         setPlayerScores(groupScores);
     };
 
@@ -382,12 +385,23 @@ const GameBoard = () => {
             arr.push({
                 key: i,
                 label: i,
-                // flexGrow: 1,
                 width: 70,
             });
             groupScores.forEach(groupScore => groupScore[i] = '' );
         }
         setColumns([...columns, ...arr]);
+    };
+
+    const buildGroupCuurentRoundScores = (groupScores, gameHoleRec) => {
+        gameHoleRec.forEach(ghc => {
+            ghc.UserHoleScores.forEach(uhs => {
+                const found = groupScores.find(gs => gs.id === uhs.user_id);
+                if(found){
+                    const hole_no = ghc.hole_no;
+                    found[hole_no] = uhs.score;
+                }
+            });
+        });
     };
 
     return (
@@ -425,7 +439,7 @@ const GameBoard = () => {
             <div className="justify-content-center d-flex">
                 {showOrbitalLoader && <OrbitalLoading color='red' />}
             </div>
-            {pageNumber === 1 && <GroupScore holeMode={ongoingRound?.hole_mode} playerScores={playerScores} columns={columns} holeProps={holeProps} myGroup={myGroup} game_id={ongoingRound.id} />}
+            {pageNumber === 1 && <GroupScore playerScores={playerScores} columns={columns} holeProps={holeProps} game_id={ongoingRound?.id} />}
             {pageNumber === 2 && <LeaderBoards />}
             {pageNumber === 3 && <GameSettings changePageNumber={changePageNumber} networkRequest={networkRequest} />}
             {pageNumber === 4 && 
