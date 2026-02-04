@@ -25,6 +25,7 @@ import useCourseController from '../../../../api-controllers/course-controller-h
 import useGameController from '../../../../api-controllers/game-controller-hook';
 import PlayerSelection from '../../../../Components/PlayerSelection';
 import GameCodesViewDialog from '../../../../Components/DialogBoxes/GameCodesViewDialog';
+import { UserScore } from '../../../../Entities/UserScore';
 
 const GameBoard = () => {
     const controllerRef = useRef(new AbortController());
@@ -133,8 +134,8 @@ const GameBoard = () => {
                     default:
                         break;
                 }
-                buildGameGroup(game);
-                buildHoleProps(game.Course);
+                const hp = buildHoleProps(game.Course);
+                buildGameGroup(game, hp);
             }
 
             if(coursesReq && coursesReq.data){
@@ -309,7 +310,7 @@ const GameBoard = () => {
         }
     };
 
-	const buildGameGroup = (game) => {
+	const buildGameGroup = (game, holeProps) => {
         const decrypted_id = cryptoHelper.decryptData(user.id);
         let myGroupHolder = 0;
         const groupScores = [];
@@ -334,22 +335,30 @@ const GameBoard = () => {
         });
         // get group of current user to build playerScores for the group
         const group = arr.find(g => g.name === myGroupHolder);
-        group.members.forEach(member => groupScores.push({
-            id: member.id,
-            hcp: member.hcp,
-            ProfileImgKeyhash: member.ProfileImgKeyhash,
-            name: member.fname + ' ' + member.lname,
-            toParVal: '',
-        }))
+        // group.members.forEach(member => groupScores.push({
+        //     id: member.id,
+        //     hcp: member.hcp,
+        //     ProfileImgKeyhash: member.ProfileImgKeyhash,
+        //     name: member.fname + ' ' + member.lname,
+        //     toParVal: '',
+        // }));
+        group.members.forEach(member => {
+            const userScore = new UserScore();
+            userScore.id = member.id;
+            userScore.hcp = member.hcp,
+            userScore.ProfileImgKeyhash = member.ProfileImgKeyhash,
+            userScore.name = member.fname + ' ' + member.lname,
+            groupScores.push(userScore);
+        });
         switch (game.hole_mode) {
             case 1:
-                buildGroupScoreTableColumns(1, 18, groupScores);
+                buildGroupScoreTableColumns(1, 18, groupScores, holeProps);
                 break;
                 case 2:
-                buildGroupScoreTableColumns(1, 9, groupScores);
+                buildGroupScoreTableColumns(1, 9, groupScores, holeProps);
                 break;
             case 3:
-                buildGroupScoreTableColumns(10, 18, groupScores);
+                buildGroupScoreTableColumns(10, 18, groupScores, holeProps);
                 break;
             }
 
@@ -369,6 +378,7 @@ const GameBoard = () => {
             }
         });
         setHoleProps(obj);
+        return obj;
     };
 
     const resetAbortController = () => {
@@ -379,7 +389,7 @@ const GameBoard = () => {
         controllerRef.current = new AbortController();
     };
 
-    const buildGroupScoreTableColumns = (start, end, groupScores) => {
+    const buildGroupScoreTableColumns = (start, end, groupScores, holeProps) => {
         const arr = [];
         for(let i = start; i <= end; i++){
             arr.push({
@@ -387,7 +397,7 @@ const GameBoard = () => {
                 label: i,
                 width: 70,
             });
-            groupScores.forEach(groupScore => groupScore[i] = '' );
+            groupScores.forEach(groupScore => groupScore.setHolePar(i, holeProps[i].par) );
         }
         setColumns([...columns, ...arr]);
     };
@@ -398,7 +408,8 @@ const GameBoard = () => {
                 const found = groupScores.find(gs => gs.id === uhs.user_id);
                 if(found){
                     const hole_no = ghc.hole_no;
-                    found[hole_no] = uhs.score;
+                    // found[hole_no] = uhs.score;
+                    found.setHoleScore(hole_no, uhs.score);
                 }
             });
         });

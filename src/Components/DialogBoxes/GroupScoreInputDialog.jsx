@@ -61,7 +61,7 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, par, pla
                                 </small>
                             </div>
                             <Controller
-								name={sp.id.toString()}
+								name={sp.id?.toString()}
 								control={control}
 								render={({ field: { onChange, value } }) => (
                                     <NumberInput min={0} size="lg" style={{width: 100}} value={value} onChange={(val) => onChange(val)} />

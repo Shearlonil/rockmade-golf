@@ -26,7 +26,7 @@ export class UserScore {
     get toParVal() { return _userHoleScores.get(this).toParVal }
 
     // for leaderboards ranking
-    get toParValue() { return _userHoleScores.get(this).toParVal }
+    get toParValue() { return _userHoleScores.get(this).toParValue }
 
     get 1() { return _userHoleScores.get(this)[1]; }
     // set 1(val) { golfCourseProps.get(this)[1] = val; }
@@ -84,14 +84,30 @@ export class UserScore {
 
     setHoleScore(hole_no, score){
         _userHoleScores.get(this)[hole_no] = score;
+        const toPar = calcToParVal(_userHoleScores.get(this), _holePars.get(this));
+        _userHoleScores.get(this).toParValue = toPar;
+        if(toPar === 0){
+            _userHoleScores.get(this).toParVal = 'E';
+        }else {
+            _userHoleScores.get(this).toParVal = toPar;
+        }
     }
 
     setHolePar(hole_no, par){
         _holePars.get(this)[hole_no] = par;
     }
+}
 
-    setHoleProps(hole_no, score, par){
-        _userHoleScores.get(this)[hole_no] = score;
-        _holePars.get(this)[hole_no] = par;
+//  private helper function to calculate purchase amount
+const calcToParVal = (userHoleScores, holePars) => {
+    let totalScores = 0;
+    let totalPars = 0;
+    for (let i = 1; i <= 18; i++) {
+        if(userHoleScores[i] && userHoleScores[i] > 0){
+            totalScores += userHoleScores[i];
+            totalPars += holePars[i];
+        }
     }
+
+    return totalScores - totalPars;
 }
