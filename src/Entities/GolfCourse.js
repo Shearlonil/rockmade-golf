@@ -19,10 +19,7 @@ export class GolfCourse {
     set id(id) { _golfCourseProps.get(this).id = id }
 
     get name() { return _golfCourseProps.get(this).name; }
-    set name(name) { _golfCourseProps.get(this).name = name }
-
-    // get creator() { return _golfCourseProps.get(this).creator; }
-    // set creator(creator) { _golfCourseProps.get(this).creator = creator }
+    set name(name) { golfCourseProps.get(this).name = name }
 
     get noOfHoles() { return numeral(_golfCourseProps.get(this).no_of_holes).format('₦0,0.00') }
     set noOfHoles(balance) { _golfCourseProps.get(this).no_of_holes = balance }
@@ -44,7 +41,6 @@ export class GolfCourse {
             createdAt: this.createdAt,
             location: this.location,
             status: this.status,
-            // creator: this.creator,
         }
     }
 }
