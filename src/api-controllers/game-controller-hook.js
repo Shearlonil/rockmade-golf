@@ -16,6 +16,10 @@ const useGameController = () => {
         return await xhrAios.post(`/games/rounds/ongoing/${id}/players/group/scores`, data, {signal});
     }
 
+    const updateGroupContestScores = async (signal, id, data) => {
+        return await xhrAios.post(`/games/rounds/ongoing/${id}/players/group/contest/scores`, data, {signal});
+    }
+
     const removeOngoingGame = async (signal, id) => {
         return await xhrAios.post(`/games/${id}/remove`, {signal});
     }
@@ -36,6 +40,7 @@ const useGameController = () => {
         createGame,
         updateGame,
         updateGroupScores,
+        updateGroupContestScores,
         removeOngoingGame,
         updateGameSpices,
         findOngoingRoundById,

@@ -46,7 +46,7 @@ export const useAxiosInterceptor = () => {
                 newToken = jwt;
                 setJwtTokenValue(jwt);
             } catch (ex) {
-                // if error on refresh, then log out, delete auth token in local storage and clear cookie
+5                // if error on refresh, then log out, delete auth token in local storage and clear cookie
                 await axiosInstance.get("/auth/logout");
                 setJwtTokenValue(null);
                 window.location.href = '/login';

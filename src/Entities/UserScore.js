@@ -3,6 +3,7 @@ import numeral from "numeral";
 
 const _userHoleScores = new WeakMap();
 const _holePars = new WeakMap();
+const _holeContests = new WeakMap();
 
 export class UserScore {
     constructor() {
@@ -83,7 +84,7 @@ export class UserScore {
     // set 18(val) { golfCourseProps.get(this)[18] = val; }
 
     setHoleScore(hole_no, score){
-        _userHoleScores.get(this)[hole_no] = score;
+        _userHoleScores.get(this)[hole_no] = score > 0 ? score : null;
         const toPar = calcToParVal(_userHoleScores.get(this), _holePars.get(this));
         _userHoleScores.get(this).toParValue = toPar;
         if(toPar === 0){
@@ -95,6 +96,14 @@ export class UserScore {
 
     setHolePar(hole_no, par){
         _holePars.get(this)[hole_no] = par;
+    }
+
+    setHoleContestScore(hole_no, contest){
+        _holeContests.get(this)[hole_no] = contest;
+    }
+
+    getHoleContestScore(hole_no){
+        return _holeContests.get(this)[hole_no];
     }
 }
 

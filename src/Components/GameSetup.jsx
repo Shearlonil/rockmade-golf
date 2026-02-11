@@ -107,7 +107,7 @@ const GameSetup = ({ data, gameMode, setUpGame, handleCancel, networkRequest, bt
                             selectedHoles: []
                         });
                     }
-                })
+                });
             }
         });
         data.GameHoleContests.forEach(gameHoleContest => {

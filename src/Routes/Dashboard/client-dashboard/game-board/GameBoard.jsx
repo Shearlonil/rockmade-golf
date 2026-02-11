@@ -134,7 +134,7 @@ const GameBoard = () => {
                     default:
                         break;
                 }
-                const hp = buildHoleProps(game.Course);
+                const hp = buildHoleProps(game);
                 buildGameGroup(game, hp);
             }
 
@@ -335,13 +335,6 @@ const GameBoard = () => {
         });
         // get group of current user to build playerScores for the group
         const group = arr.find(g => g.name === myGroupHolder);
-        // group.members.forEach(member => groupScores.push({
-        //     id: member.id,
-        //     hcp: member.hcp,
-        //     ProfileImgKeyhash: member.ProfileImgKeyhash,
-        //     name: member.fname + ' ' + member.lname,
-        //     toParVal: '',
-        // }));
         group.members.forEach(member => {
             const userScore = new UserScore();
             userScore.id = member.id;
@@ -354,7 +347,7 @@ const GameBoard = () => {
             case 1:
                 buildGroupScoreTableColumns(1, 18, groupScores, holeProps);
                 break;
-                case 2:
+            case 2:
                 buildGroupScoreTableColumns(1, 9, groupScores, holeProps);
                 break;
             case 3:
@@ -363,18 +356,31 @@ const GameBoard = () => {
             }
 
         const currentRoundScores = game.GameHoleRecords.filter(ghc => ghc.round_no === game.current_round);
-        buildGroupCuurentRoundScores(groupScores, currentRoundScores);
+        buildGroupCurrentRoundScores(groupScores, currentRoundScores);
         setGameGroupArr(arr);
         setPlayerScores(groupScores);
     };
 
-    const buildHoleProps = (course) => {
+    const buildHoleProps = (game) => {
         const obj = {};
-        course.holes.forEach(hole => {
+        game.Course.holes.forEach(hole => {
             const hole_no = hole.hole_no;
             obj[hole_no] = {
                 hcp_idx: hole.CourseHoles.hcp_idx,
-                par: hole.CourseHoles.par
+                par: hole.CourseHoles.par,
+            }
+            // is contest attached to this hole for game play during game setup?
+            const ghc = game.GameHoleContests.find(holeContest => holeContest.hole_id === hole.id);
+            // if contest found
+            if(ghc) {
+                // get the contest (with will details including the name) from course hole
+                const contest = hole.contests.find(contest => contest.id === ghc.contest_id);
+                if(contest){
+                    obj[hole_no].contest = {
+                        id: contest.id,
+                        name: contest.name,
+                    }
+                }
             }
         });
         setHoleProps(obj);
@@ -402,7 +408,7 @@ const GameBoard = () => {
         setColumns([...columns, ...arr]);
     };
 
-    const buildGroupCuurentRoundScores = (groupScores, gameHoleRec) => {
+    const buildGroupCurrentRoundScores = (groupScores, gameHoleRec) => {
         gameHoleRec.forEach(ghc => {
             ghc.UserHoleScores.forEach(uhs => {
                 const found = groupScores.find(gs => gs.id === uhs.user_id);
@@ -450,7 +456,7 @@ const GameBoard = () => {
             <div className="justify-content-center d-flex">
                 {showOrbitalLoader && <OrbitalLoading color='red' />}
             </div>
-            {pageNumber === 1 && <GroupScore playerScores={playerScores} columns={columns} holeProps={holeProps} game_id={ongoingRound?.id} />}
+            {pageNumber === 1 && <GroupScore playerScores={playerScores} setPlayerScores={setPlayerScores} columns={columns} holeProps={holeProps} game_id={ongoingRound?.id} />}
             {pageNumber === 2 && <LeaderBoards />}
             {pageNumber === 3 && <GameSettings changePageNumber={changePageNumber} networkRequest={networkRequest} />}
             {pageNumber === 4 && 

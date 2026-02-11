@@ -15,14 +15,14 @@ const CustomHeader = ({ title, par }) => (
     </div>
 );
 
-const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
+const GroupScore = ({columns = [], game_id, playerScores, setPlayerScores, holeProps}) => {
     const controllerRef = useRef(new AbortController());
-    const { updateGroupScores } = useGameController();
+    const { updateGroupScores, updateGroupContestScores } = useGameController();
 
     const [showGroupScoreInputDialog, setShowGroupScoreInputDialog] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
 	const [selectedCol, setSelectedCol] = useState(-1);
-	const [selectedColPar, setSelectedColPar] = useState(-1);
+	const [selectedHoleProp, setSelectedHoleProp] = useState(null);
     const [networkRequest, setNetworkRequest] = useState(false);
 
     useEffect(() => {
@@ -44,20 +44,19 @@ const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
         // setCourses(nextData);
     };
 
-    const columnClicked = (col, holePar) => {
+    const columnClicked = (col, holeProp) => {
         setDisplayMsg(`Hole ${col.label}`)
         setShowGroupScoreInputDialog(true);
         setSelectedCol(col.key);
-        setSelectedColPar(holePar);
+        setSelectedHoleProp(holeProp);
     };
   
     const handleSubmitScores = async (scores) => {
         try {
             resetAbortController();
-            setNetworkRequest(true);
             const data = [];
             for (const key in scores) {
-                if(scores[key] && scores[key] > 0){
+                if(scores[key] && scores[key] >= 0){
                     data.push({
                         player: parseInt(key),
                         score: parseInt(scores[key]),
@@ -65,7 +64,44 @@ const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
                 }
             }
             await updateGroupScores(controllerRef.current.signal, game_id, { hole_no: selectedCol, scores: data });
+            for (const datum of data) {
+                const found = playerScores.find(playerScore => playerScore.id === datum.player);
+                if(found){
+                    found.setHoleScore(selectedCol, datum.score);
+                }
+            }
+            setPlayerScores(playerScores);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
             setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+            throw new Error(handleErrMsg(error).msg);
+        }
+    };
+  
+    const handleSubmitContestScores = async (contest, scores) => {
+        try {
+            resetAbortController();
+            const data = [];
+            for (const key in scores) {
+                if(scores[key] && scores[key] >= 0){
+                    data.push({
+                        player: parseInt(key),
+                        score: parseInt(scores[key]),
+                    })
+                }
+            }
+            await updateGroupContestScores(controllerRef.current.signal, game_id, { hole_no: selectedCol, scores: data, contest_id: contest.id });
+            for (const datum of data) {
+                const found = playerScores.find(playerScore => playerScore.id === datum.player);
+                if(found){
+                    found.setHoleScore(selectedCol, datum.score);
+                }
+            }
+            setPlayerScores(playerScores);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
@@ -105,7 +141,7 @@ const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
                                 <Cell
                                     dataKey={key}
                                     style={{ padding: 6 }}
-                                    onClick={() => columnClicked(column, holeProps[key]?.par)}
+                                    onClick={() => columnClicked(column, holeProps[key])}
                                 />
                             </Column>
                         )
@@ -113,7 +149,7 @@ const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
                     return (
                         <Column {...rest} key={key} fullText>
                             <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
-                            <Cell dataKey={key} style={{ padding: 6 }} />
+                            <Cell dataKey={key} style={{ padding: 6, fontWeight: 'bold' }} />
                         </Column>
                     );
                 })}
@@ -123,11 +159,12 @@ const GroupScore = ({columns = [], game_id, playerScores, holeProps}) => {
 				show={showGroupScoreInputDialog}
 				handleClose={handleCloseModal}
 				message={displayMsg}
-                par={selectedColPar}
+                holeProp={selectedHoleProp}
 				networkRequest={networkRequest}
 				players={playerScores}
                 selectedCol={selectedCol}
                 handleSubmitScores={handleSubmitScores}
+                handleSubmitContestScores={handleSubmitContestScores}
 			/>
         </section>
     )
