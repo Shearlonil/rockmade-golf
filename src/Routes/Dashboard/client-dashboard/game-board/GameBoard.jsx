@@ -63,7 +63,7 @@ const GameBoard = () => {
             label: 'Name',
             fixed: true,
             // flexGrow: 5,
-            width: 170,
+            width: 200,
         },
         {
             key: 'toParVal',
@@ -457,7 +457,7 @@ const GameBoard = () => {
                 {showOrbitalLoader && <OrbitalLoading color='red' />}
             </div>
             {pageNumber === 1 && <GroupScore playerScores={playerScores} setPlayerScores={setPlayerScores} columns={columns} holeProps={holeProps} game_id={ongoingRound?.id} />}
-            {pageNumber === 2 && <LeaderBoards />}
+            {pageNumber === 2 && <LeaderBoards playerScores={playerScores} />}
             {pageNumber === 3 && <GameSettings changePageNumber={changePageNumber} networkRequest={networkRequest} />}
             {pageNumber === 4 && 
                 <GameSetup 

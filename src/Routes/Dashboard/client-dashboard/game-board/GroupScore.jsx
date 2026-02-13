@@ -15,6 +15,15 @@ const CustomHeader = ({ title, par }) => (
     </div>
 );
 
+const CustomNameCell = ({ rowData, dataKey, ...props }) => (
+    <Cell {...props} style={{ padding: 2 }} fullText>
+        <div className='d-flex flex-column justify-content-center align-items-start text-dark'>
+            <label className='fw-bold'>{rowData.name}</label>
+            <small className="text-muted">HCP {rowData.hcp}</small>
+        </div>
+    </Cell>
+);
+
 const GroupScore = ({columns = [], game_id, playerScores, setPlayerScores, holeProps}) => {
     const controllerRef = useRef(new AbortController());
     const { updateGroupScores, updateGroupContestScores } = useGameController();
@@ -132,6 +141,19 @@ const GroupScore = ({columns = [], game_id, playerScores, setPlayerScores, holeP
                     
                 {columns.map((column, idx) => {
                     const { key, label, ...rest } = column;
+                    if(idx === 0){
+                        return (
+                            <Column {...rest} key={key} >
+                                <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
+                                <CustomNameCell
+                                    dataKey={key}
+                                    name={''}
+                                    hcp={''}
+                                    onClick={() => columnClicked(column, holeProps[key])}
+                                />
+                            </Column>
+                        )
+                    }
                     if(idx > 1){
                         return (
                             <Column {...rest} key={key} >

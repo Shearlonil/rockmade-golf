@@ -7,7 +7,12 @@ const _holeContests = new WeakMap();
 
 export class UserScore {
     constructor() {
-        _userHoleScores.set(this, {});
+        _userHoleScores.set(this, {
+            score: 0,
+            toParValue: '',
+            name: '',
+            hcp: '', 
+        });
         _holePars.set(this, {});
     }
 
@@ -27,7 +32,10 @@ export class UserScore {
     get toParVal() { return _userHoleScores.get(this).toParVal }
 
     // for leaderboards ranking
-    get toParValue() { return _userHoleScores.get(this).toParValue }
+    // get toParValue() { return _userHoleScores.get(this).toParValue }
+
+    // total score to display in leaderboards
+    get score() { return _userHoleScores.get(this).score; }
 
     get 1() { return _userHoleScores.get(this)[1]; }
     // set 1(val) { golfCourseProps.get(this)[1] = val; }
@@ -118,5 +126,6 @@ const calcToParVal = (userHoleScores, holePars) => {
         }
     }
 
+    userHoleScores.score = totalScores - userHoleScores.hcp;
     return totalScores - totalPars;
 }
