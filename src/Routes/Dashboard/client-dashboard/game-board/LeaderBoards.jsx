@@ -37,7 +37,7 @@ const CustomNameCell = ({ rowData, dataKey, ...props }) => (
     </Cell>
 );
 
-const LeaderBoards = ({game_id, playerScores, holeProps, networkRequest}) => {
+const LeaderBoards = ({playerScores, networkRequest}) => {
     return (
         <Table loading={networkRequest} rowKey="id" data={playerScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
             renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} >
