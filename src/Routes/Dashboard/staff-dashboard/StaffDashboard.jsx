@@ -5,7 +5,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { useAuthUser } from '../../../app-context/user-context';
-import { useProfileImg } from '../../../app-context/dp-context';
 import IMAGES from '../../../assets/images';
 import handleErrMsg from '../../../Utils/error-handler';
 import useGenericController from '../../../api-controllers/generic-controller-hook';
@@ -22,7 +21,6 @@ const StaffDashboard = () => {
     const location = useLocation();
     
     const { register } = useStaffController();
-    const { imageBlob, setImageBlob } =  useProfileImg();
     const { performGetRequests } = useGenericController();
     const { authUser } = useAuthUser();
     const user = authUser();

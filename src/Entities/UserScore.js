@@ -11,9 +11,11 @@ export class UserScore {
             score: 0,
             toParValue: '',
             name: '',
-            hcp: '', 
+            hcp: '',
+            group: '',
         });
         _holePars.set(this, {});
+        _holeContests.set(this, {});
     }
 
     get id() { return _userHoleScores.get(this).id; }
@@ -21,6 +23,9 @@ export class UserScore {
 
     get name() { return _userHoleScores.get(this).name }
     set name(name) { _userHoleScores.get(this).name = name }
+
+    get group() { return _userHoleScores.get(this).group }
+    set group(group) { _userHoleScores.get(this).group = group }
 
     get ProfileImgKeyhash() { return _userHoleScores.get(this).ProfileImgKeyhash }
     set ProfileImgKeyhash(ProfileImgKeyhash) { _userHoleScores.get(this).ProfileImgKeyhash = ProfileImgKeyhash }
@@ -106,12 +111,12 @@ export class UserScore {
         _holePars.get(this)[hole_no] = par;
     }
 
-    setHoleContestScore(hole_no, contest){
-        _holeContests.get(this)[hole_no] = contest;
+    setHoleContestScore(hole_no, score){
+        _holeContests.get(this)[hole_no] = score;
     }
 
     getHoleContestScore(hole_no){
-        return _holeContests.get(this)[hole_no];
+        return _holeContests.get(this)[hole_no] ? _holeContests.get(this)[hole_no] : '';
     }
 }
 

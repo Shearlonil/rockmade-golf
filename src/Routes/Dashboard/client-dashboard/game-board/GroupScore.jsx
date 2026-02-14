@@ -7,6 +7,7 @@ import RsuiteTableSkeletonLoader from '../../../../Components/RsuiteTableSkeleto
 import GroupScoreInputDialog from '../../../../Components/DialogBoxes/GroupScoreInputDialog';
 import useGameController from '../../../../api-controllers/game-controller-hook';
 import handleErrMsg from '../../../../Utils/error-handler';
+import { useOngoingRound } from '../../../../app-context/ongoing-game-context';
 
 const CustomHeader = ({ title, par }) => (
     <div className='d-flex flex-column justify-content-center align-items-center fw-bold text-dark'>
@@ -24,19 +25,28 @@ const CustomNameCell = ({ rowData, dataKey, ...props }) => (
     </Cell>
 );
 
-const GroupScore = ({columns = [], game_id, playerScores, setPlayerScores, holeProps}) => {
+const GroupScore = ({columns = [], holeProps, myGroup}) => {
     const controllerRef = useRef(new AbortController());
     const { updateGroupScores, updateGroupContestScores } = useGameController();
+    const { ongoingGame, scores, setScores } = useOngoingRound();
+    const game_id = ongoingGame()?.id;
+    const playerScores = scores();
 
     const [showGroupScoreInputDialog, setShowGroupScoreInputDialog] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
 	const [selectedCol, setSelectedCol] = useState(-1);
+	const [myGroupScores, setMyGroupScores] = useState([]);
 	const [selectedHoleProp, setSelectedHoleProp] = useState(null);
     const [networkRequest, setNetworkRequest] = useState(false);
 
     useEffect(() => {
-        setNetworkRequest((playerScores && playerScores.length > 0) ? false : true);
-    }, [playerScores]);
+        setNetworkRequest((playerScores.length > 0) ? false : true);
+        if(myGroup){
+            // filter out players in same current user group
+            const group = playerScores.filter(score => score.group === myGroup);
+            setMyGroupScores(group);
+        }
+    }, [playerScores, myGroup]);
 
     const handleChange = (id, key, value) => {
         const nextData = Object.assign([], playerScores);
@@ -79,7 +89,7 @@ const GroupScore = ({columns = [], game_id, playerScores, setPlayerScores, holeP
                     found.setHoleScore(selectedCol, datum.score);
                 }
             }
-            setPlayerScores(playerScores);
+            setScores(playerScores);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
@@ -105,12 +115,12 @@ const GroupScore = ({columns = [], game_id, playerScores, setPlayerScores, holeP
             }
             await updateGroupContestScores(controllerRef.current.signal, game_id, { hole_no: selectedCol, scores: data, contest_id: contest.id });
             for (const datum of data) {
-                const found = playerScores.find(playerScore => playerScore.id === datum.player);
+                const found = myGroupScores.find(playerScore => playerScore.id === datum.player);
                 if(found){
-                    found.setHoleScore(selectedCol, datum.score);
+                    found.setHoleContestScore(selectedCol, datum.score);
                 }
             }
-            setPlayerScores(playerScores);
+            setScores(myGroupScores);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
@@ -136,7 +146,7 @@ const GroupScore = ({columns = [], game_id, playerScores, setPlayerScores, holeP
     
     return (
         <section>
-            <Table loading={networkRequest} rowKey="id" data={playerScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
+            <Table loading={networkRequest} rowKey="id" data={myGroupScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
                 renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} >
                     
                 {columns.map((column, idx) => {
@@ -183,7 +193,7 @@ const GroupScore = ({columns = [], game_id, playerScores, setPlayerScores, holeP
 				message={displayMsg}
                 holeProp={selectedHoleProp}
 				networkRequest={networkRequest}
-				players={playerScores}
+				players={myGroupScores}
                 selectedCol={selectedCol}
                 handleSubmitScores={handleSubmitScores}
                 handleSubmitContestScores={handleSubmitContestScores}

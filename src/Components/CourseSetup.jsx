@@ -46,7 +46,9 @@ const CourseSetup = ({data, gameMode, handleSaveCourseSetting, btnRedText = 'Can
                 1.  from GameMode to create new game
                 2.  from GameBoard to change settings of yet to play or in-play games
                 In case od GameMode, startDate will be available in data. While in GameBoard, the date field will be available due to data fetch from db.
-                Hence, two different setup modes: newSetup and oldSetup
+                Hence, two different setup modes: newSetup and oldSetup.
+                Because of these two reasons and the fact that this jsx only consumes the data prop, it makes sense to pass the data prop directly than using ongoingRound context.
+                This data prop is passed from both GameMode and GameBoard jsx components
             */
             setValue('name', data.name);
             data.startDate ? newSetup(options) : oldSetup(options);

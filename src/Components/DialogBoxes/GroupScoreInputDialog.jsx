@@ -11,9 +11,15 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
     const [networkRequest, setNetworkRequest] = useState(false);
 
 	const {
-		handleSubmit,
-		control,
-		setValue,
+		handleSubmit: handleScoresSubmit,
+		control: scoresControl,
+		setValue: setScoresValue,
+	} = useForm();
+
+	const {
+		handleSubmit: handleContestsSubmit,
+		control: contestsControl,
+		setValue: setContestsValue,
 	} = useForm();
 
     const handleMinus = () => {
@@ -26,7 +32,8 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
     const modalLoaded = () => {
         if(selectedCol > 0 && players){
             players.forEach(player => {
-                setValue(player.id.toString(), player[selectedCol]);
+                setScoresValue(player.id.toString(), player[selectedCol]);
+                setContestsValue(player.id.toString(), player.getHoleContestScore(selectedCol));
             });
         }
     };
@@ -36,7 +43,8 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
             on first click but wont appear after that.
         */
         players.forEach(player => {
-            setValue(player.id.toString(), null);
+            setScoresValue(player.id.toString(), null);
+            setContestsValue(player.id.toString(), null);
         });
         handleClose();
     };
@@ -90,7 +98,7 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
                                     </div>
                                     <Controller
                                         name={sp.id?.toString()}
-                                        control={control}
+                                        control={scoresControl}
                                         render={({ field: { onChange, value } }) => (
                                             <NumberInput min={0} size="lg" style={{width: 100}} value={value} onChange={(val) => onChange(val)} />
                                         )}
@@ -104,7 +112,7 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
                                 {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
                                 {!networkRequest && 'Cancel'}
                             </Button>
-                            <Button variant="primary" onClick={handleSubmit(onSubmitScores)} disabled={networkRequest} style={{width: '100px'}}>
+                            <Button variant="primary" onClick={handleScoresSubmit(onSubmitScores)} disabled={networkRequest} style={{width: '100px'}}>
                                 {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
                                 {!networkRequest && 'Save'}
                             </Button>
@@ -124,8 +132,8 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
                                         </small>
                                     </div>
                                     <Controller
-                                        name={`${sp.id?.toString()}_contest`}
-                                        control={control}
+                                        name={`${sp.id?.toString()}`}
+                                        control={contestsControl}
                                         render={({ field: { onChange, value } }) => (
                                             <NumberInput min={0} size="lg" style={{width: 100}} value={value} onChange={(val) => onChange(val)} />
                                         )}
@@ -139,7 +147,7 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
                                 {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
                                 {!networkRequest && 'Cancel'}
                             </Button>
-                            <Button variant="primary" onClick={handleSubmit(onSubmitContestScores)} disabled={networkRequest} style={{width: '100px'}}>
+                            <Button variant="primary" onClick={handleContestsSubmit(onSubmitContestScores)} disabled={networkRequest} style={{width: '100px'}}>
                                 {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
                                 {!networkRequest && 'Save'}
                             </Button>

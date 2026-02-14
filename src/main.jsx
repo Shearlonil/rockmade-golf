@@ -17,7 +17,7 @@ import Footer from "./Components/Footer.jsx";
 import NavBar from "./Components/NavBar.jsx";
 import { TokenProvider } from "./app-context/token-context.js";
 import { UserProvider } from "./app-context/user-context.js";
-import { ProfileImgProvider } from "./app-context/dp-context.js";
+import { GameProvider } from "./app-context/ongoing-game-context.js";
 import { ActiveCoursesProvider } from "./app-context/active-courses-context.js";
 
 createRoot(document.getElementById("root")).render(
@@ -27,13 +27,13 @@ createRoot(document.getElementById("root")).render(
             <TokenProvider>
                 <AuthProvider>
                     <UserProvider>
-                        <ProfileImgProvider>
-                            <ActiveCoursesProvider>
+                        <ActiveCoursesProvider>
+                            <GameProvider>
                                 <NavBar />
                                 <App />
                                 <Footer />
-                            </ActiveCoursesProvider>
-                        </ProfileImgProvider>
+                            </GameProvider>
+                        </ActiveCoursesProvider>
                     </UserProvider>
                 </AuthProvider>
             </TokenProvider>

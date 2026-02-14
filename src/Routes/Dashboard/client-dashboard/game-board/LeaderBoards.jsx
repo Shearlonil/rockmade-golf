@@ -2,6 +2,7 @@ import { Table } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
 import RsuiteTableSkeletonLoader from '../../../../Components/RsuiteTableSkeletonLoader';
+import { useOngoingRound } from '../../../../app-context/ongoing-game-context';
 
 const columns = [
     {
@@ -37,7 +38,10 @@ const CustomNameCell = ({ rowData, dataKey, ...props }) => (
     </Cell>
 );
 
-const LeaderBoards = ({playerScores, networkRequest}) => {
+const LeaderBoards = ({networkRequest}) => {
+    const { scores } = useOngoingRound();
+    const playerScores = scores();
+    
     return (
         <Table loading={networkRequest} rowKey="id" data={playerScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
             renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} >

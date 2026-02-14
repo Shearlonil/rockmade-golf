@@ -14,11 +14,15 @@ import useGameController from '../api-controllers/game-controller-hook';
 import handleErrMsg from '../Utils/error-handler';
 import GroupPlayerDialog from './DialogBoxes/GroupPlayerDialog';
 import ConfirmDialog from './DialogBoxes/ConfirmDialog';
+import { useOngoingRound } from '../app-context/ongoing-game-context';
 
-const PlayerSelection = ({gameGroupArr = [], game}) => {
+const PlayerSelection = () => {
     const controllerRef = useRef(new AbortController());
     const { addPlayers } = useGameController();
     const { authUser } = useAuthUser();
+    const { ongoingGame, groups } = useOngoingRound();
+    const game = ongoingGame();
+    const gameGroupArr = groups();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
