@@ -109,6 +109,7 @@ const GameBoard = () => {
 
     const initialize = async () => {
         try {
+            setScores([]);
             setNetworkRequest(true);
             setShowOrbitalLoader(true);
             resetAbortController();
@@ -295,7 +296,13 @@ const GameBoard = () => {
                 contests: gameContests,
                 rounds
             }
-            await updateGameSpices(controllerRef.current.signal, data);
+            const response = await updateGameSpices(controllerRef.current.signal, data);
+            // update GameHoleContests in game object
+            const game = {...ongoingRound};
+            game.GameHoleContests = response.data;
+            setOngoingGame(game);
+            // update contests in holes
+            buildHoleProps(game);
             setNetworkRequest(false);
             setShowOrbitalLoader(false);
             toast.info('Update successful');
@@ -367,7 +374,7 @@ const GameBoard = () => {
             const ghc = game.GameHoleContests.find(holeContest => holeContest.hole_id === hole.id);
             // if contest found
             if(ghc) {
-                // get the contest (with will details including the name) from course hole
+                // get the contest (with details including the name) from course hole
                 const contest = hole.contests.find(contest => contest.id === ghc.contest_id);
                 if(contest){
                     obj[hole_no].contest = {
