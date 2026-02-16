@@ -9,10 +9,11 @@ export class UserScore {
     constructor() {
         _userHoleScores.set(this, {
             score: 0,
-            toParValue: '',
+            lbParVal: Number.MAX_VALUE,
             name: '',
             hcp: '',
             group: '',
+            position: null,
         });
         _holePars.set(this, {});
         _holeContests.set(this, {});
@@ -36,8 +37,12 @@ export class UserScore {
     // for display purposes in a table
     get toParVal() { return _userHoleScores.get(this).toParVal }
 
+    // position of player in leaderboards
+    get position() { return _userHoleScores.get(this).position }
+    set position(position) { _userHoleScores.get(this).position = position }
+
     // for leaderboards ranking
-    // get toParValue() { return _userHoleScores.get(this).toParValue }
+    get lbParVal() { return _userHoleScores.get(this).lbParVal }
 
     // total score to display in leaderboards
     get score() { return _userHoleScores.get(this).score; }
@@ -99,7 +104,7 @@ export class UserScore {
     setHoleScore(hole_no, score){
         _userHoleScores.get(this)[hole_no] = score > 0 ? score : null;
         const toPar = calcToParVal(_userHoleScores.get(this), _holePars.get(this));
-        _userHoleScores.get(this).toParValue = toPar;
+        _userHoleScores.get(this).lbParVal = toPar;
         if(toPar === 0){
             _userHoleScores.get(this).toParVal = 'E';
         }else {

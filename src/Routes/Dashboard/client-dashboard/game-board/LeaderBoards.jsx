@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Table } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
@@ -41,9 +42,17 @@ const CustomNameCell = ({ rowData, dataKey, ...props }) => (
 const LeaderBoards = ({networkRequest}) => {
     const { scores } = useOngoingRound();
     const playerScores = scores();
+
+    const [leaderboardsScores, setLeaderboardsScores] = useState([]);
+    
+    useEffect(() => {
+        const arr = [...playerScores];
+        arr.sort((a, b) => (a.lbParVal - b.lbParVal) || (a.hcp - b.hcp)).forEach((score, idx) => score.position = idx + 1);
+        setLeaderboardsScores(arr);
+    }, [playerScores]);
     
     return (
-        <Table loading={networkRequest} rowKey="id" data={playerScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
+        <Table loading={networkRequest} rowKey="id" data={leaderboardsScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
             renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} >
                 
             {columns.map((column, idx) => {

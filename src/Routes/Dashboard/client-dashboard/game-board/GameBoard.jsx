@@ -40,7 +40,7 @@ const GameBoard = () => {
     const { gameCourseSearch,  } = useCourseController();
     const { performGetRequests } = useGenericController();
     const { updateGameSpices, updateGame } = useGameController();
-    const { ongoingGame, setOngoingGame, setScores, setGroups } = useOngoingRound();
+    const { ongoingGame, setOngoingGame, setScores, setGroups, setHoleProps } = useOngoingRound();
     const { authUser } = useAuthUser();
     const ongoingRound = ongoingGame();
     const user = authUser();
@@ -73,7 +73,6 @@ const GameBoard = () => {
             width: 80,
         },
     ]);
-    const [holeProps, setHoleProps] = useState();
     
 	const [showGameCodesModal, setShowGameCodesModal] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -464,7 +463,7 @@ const GameBoard = () => {
             <div className="justify-content-center d-flex">
                 {showOrbitalLoader && <OrbitalLoading color='red' />}
             </div>
-            {pageNumber === 1 && <GroupScore columns={columns} holeProps={holeProps} myGroup={myGroup} />}
+            {pageNumber === 1 && <GroupScore columns={columns} myGroup={myGroup} />}
             {pageNumber === 2 && <LeaderBoards networkRequest={networkRequest} />}
             {pageNumber === 3 && <GameSettings changePageNumber={changePageNumber} networkRequest={networkRequest} />}
             {pageNumber === 4 && 

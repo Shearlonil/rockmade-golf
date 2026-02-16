@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Modal, Tab, Tabs } from 'react-bootstrap';
 import { NumberInput } from 'rsuite';
 
@@ -21,13 +21,15 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
 		control: contestsControl,
 		setValue: setContestsValue,
 	} = useForm();
-
-    const handleMinus = () => {
-        setValue(parseInt(value, 10) - 1);
-    };
-    const handlePlus = () => {
-        setValue(parseInt(value, 10) + 1);
-    };
+    
+    useEffect(() => {
+        if(selectedCol > 0 && players){
+            players.forEach(player => {
+                setScoresValue(player.id.toString(), player[selectedCol]);
+                setContestsValue(player.id.toString(), player.getHoleContestScore(selectedCol));
+            });
+        }
+    }, [selectedCol]);
 
     const modalLoaded = () => {
         if(selectedCol > 0 && players){
@@ -43,8 +45,8 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
             on first click but wont appear after that.
         */
         players.forEach(player => {
-            setScoresValue(player.id.toString(), null);
-            setContestsValue(player.id.toString(), null);
+            setScoresValue(player.id.toString(), '');
+            setContestsValue(player.id.toString(), '');
         });
         handleClose();
     };
@@ -53,6 +55,10 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
         try {
             setNetworkRequest(true);
             await handleSubmitScores(val);
+            players.forEach(player => {
+                setScoresValue(player.id.toString(), '');
+                setContestsValue(player.id.toString(), '');
+            });
             handleClose();
             setNetworkRequest(false);
         } catch (error) {
@@ -97,7 +103,7 @@ const GroupScoreInputDialog = ({ show, handleClose, handleSubmitScores, handleSu
                                         </small>
                                     </div>
                                     <Controller
-                                        name={sp.id?.toString()}
+                                        name={`${sp.id?.toString()}`}
                                         control={scoresControl}
                                         render={({ field: { onChange, value } }) => (
                                             <NumberInput min={0} size="lg" style={{width: 100}} value={value} onChange={(val) => onChange(val)} />

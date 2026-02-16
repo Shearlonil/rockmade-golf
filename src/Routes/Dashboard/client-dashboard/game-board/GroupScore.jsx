@@ -25,12 +25,13 @@ const CustomNameCell = ({ rowData, dataKey, ...props }) => (
     </Cell>
 );
 
-const GroupScore = ({columns = [], holeProps, myGroup}) => {
+const GroupScore = ({columns = [], myGroup}) => {
     const controllerRef = useRef(new AbortController());
     const { updateGroupScores, updateGroupContestScores } = useGameController();
-    const { ongoingGame, scores, setScores } = useOngoingRound();
+    const { ongoingGame, scores, setScores, holeProps } = useOngoingRound();
     const game_id = ongoingGame()?.id;
     const playerScores = scores();
+    const hp = holeProps();
 
     const [showGroupScoreInputDialog, setShowGroupScoreInputDialog] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
@@ -47,21 +48,6 @@ const GroupScore = ({columns = [], holeProps, myGroup}) => {
             setMyGroupScores(group);
         }
     }, [playerScores, myGroup]);
-
-    const handleChange = (id, key, value) => {
-        const nextData = Object.assign([], playerScores);
-        nextData.find(item => item.id === id)[key] = value;
-        // setCourses(nextData);
-    };
-
-    const handleEdit = id => {
-        const nextData = Object.assign([], playerScores);
-        const activeItem = nextData.find(item => item.id === id);
-
-        activeItem.mode = activeItem.mode ? null : 'EDIT';
-
-        // setCourses(nextData);
-    };
 
     const columnClicked = (col, holeProp) => {
         setDisplayMsg(`Hole ${col.label}`)
@@ -115,12 +101,12 @@ const GroupScore = ({columns = [], holeProps, myGroup}) => {
             }
             await updateGroupContestScores(controllerRef.current.signal, game_id, { hole_no: selectedCol, scores: data, contest_id: contest.id });
             for (const datum of data) {
-                const found = myGroupScores.find(playerScore => playerScore.id === datum.player);
+                const found = playerScores.find(playerScore => playerScore.id === datum.player);
                 if(found){
                     found.setHoleContestScore(selectedCol, datum.score);
                 }
             }
-            setScores(myGroupScores);
+            setScores(playerScores);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
@@ -159,7 +145,6 @@ const GroupScore = ({columns = [], holeProps, myGroup}) => {
                                     dataKey={key}
                                     name={''}
                                     hcp={''}
-                                    onClick={() => columnClicked(column, holeProps[key])}
                                 />
                             </Column>
                         )
@@ -168,12 +153,12 @@ const GroupScore = ({columns = [], holeProps, myGroup}) => {
                         return (
                             <Column {...rest} key={key} >
                                 <HeaderCell>
-                                    <CustomHeader title={label} par={holeProps[key]?.par} />
+                                    <CustomHeader title={label} par={hp[key]?.par} />
                                 </HeaderCell>
                                 <Cell
                                     dataKey={key}
                                     style={{ padding: 6 }}
-                                    onClick={() => columnClicked(column, holeProps[key])}
+                                    onClick={() => columnClicked(column, hp[key])}
                                 />
                             </Column>
                         )

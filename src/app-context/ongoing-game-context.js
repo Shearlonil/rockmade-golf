@@ -11,6 +11,8 @@ export const GameProvider = ({ children }) => {
     const [playerScores, setPlayerScores] = useState([]);
     // all groups in the game
     const [gameGroups, setGameGroups] = useState([]);
+    // properties of all holes (hcp and par)
+    const [allHoleProps, setAllHoleProps] = useState();
     
     const ongoingGame = () => {
         return ongoingRound;
@@ -35,6 +37,14 @@ export const GameProvider = ({ children }) => {
     const setGroups = (gameGroups) => {
         setGameGroups(gameGroups);
     };
+    
+    const holeProps = () => {
+        return allHoleProps;
+    };
+    
+    const setHoleProps = (allHoleProps) => {
+        setAllHoleProps(allHoleProps);
+    };
 
     const value = useMemo(
         () => ({
@@ -44,8 +54,10 @@ export const GameProvider = ({ children }) => {
             setScores,
             groups,
             setGroups,
+            holeProps,
+            setHoleProps,
         }),
-        [ongoingRound, playerScores, gameGroups]
+        [ongoingRound, playerScores, gameGroups, allHoleProps]
     );
 
     return <OngoingGameContext.Provider value={value}>{children}</OngoingGameContext.Provider>;
