@@ -271,7 +271,7 @@ const GameSetup = ({ gameMode, setUpGame, handleCancel, networkRequest, btnRedTe
                     <div className="d-flex gap-5">
                         <div className="d-flex flex-column">
                             <Form.Label className="fw-bold">Rounds</Form.Label>
-                            <div className="d-flex">
+                            <div className="d-flex disabledDiv">
                                 <span onClick={() => incrementRounds()} >
                                     <IoAddCircle size={40} color="green" />
                                 </span>

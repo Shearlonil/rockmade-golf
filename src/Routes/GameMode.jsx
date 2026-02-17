@@ -23,6 +23,7 @@ import CourseSetup from "../Components/CourseSetup";
 import { useActiveCourses } from "../app-context/active-courses-context";
 import GameSetup from "../Components/GameSetup";
 import PlayerSelection from "../Components/PlayerSelection";
+import { useOngoingRound } from "../app-context/ongoing-game-context";
 
 const GameMode = () => {
     const controllerRef = useRef(new AbortController());
@@ -33,7 +34,8 @@ const GameMode = () => {
     const { setCourses, setLoading } = useActiveCourses();
     const { limitGameCourseSearch, gameCourseSearch } = useCourseController();
     const { createGame } = useGameController();
-    const { authUser } = useAuthUser();
+    const { authUser } = useAuthUser();    
+    const { setOngoingGame } = useOngoingRound();
     const user = authUser();
 
     const [step, setStep] = useState(1);
@@ -47,8 +49,6 @@ const GameMode = () => {
     const [gameGroupArr, setGameGroupArr] = useState([]);
     const [ongoingRound, setOngoingRound] = useState(null);
     const [heroText, setHeroText] = useState("Our Game Modes");
-    const [gameFormat, setGameFormat] = useState("Stroke Play");
-    const [features, setFeatures] = useState({});
     const [rounds, setRounds] = useState(1); // rounds to send to backend
 
     useEffect(() => {
@@ -73,6 +73,8 @@ const GameMode = () => {
         return () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
             controllerRef.current.abort();
+            // clear the newly created ongoing game in context
+            setOngoingGame(null);
         };
     }, [location.pathname]);
 
@@ -97,6 +99,7 @@ const GameMode = () => {
 
 	const submitCourse = (data) => {
         setCourse(data);
+        setOngoingGame(data);
         setCourseSettingData(data);
         setHeroText('Add Contests to spice up game');
         setStep(3);
@@ -258,7 +261,6 @@ const GameMode = () => {
                 {step === 3 && 
                     <GameSetup 
                         gameMode={gameMode.name} 
-                        data={course} 
                         setUpGame={setUpGame} 
                         handleCancel={() => {
                             setStep(2);

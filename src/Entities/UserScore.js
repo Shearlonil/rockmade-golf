@@ -9,6 +9,7 @@ export class UserScore {
     constructor() {
         _userHoleScores.set(this, {
             score: 0,
+            txtScore: 'Score',
             lbParVal: Number.MAX_VALUE,
             name: '',
             hcp: '',
@@ -46,60 +47,44 @@ export class UserScore {
 
     // total score to display in leaderboards
     get score() { return _userHoleScores.get(this).score; }
+    // score text column in leaderboards
+    get txtScore() { return _userHoleScores.get(this).txtScore; }
 
     get 1() { return _userHoleScores.get(this)[1]; }
-    // set 1(val) { golfCourseProps.get(this)[1] = val; }
 
     get 2() { return _userHoleScores.get(this)[2]; }
-    // set 2(val) { golfCourseProps.get(this)[2] = val; }
 
     get 3() { return _userHoleScores.get(this)[3]; }
-    // set 3(val) { golfCourseProps.get(this)[3] = val; }
 
     get 4() { return _userHoleScores.get(this)[4]; }
-    // set 4(val) { golfCourseProps.get(this)[4] = val; }
 
     get 5() { return _userHoleScores.get(this)[5]; }
-    // set 5(val) { golfCourseProps.get(this)[5] = val; }
 
     get 6() { return _userHoleScores.get(this)[6]; }
-    // set 6(val) { golfCourseProps.get(this)[6] = val; }
 
     get 7() { return _userHoleScores.get(this)[7]; }
-    // set 7(val) { golfCourseProps.get(this)[7] = val; }
 
     get 8() { return _userHoleScores.get(this)[8]; }
-    // set 8(val) { golfCourseProps.get(this)[8] = val; }
 
     get 9() { return _userHoleScores.get(this)[9]; }
-    // set 9(val) { golfCourseProps.get(this)[9] = val; }
 
     get 10() { return _userHoleScores.get(this)[10]; }
-    // set 10(val) { golfCourseProps.get(this)[10] = val; }
 
     get 11() { return _userHoleScores.get(this)[11]; }
-    // set 11(val) { golfCourseProps.get(this)[11] = val; }
 
     get 12() { return _userHoleScores.get(this)[12]; }
-    // set 12(val) { golfCourseProps.get(this)[12] = val; }
 
     get 13() { return _userHoleScores.get(this)[13]; }
-    // set 13(val) { golfCourseProps.get(this)[13] = val; }
 
     get 14() { return _userHoleScores.get(this)[14]; }
-    // set 14(val) { golfCourseProps.get(this)[14] = val; }
 
     get 15() { return _userHoleScores.get(this)[15]; }
-    // set 15(val) { golfCourseProps.get(this)[15] = val; }
 
     get 16() { return _userHoleScores.get(this)[16]; }
-    // set 16(val) { golfCourseProps.get(this)[16] = val; }
 
     get 17() { return _userHoleScores.get(this)[17]; }
-    // set 17(val) { golfCourseProps.get(this)[17] = val; }
 
     get 18() { return _userHoleScores.get(this)[18]; }
-    // set 18(val) { golfCourseProps.get(this)[18] = val; }
 
     setHoleScore(hole_no, score){
         _userHoleScores.get(this)[hole_no] = score > 0 ? score : null;

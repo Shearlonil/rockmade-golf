@@ -353,7 +353,7 @@ const GameBoard = () => {
             case 3:
                 buildGroupScoreTableColumns(10, 18, allScores, holeProps);
                 break;
-            }
+        }
 
         const currentRoundScores = game.GameHoleRecords.filter(ghc => ghc.round_no === game.current_round);
         buildCurrentRoundScores(allScores, currentRoundScores);
@@ -438,7 +438,7 @@ const GameBoard = () => {
                         <img src={IMAGES.golf_course} alt ="Avatar" className="rounded-circle" width={50} height={50} />
                         <div className="d-flex flex-column gap-1">
                             <span className="text-danger fw-bold h2"> {ongoingRound?.name} </span>
-                            <span className="text-success fw-bold">{ongoingRound && format(ongoingRound?.createdAt, "dd/MM/yyyy")}</span>
+                            <span className="text-success fw-bold">{ongoingRound && ongoingRound.createdAt && format(ongoingRound.createdAt, "dd/MM/yyyy")}</span>
                         </div>
                     </div>
 
