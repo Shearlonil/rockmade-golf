@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Button, Modal } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import { IoMdAddCircle } from "react-icons/io";
 import Select from 'react-select';
 import { toast } from 'react-toastify';
@@ -18,18 +18,19 @@ import { useOngoingRound } from '../app-context/ongoing-game-context';
 
 const PlayerSelection = () => {
     const controllerRef = useRef(new AbortController());
-    const { addPlayers } = useGameController();
+    const { addPlayers, removePlayer } = useGameController();
     const { authUser } = useAuthUser();
-    const { ongoingGame, groups } = useOngoingRound();
+    const { ongoingGame, scores, setScores, groups, setGroups } = useOngoingRound();
     const game = ongoingGame();
     const gameGroupArr = groups();
+    const playerScores = scores();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
     const [showGroupPlayer, setShowGroupPlayer] = useState(false);
     const [showShowPlayerSearchDialog, setShowPlayerSearchDialog] = useState(false);
     const [sizeOfGroup, setSizeOfGroup] = useState(4);
-    const [groupArr, setGroupArr] = useState(gameGroupArr);
+    // const [groupArr, setGroupArr] = useState(gameGroupArr);
 	const [displayMsg, setDisplayMsg] = useState("");
 	const [selectedGroupPlayer, setSelectedGroupPlayer] = useState(null);
     // group which player is being added
@@ -72,7 +73,7 @@ const PlayerSelection = () => {
             if(data.length > 0){
                 const arr = [];
                 for (const datum of data) {
-                    groupArr.forEach(g => {
+                    gameGroupArr.forEach(g => {
                         const find = g.members.find(member => member.id === datum.id);
                         if(find){
                             toast.error(`${find.fname} ${find.lname} already added to group ${g.name}`);
@@ -94,10 +95,10 @@ const PlayerSelection = () => {
                 setNetworkRequest(true);
                 resetAbortController();
                 await addPlayers(controllerRef.current.signal, payload);
-                const temp = [...groupArr];
+                const temp = [...gameGroupArr];
                 const g = temp.find(t => t.name === activeGroup.name);
                 g.members.push(...data);
-                setGroupArr(temp);
+                setGroups(temp);
                 setNetworkRequest(false);
                 setActiveGroup(null);
             }else {
@@ -133,11 +134,11 @@ const PlayerSelection = () => {
 
     const handleAddGroup = () => {
         const temp = {
-            name: groupArr.length + 1,
+            name: gameGroupArr.length + 1,
             members: [],
             isNew: true,
         };
-        setGroupArr([...groupArr, temp]);
+        setGroups([...gameGroupArr, temp]);
     };
 
     const handleGroupSizeChanged = (val) => {
@@ -145,7 +146,13 @@ const PlayerSelection = () => {
     };
 
     const handleDeleteGroupPlayer = () => {
-        setDisplayMsg(`Remove ${selectedGroupPlayer.fname} ${selectedGroupPlayer.lname} from game?`);
+        setDisplayMsg(`Remove ${selectedGroupPlayer.fname} ${selectedGroupPlayer.lname} from game?. Action cannot be undone!!`);
+        setConfirmDialogEvtName('delGroupPlayer');
+        setShowConfirmModal(true);
+    };
+
+    const handleChangeGroup = (group) => {
+        setDisplayMsg(`Change group of ${selectedGroupPlayer.fname} ${selectedGroupPlayer.lname} from to?. Action cannot be undone!!`);
         setConfirmDialogEvtName('delGroupPlayer');
         setShowConfirmModal(true);
     };
@@ -162,11 +169,16 @@ const PlayerSelection = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const temp = [...groupArr];
+            await removePlayer(controllerRef.current.signal, {game_id: game.id, player_id: selectedGroupPlayer.id});
+            const temp = [...gameGroupArr];
             const group = temp.find(arr => arr.name === selectedGroupPlayer.group);
+            // remove player from group
             const newMembers = group.members.filter(member => member.id !== selectedGroupPlayer.id);
+            // remove player scores from all scores
+            const newScores = playerScores.filter(score => score.id !== selectedGroupPlayer.id);
             group.members = newMembers;
-            setGroupArr(temp);
+            setGroups(temp);
+            setScores(newScores);
             setSelectedGroupPlayer(null);
             setShowGroupPlayer(false);
             setNetworkRequest(false);
@@ -210,7 +222,7 @@ const PlayerSelection = () => {
         </div>
     };
 
-    const buildPlayerGroups = groupArr.map((datum, i) => { return buildGroup(datum, i) });
+    const buildPlayerGroups = gameGroupArr.map((datum, i) => { return buildGroup(datum, i) });
 
     const resetAbortController = () => {
         // Cancel previous request if it exists
@@ -226,7 +238,7 @@ const PlayerSelection = () => {
                 <div className='row'>
                     <div className="col-sm-12 col-md-4 mb-3 d-flex gap-3 align-items-center justify-content-center">
                         <Button variant="success" className="fw-bold col-12 col-md-6" onClick={handleAddGroup}>
-                            <IoMdAddCircle size='32px' /> Add
+                            <IoMdAddCircle size='32px' /> Add Group
                         </Button>
                     </div>
                     <h2 className="mb-3 col-12 col-md-4">Players</h2>
@@ -239,8 +251,8 @@ const PlayerSelection = () => {
                                 render={({ field: { onChange, value } }) => (
                                     <Select
                                         required
-                                        name="filter"
-                                        placeholder="Filter..."
+                                        name="group_size"
+                                        placeholder="Group Size..."
                                         className="text-dark col-12 col-md-5"
                                         defaultValue={groupSizeOptions[2]}
                                         options={groupSizeOptions}
@@ -248,6 +260,7 @@ const PlayerSelection = () => {
                                             handleGroupSizeChanged(val);
                                             onChange(val);
                                         }}
+                                        isDisabled={game?.status > 1 ? true : false}
                                         value={value}
                                     />
                                 )}

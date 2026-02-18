@@ -35,6 +35,14 @@ const useGameController = () => {
     const addPlayers = async (signal, data) => {
         return await xhrAios.post(`/games/rounds/ongoing/${data.game_id}/players/add`, data, {signal});
     }
+
+    const updatePlayerGroup = async (signal, data) => {
+        return await xhrAios.put(`/games/rounds/ongoing/player/group/change`, data, {signal});
+    }
+
+    const removePlayer = async (signal, data) => {
+        return await xhrAios.put(`/games/rounds/ongoing/player/remove`, data, {signal});
+    }
     
     return {
         createGame,
@@ -45,6 +53,8 @@ const useGameController = () => {
         updateGameSpices,
         findOngoingRoundById,
         addPlayers,
+        updatePlayerGroup,
+        removePlayer,
     }
 }
 
