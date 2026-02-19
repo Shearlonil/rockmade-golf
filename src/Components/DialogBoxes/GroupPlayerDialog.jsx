@@ -14,6 +14,7 @@ import { useOngoingRound } from '../../app-context/ongoing-game-context';
 import { useAuthUser } from '../../app-context/user-context';
 import cryptoHelper from '../../Utils/crypto-helper';
 import ErrorMessage from '../ErrorMessage';
+import { toast } from 'react-toastify';
 
 const groupChangeSchema = yup.object().shape({
     new_group: yup.object().typeError("Select new group").required("Group is required"),
@@ -53,6 +54,9 @@ const GroupPlayerDialog = ({ show, handleClose, handleDelete, handleChangeGroup,
     } = useForm({ resolver: yupResolver(groupsSwapSchema), });
 
     const modalLoaded = () => {
+        changeGroupSetValue('new_group', null);
+        swapGroupSetValue('swapped_group', null);
+        swapGroupSetValue('swapped_player', null);
         setP(player);
         const arr = [];
         gameGroupz.forEach(group => {
@@ -63,7 +67,6 @@ const GroupPlayerDialog = ({ show, handleClose, handleDelete, handleChangeGroup,
         setGameGroups(arr);
         if(user && game){
             setShowDelete(game.creator_id == cryptoHelper.decryptData(user.id));
-            console.log(game.creator_id, cryptoHelper.decryptData(user.id));
         }
     }
     
@@ -88,6 +91,11 @@ const GroupPlayerDialog = ({ show, handleClose, handleDelete, handleChangeGroup,
     };
 
     const handleChangePlayerGroup = (val) => {
+        if(game.group_size === val.new_group.value.members.length){
+            toast.error('Selected group is full');
+            return;
+        }
+        handleChangeGroup(val.new_group);
     };
 
     const handleSwappedGroupChanged = (val) => {

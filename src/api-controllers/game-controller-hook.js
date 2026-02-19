@@ -36,6 +36,7 @@ const useGameController = () => {
         return await xhrAios.post(`/games/rounds/ongoing/${data.game_id}/players/add`, data, {signal});
     }
 
+    // changing a gruop a player belongs to
     const updatePlayerGroup = async (signal, data) => {
         return await xhrAios.put(`/games/rounds/ongoing/player/group/change`, data, {signal});
     }

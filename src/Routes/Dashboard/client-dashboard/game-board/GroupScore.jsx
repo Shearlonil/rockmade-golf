@@ -28,8 +28,9 @@ const CustomNameCell = ({ rowData, dataKey, ...props }) => (
 const GroupScore = ({columns = [], myGroup}) => {
     const controllerRef = useRef(new AbortController());
     const { updateGroupScores, updateGroupContestScores } = useGameController();
-    const { ongoingGame, scores, setScores, holeProps } = useOngoingRound();
-    const game_id = ongoingGame()?.id;
+    const { ongoingGame, setOngoingGame, scores, setScores, holeProps } = useOngoingRound();
+    const game = ongoingGame();
+    const game_id = game?.id;
     const playerScores = scores();
     const hp = holeProps();
 
@@ -75,6 +76,9 @@ const GroupScore = ({columns = [], myGroup}) => {
                     found.setHoleScore(selectedCol, datum.score);
                 }
             }
+            // update game status to now playing (in play)
+            game.status = 2;
+            setOngoingGame(game);
             setScores(playerScores);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -106,6 +110,9 @@ const GroupScore = ({columns = [], myGroup}) => {
                     found.setHoleContestScore(selectedCol, datum.score);
                 }
             }
+            // update game status to now playing (in play)
+            game.status = 2;
+            setOngoingGame(game);
             setScores(playerScores);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
