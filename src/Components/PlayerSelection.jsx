@@ -4,6 +4,8 @@ import { IoMdAddCircle } from "react-icons/io";
 import Select from 'react-select';
 import { toast } from 'react-toastify';
 import { Controller, useForm } from 'react-hook-form';
+import * as yup from "yup";
+import { yupResolver } from '@hookform/resolvers/yup';
 
 import { useAuthUser } from '../app-context/user-context';
 import IMAGES from '../assets/images';
@@ -16,9 +18,13 @@ import GroupPlayerDialog from './DialogBoxes/GroupPlayerDialog';
 import ConfirmDialog from './DialogBoxes/ConfirmDialog';
 import { useOngoingRound } from '../app-context/ongoing-game-context';
 
+const groupSizeSchema = yup.object().shape({
+    group_size: yup.object().typeError("Select group size").required("Group size is required"),
+});
+
 const PlayerSelection = () => {
     const controllerRef = useRef(new AbortController());
-    const { addPlayers, removePlayer, updatePlayerGroup } = useGameController();
+    const { addPlayers, removePlayer, updatePlayerGroup, updateGroupSize } = useGameController();
     const { authUser } = useAuthUser();
     const { ongoingGame, scores, setScores, groups, setGroups, setOngoingGame } = useOngoingRound();
     const game = ongoingGame();
@@ -45,7 +51,8 @@ const PlayerSelection = () => {
     const {
         control,
         setValue,
-    } = useForm({});
+        handleSubmit,
+    } = useForm({ resolver: yupResolver(groupSizeSchema) });
 
     useEffect(() => {
         if(game){
@@ -62,6 +69,18 @@ const PlayerSelection = () => {
 
 	const handleCloseGroupPlayerModal = () => {
         setShowGroupPlayer(false);
+    };
+
+    const handleSubmitUpdateGroupSize = (data) => {
+        // if new group size is > current group size in db.... simply update
+        if(sizeOfGroup > game.group_size){
+            changeGroupSize();
+        }
+        if(sizeOfGroup < game.group_size) {
+            setDisplayMsg(`Reduction in group size detected. This will remove members following the ORDER bottom up`);
+            setConfirmDialogEvtName('updateGroupSize');
+            setShowConfirmModal(true);
+        }
     };
   
     const handleSubmitPlayers = async (data) => {
@@ -98,6 +117,10 @@ const PlayerSelection = () => {
                 const temp = [...gameGroupArr];
                 const g = temp.find(t => t.name === activeGroup.name);
                 g.members.push(...data);
+                // update group size in context game in case the user didn't click the save button for updating the group size in db before adding players to group after adjusting size
+                const tempGame = {...game}
+                tempGame.group_size = sizeOfGroup;
+                setOngoingGame(tempGame);
                 setGroups(temp);
                 setNetworkRequest(false);
                 setActiveGroup(null);
@@ -142,10 +165,9 @@ const PlayerSelection = () => {
     };
 
     const handleGroupSizeChanged = (val) => {
-        setSizeOfGroup(val.value);
-        const temp = {...game}
-        temp.group_size = val.value
-        setOngoingGame(temp);
+        if(val.value !== sizeOfGroup){
+            setSizeOfGroup(val.value);
+        }
     };
 
     const handleDeleteGroupPlayer = () => {
@@ -168,6 +190,27 @@ const PlayerSelection = () => {
                 deleteGroupPlayer();
             case "changePlayerGroup":
                 changePlayerGroup();
+            case "updateGroupSize":
+                changeGroupSize();
+        }
+    };
+
+    const changeGroupSize = async () => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            await updateGroupSize(controllerRef.current.signal, game.id, sizeOfGroup);
+            const temp = {...game}
+            temp.group_size = sizeOfGroup;
+            setOngoingGame(temp);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
         }
     };
 
@@ -305,7 +348,7 @@ const PlayerSelection = () => {
                     <div className="d-flex gap-4 col-12 col-md-4 mb-3">
                         <div className="d-flex flex-column w-100 gap-2">
                             <span className="align-self-start fw-bold">Group Size</span>
-                            <div className="d-flex gap-3">
+                            <div className={`d-flex gap-3 ${game?.status > 1 ? "disabledDiv" : ''}`}>
                                 <Controller
                                     name="group_size"
                                     control={control}
@@ -321,12 +364,11 @@ const PlayerSelection = () => {
                                                 handleGroupSizeChanged(val);
                                                 onChange(val);
                                             }}
-                                            isDisabled={game?.status > 1 ? true : false}
                                             value={value}
                                         />
                                     )}
                                 />
-                                <Button variant="primary" className="fw-bold col-6" onClick={handleAddGroup}>
+                                <Button variant="primary" className="fw-bold col-6" onClick={handleSubmit(handleSubmitUpdateGroupSize)}>
                                     SAVE
                                 </Button>
                             </div>

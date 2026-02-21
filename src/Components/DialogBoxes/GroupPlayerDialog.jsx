@@ -43,8 +43,8 @@ const GroupPlayerDialog = ({ show, handleClose, handleDelete, handleChangeGroup,
         handleSubmit: handleChangeGroupSubmit,
         formState: { errors: changeGroupErrors },
     } = useForm({
-            resolver: yupResolver(groupChangeSchema),
-        });
+        resolver: yupResolver(groupChangeSchema),
+    });
         
     const {
         control: swapGroupControl,

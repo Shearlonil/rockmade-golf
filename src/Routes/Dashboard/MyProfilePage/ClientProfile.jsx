@@ -45,7 +45,7 @@ const ClientProfilePage = () => {
     const { updateHomeClub, updatePassword } = useUserController();
     const { userHomeClub, setUserHomeClub } = useActiveCourses();
     const homeClub = userHomeClub();
-    const { performGetRequests, requestOTP } = useGenericController();
+    const { requestOTP } = useGenericController();
     const { authUser } = useAuthUser();
     const user = authUser();
     
@@ -55,7 +55,6 @@ const ClientProfilePage = () => {
     const [showOldPassword, setShowOldPassword] = useState(false);
     // for courses
     const [courseOptions, setCourseOptions] = useState([]);
-    const [keyHash, setKeyHash] = useState(user.blur.key_hash);
 
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [showClientProfileModal, setShowClientProfileModal] = useState(false);
@@ -304,7 +303,6 @@ const ClientProfilePage = () => {
                 // Request was intentionally aborted, handle silently
                 return;
             }
-            console.log(error);
             setNetworkRequest(false);
             toast.error(handleErrMsg(error).msg);
         }
@@ -364,7 +362,7 @@ const ClientProfilePage = () => {
             </Row>
             <Row className='mt-4'>
                 <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center col-md-6 col-sm-12" >
-                    {user.blur && <ImageComponent image={user.blur} width={'200px'} height={'200px'} round={true} key_id={user.blur.key_hash} />}
+                    {user.blur && <ImageComponent image={user.blur} width={'200px'} height={'200px'} round={true} key_id={user.blur?.key_hash} />}
                     {!user.blur && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={200} height={200} />}
                     <div className="d-flex flex-column gap-3 align-items-center">
                         <Button variant="primary" onClick={() => setShowProfileImgModal(true)}>Upload new photo</Button>
