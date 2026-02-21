@@ -17,6 +17,7 @@ import handleErrMsg from '../Utils/error-handler';
 import GroupPlayerDialog from './DialogBoxes/GroupPlayerDialog';
 import ConfirmDialog from './DialogBoxes/ConfirmDialog';
 import { useOngoingRound } from '../app-context/ongoing-game-context';
+import { UserScore } from '../Entities/UserScore';
 
 const groupSizeSchema = yup.object().shape({
     group_size: yup.object().typeError("Select group size").required("Group size is required"),
@@ -26,9 +27,10 @@ const PlayerSelection = () => {
     const controllerRef = useRef(new AbortController());
     const { addPlayers, removePlayer, updatePlayerGroup, updateGroupSize } = useGameController();
     const { authUser } = useAuthUser();
-    const { ongoingGame, scores, setScores, groups, setGroups, setOngoingGame } = useOngoingRound();
+    const { ongoingGame, holeProps, scores, setScores, groups, setGroups, setOngoingGame } = useOngoingRound();
     const game = ongoingGame();
     const gameGroupArr = groups();
+    const hp = holeProps();
     const playerScores = scores();
     const user = authUser();
 
@@ -71,7 +73,7 @@ const PlayerSelection = () => {
         setShowGroupPlayer(false);
     };
 
-    const handleSubmitUpdateGroupSize = (data) => {
+    const handleSubmitUpdateGroupSize = () => {
         // if new group size is > current group size in db.... simply update
         if(sizeOfGroup > game.group_size){
             changeGroupSize();
@@ -92,6 +94,7 @@ const PlayerSelection = () => {
         try {
             if(data.length > 0){
                 const arr = [];
+                const leaderboardScores = [];
                 for (const datum of data) {
                     gameGroupArr.forEach(g => {
                         const find = g.members.find(member => member.id === datum.id);
@@ -101,6 +104,14 @@ const PlayerSelection = () => {
                         }
                     })
                     arr.push(datum.id);
+                    // create UserScore for each added user for leaderboards
+                    const userScore = new UserScore();
+                    userScore.id = datum.id;
+                    userScore.hcp = datum.hcp;
+                    userScore.ProfileImgKeyhash = datum.ProfileImgKeyhash;
+                    userScore.name = datum.fname + ' ' + datum.lname;
+                    userScore.group = activeGroup.name;
+                    leaderboardScores.push(userScore);
                 }
                 const payload = {
                     game_id: game.id,
@@ -114,9 +125,23 @@ const PlayerSelection = () => {
                 setNetworkRequest(true);
                 resetAbortController();
                 await addPlayers(controllerRef.current.signal, payload);
+                // add player(s) to selected group
                 const temp = [...gameGroupArr];
                 const g = temp.find(t => t.name === activeGroup.name);
                 g.members.push(...data);
+                // create hole scores for new added player(s) to use in leaderboards presentation
+                switch (game.hole_mode) {
+                    case 1:
+                        buildScores(1, 18, leaderboardScores, hp);
+                        break;
+                    case 2:
+                        buildScores(1, 9, leaderboardScores, hp);
+                        break;
+                    case 3:
+                        buildScores(10, 18, leaderboardScores, hp);
+                        break;
+                }
+                setScores([...playerScores, ...leaderboardScores]);
                 // update group size in context game in case the user didn't click the save button for updating the group size in db before adding players to group after adjusting size
                 const tempGame = {...game}
                 tempGame.group_size = sizeOfGroup;
@@ -188,10 +213,13 @@ const PlayerSelection = () => {
         switch (confirmDialogEvtName) {
             case "delGroupPlayer":
                 deleteGroupPlayer();
+                break;
             case "changePlayerGroup":
                 changePlayerGroup();
+                break;
             case "updateGroupSize":
                 changeGroupSize();
+                break;
         }
     };
 
@@ -199,7 +227,27 @@ const PlayerSelection = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await updateGroupSize(controllerRef.current.signal, game.id, sizeOfGroup);
+            const response = await updateGroupSize(controllerRef.current.signal, game.id, sizeOfGroup);
+            // remove excess player from group if new size is smaller than previous
+            const groups = [...gameGroupArr];
+            if(sizeOfGroup < game.group_size){
+                groups.forEach(gameGroup => {
+                    if(gameGroup.members.length > sizeOfGroup){
+                        const members = gameGroup.members.slice(0, sizeOfGroup);
+                        gameGroup.members = members;
+                    }
+                });
+            }
+            setGroups(groups);
+            // remove excess players in player scores
+            const newPlayerScores = [];
+            playerScores.forEach(playerScore => {
+                if(!response.data.includes(playerScore.id)){
+                    newPlayerScores.push(playerScore);
+                }
+            });
+            setScores(newPlayerScores);
+            // update group size in game
             const temp = {...game}
             temp.group_size = sizeOfGroup;
             setOngoingGame(temp);
@@ -292,6 +340,12 @@ const PlayerSelection = () => {
             }
             setNetworkRequest(false);
             toast.error(handleErrMsg(error).msg);
+        }
+    };
+
+    const buildScores = (start, end, scores, holeProps) => {
+        for(let i = start; i <= end; i++){
+            scores.forEach(score => score.setHolePar(i, holeProps[i].par) );
         }
     };
 
