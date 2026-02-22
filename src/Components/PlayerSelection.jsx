@@ -7,7 +7,6 @@ import { Controller, useForm } from 'react-hook-form';
 import * as yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { useAuthUser } from '../app-context/user-context';
 import IMAGES from '../assets/images';
 import { groupSizeOptions } from '../Utils/data';
 import ImageComponent from './ImageComponent';
@@ -23,16 +22,42 @@ const groupSizeSchema = yup.object().shape({
     group_size: yup.object().typeError("Select group size").required("Group size is required"),
 });
 
+const buildScores = (start, end, scores, holeProps) => {
+    for(let i = start; i <= end; i++){
+        scores.forEach(score => score.setHolePar(i, holeProps[i].par) );
+    }
+};
+
+// after successful group change or group swap, this method updates the group of the afftected player
+const updatePlayerGroupInfo = (selectedGroupPlayer, gameGroupArr, destGroupNo) => {
+    const temp = [...gameGroupArr];
+    const prevGroup = temp.find(arr => arr.name === selectedGroupPlayer.group);
+    // remove player from previous group
+    const newMembers = prevGroup.members.filter(member => member.id !== selectedGroupPlayer.id);
+    prevGroup.members = newMembers;
+    // add to new group
+    const destinationGroup = temp.find(arr => arr.name === destGroupNo);
+    destinationGroup.members.push(selectedGroupPlayer);
+    // update group value in selectedPlayer
+    selectedGroupPlayer.group = destGroupNo;
+    return temp;
+};
+
+// after successful group change or group swap, this method updates the group property in UserScore representing the afftected player
+const updateScoreInfo = (playerScores, selectedGroupPlayer, destGroupNo) => {
+    const playerScore = playerScores.find(score => score.id === selectedGroupPlayer.id);
+    playerScore.group = destGroupNo;
+    return playerScores
+};
+
 const PlayerSelection = () => {
     const controllerRef = useRef(new AbortController());
-    const { addPlayers, removePlayer, updatePlayerGroup, updateGroupSize } = useGameController();
-    const { authUser } = useAuthUser();
+    const { addPlayers, removePlayer, updatePlayerGroup, updateGroupSize, exchangeGroupPlayers } = useGameController();
     const { ongoingGame, holeProps, scores, setScores, groups, setGroups, setOngoingGame } = useOngoingRound();
     const game = ongoingGame();
     const gameGroupArr = groups();
     const hp = holeProps();
     const playerScores = scores();
-    const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
     const [showGroupPlayer, setShowGroupPlayer] = useState(false);
@@ -207,6 +232,13 @@ const PlayerSelection = () => {
         setConfirmDialogEvtName('changePlayerGroup');
         setShowConfirmModal(true);
     };
+
+    const handleSwapPlayers = (playerToSwapWith) => {
+        setSwappedPlayers([selectedGroupPlayer, playerToSwapWith]);
+        setDisplayMsg(`Swap ${selectedGroupPlayer.fname} ${selectedGroupPlayer.lname} With ${playerToSwapWith.fname} ${playerToSwapWith.lname}?`);
+        setConfirmDialogEvtName('swapPlayers');
+        setShowConfirmModal(true);
+    };
   
     const handleConfirm = async () => {
         setShowConfirmModal(false);
@@ -219,6 +251,9 @@ const PlayerSelection = () => {
                 break;
             case "updateGroupSize":
                 changeGroupSize();
+                break;
+            case "swapPlayers":
+                swapPlayers();
                 break;
         }
     };
@@ -293,7 +328,7 @@ const PlayerSelection = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const groupNo = changedPlayerGroupDetails.label.split(' ')[1];
+            const groupNo = changedPlayerGroupDetails.value.name;
             const payload = {
                 game_id: game.id,
                 currentGroupSize: sizeOfGroup,
@@ -304,29 +339,11 @@ const PlayerSelection = () => {
                 }
             };
             await updatePlayerGroup(controllerRef.current.signal, payload);
-            const temp = [...gameGroupArr];
-            const prevGroup = temp.find(arr => arr.name === selectedGroupPlayer.group);
-            // remove player from previous group
-            const newMembers = prevGroup.members.filter(member => member.id !== selectedGroupPlayer.id);
-            prevGroup.members = newMembers;
-            // add to new group
-            const newGroup = temp.find(arr => arr.name === groupNo);
-            if(newGroup){
-                newGroup.members.push(selectedGroupPlayer);
-            }else {
-                // newly created/added group
-                temp.push({
-                    name: groupNo,
-                    members: [user]
-                });
-            }
-            // update group value in selectedPlayer
-            selectedGroupPlayer.group = groupNo;
+            const updatedGroups = updatePlayerGroupInfo(selectedGroupPlayer, gameGroupArr, groupNo);
             // update group of player in scores (in ongoing-game-context)
-            const playerScore = playerScores.find(score => score.id === selectedGroupPlayer.id);
-            playerScore.group = groupNo;
-            setGroups(temp);
-            setScores(playerScores);
+            const updatedPlayerScores = updateScoreInfo(playerScores, selectedGroupPlayer, groupNo);
+            setGroups(updatedGroups);
+            setScores(updatedPlayerScores);
             
             setSelectedGroupPlayer(null);
             setChangedPlayerGroupDetails(null);
@@ -343,9 +360,44 @@ const PlayerSelection = () => {
         }
     };
 
-    const buildScores = (start, end, scores, holeProps) => {
-        for(let i = start; i <= end; i++){
-            scores.forEach(score => score.setHolePar(i, holeProps[i].par) );
+    const swapPlayers = async () => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const payload = {
+                game_id: game.id,
+                playerOne: {
+                    id: selectedGroupPlayer.id,
+                    group_name: selectedGroupPlayer.group,
+                },
+                playerTwo: {
+                    id: swappedPlayers[1].id,
+                    group_name: swappedPlayers[1].group,
+                }
+            };
+            await exchangeGroupPlayers(controllerRef.current.signal, payload);
+            /*  store destinations of players before calling updatePlayerGroupInfo. As the parameters are passes by ref, the value of destination for player two would have been altered    */
+            const selectedPlayerDestination = swappedPlayers[1].group;
+            const swappedWithDestination = swappedPlayers[0].group;
+            const tempUpdatedGroupsArr = updatePlayerGroupInfo(swappedPlayers[0], gameGroupArr, selectedPlayerDestination);
+            const updatedGroupsArr = updatePlayerGroupInfo(swappedPlayers[1], tempUpdatedGroupsArr, swappedWithDestination);
+            // update group of player in scores (in ongoing-game-context)
+            const tempUpdatedPlayerScores = updateScoreInfo(playerScores, swappedPlayers[0], selectedPlayerDestination);
+            const updatedPlayerScores = updateScoreInfo(tempUpdatedPlayerScores, swappedPlayers[1], swappedWithDestination);
+            setGroups(updatedGroupsArr);
+            setScores(updatedPlayerScores);
+            
+            setSelectedGroupPlayer(null);
+            setChangedPlayerGroupDetails(null);
+            setShowGroupPlayer(false);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
         }
     };
 
@@ -449,6 +501,7 @@ const PlayerSelection = () => {
 				handleClose={handleCloseGroupPlayerModal}
 				handleDelete={handleDeleteGroupPlayer}
                 handleChangeGroup={handleChangeGroup}
+                handleSwapPlayers={handleSwapPlayers}
                 player={selectedGroupPlayer}
 				message={displayMsg}
 			/>

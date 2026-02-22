@@ -48,6 +48,10 @@ const useGameController = () => {
         }, 
         {signal});
     }
+    
+    const exchangeGroupPlayers = async (signal, data) => {
+        return await xhrAios.put(`/games/groups/players/swap`, data, {signal});
+    }
 
     const removePlayer = async (signal, data) => {
         return await xhrAios.put(`/games/rounds/ongoing/player/remove`, data, {signal});
@@ -64,6 +68,7 @@ const useGameController = () => {
         addPlayers,
         updatePlayerGroup,
         updateGroupSize,
+        exchangeGroupPlayers,
         removePlayer,
     }
 }

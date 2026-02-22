@@ -66,6 +66,7 @@ const GroupPlayerDialog = ({ show, handleClose, handleDelete, handleChangeGroup,
         });
         setGameGroups(arr);
         if(user && game){
+            // only game creator is allowed to delete user
             setShowDelete(game.creator_id == cryptoHelper.decryptData(user.id));
         }
     }
@@ -99,6 +100,9 @@ const GroupPlayerDialog = ({ show, handleClose, handleDelete, handleChangeGroup,
     };
 
     const handleSwappedGroupChanged = (val) => {
+        const toSwapWith =  val.swapped_player.value;
+        toSwapWith.group = val.swapped_group.value.name;
+        handleSwapPlayers(toSwapWith);
     };
 
     return (

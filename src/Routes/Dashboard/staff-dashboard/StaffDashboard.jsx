@@ -114,9 +114,10 @@ const StaffDashboard = () => {
         setShowStaffCreationModal(true);
     }
 
-	const handleOffCanvasMenuItemClick = async (onclickParams, e) => {
-		switch (onclickParams.evtName) {
+	const handleOffCanvasMenuItemClick = async (menus, e) => {
+		switch (menus.onClickParams.evtName) {
             case 'viewGolfCourses':
+                console.log('vie golf course');
                 navigate('/dashboard/staff/courses');
                 break;
             case 'contests':

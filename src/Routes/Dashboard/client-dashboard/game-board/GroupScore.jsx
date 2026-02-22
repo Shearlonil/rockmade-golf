@@ -76,9 +76,11 @@ const GroupScore = ({columns = [], myGroup}) => {
                     found.setHoleScore(selectedCol, datum.score);
                 }
             }
-            // update game status to now playing (in play)
-            game.status = 2;
-            setOngoingGame(game);
+            if(game.status === 1){
+                // update game status to now playing (in play)
+                game.status = 2;
+                setOngoingGame(game);
+            }
             setScores(playerScores);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -110,9 +112,11 @@ const GroupScore = ({columns = [], myGroup}) => {
                     found.setHoleContestScore(selectedCol, datum.score);
                 }
             }
-            // update game status to now playing (in play)
-            game.status = 2;
-            setOngoingGame(game);
+            if(game.status === 1){
+                // update game status to now playing (in play)
+                game.status = 2;
+                setOngoingGame(game);
+            }
             setScores(playerScores);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
