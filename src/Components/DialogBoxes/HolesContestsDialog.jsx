@@ -80,6 +80,7 @@ const HolesContestsDialog = ({ show, handleClose, updateHolesContests, data }) =
             <Modal.Body>
                 <Accordion defaultActiveKey={['0']} alwaysOpen>
                     {holesContestData && holesContestData.length > 0 && buildAccordion}
+                    {holesContestData && holesContestData.length === 0 && <span className="text-danger fw-bold">No Contest available</span> }
                 </Accordion>
             </Modal.Body>
             <Modal.Footer>

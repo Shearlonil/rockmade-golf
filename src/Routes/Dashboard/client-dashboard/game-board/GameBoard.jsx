@@ -145,7 +145,7 @@ const GameBoard = () => {
             setNetworkRequest(false);
             setShowOrbitalLoader(false);
         } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -193,7 +193,7 @@ const GameBoard = () => {
             setNetworkRequest(false);
             callback(results);
         } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -274,7 +274,7 @@ const GameBoard = () => {
             setShowOrbitalLoader(false);
             toast.info('Update successful');
         } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+            if (error.name === 'AbortError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -306,7 +306,7 @@ const GameBoard = () => {
             setShowOrbitalLoader(false);
             toast.info('Update successful');
         } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+            if (error.name === 'AbortError') {
                 // Request was aborted, handle silently
                 return;
             }

@@ -72,6 +72,11 @@ export default function GolfCourseView() {
     const [holeCredentials, setHoleCredentials] = useState(null);
     const [contests, setContests] = useState(null);
     const [contestArrOptions, setContestArrOptions] = useState([]);
+    /*  because of the handleSubmit method which doesn't clear previously submitted values, in other words, for example, say hole 1 is added to Contest 1. When add Update Contest is 
+        clicked, this sends Contests 1 with hole 1 to the server. When later say hole 2 is added to Contest 2, The previously selected hole 1 added to Contest 1 will also be sent to the 
+        server causing Validation Error. To circumbent this, the below state variable is used to hold already sent values which will be used to scrutinize data coming from handleSubmit
+    */
+    const [submittedContests, setSubmittedContests] = useState([]);
 
 	const [showCourseHoleModeUpdate, setShowCourseHoleModeUpdate] = useState(false);
 	const [showHoleHcpParUpdate, setShowHoleHcpParUpdate] = useState(false);
@@ -146,7 +151,7 @@ export default function GolfCourseView() {
 
     const askToRemove = (hole_id, hole_no, contest_id, contest_name) => {
         setDisplayMsg(`Remove hole ${hole_no} from ${contest_name} ?`);
-        setHoleToRemoveProp({hole_id, contest_id, course_id: id});
+        setHoleToRemoveProp({hole_id, hole_no, contest_id, course_id: id});
         setShowConfirmModal(true);
         setConfirmDialogEvtName('removeHole');
     };
@@ -168,7 +173,15 @@ export default function GolfCourseView() {
         for (const key in data) {
             if(data[key]){
                 const arr = data[key].map(element => element.value.id);
-                tempContests.push({contest_id: key, holes: arr});
+                const submittedContest = submittedContests.find(sc => sc.contest_id == key);
+                const prevContestHoles = submittedContest ? submittedContest.holes : [];
+                // find and remove already submitted holes for this contest (if any)
+                const submittedSet = new Set(prevContestHoles);
+                const filtered = [...arr.filter(hole => !submittedSet.has(hole))];
+                // tempContests.push({contest_id: key, holes: arr});
+                if(filtered.length > 0){
+                    tempContests.push({contest_id: key, holes: filtered});
+                }
             }
         }
         if(tempContests.length > 0){
@@ -246,6 +259,7 @@ export default function GolfCourseView() {
             // structure of holesToUpdate sent to server {contests: [ {contest_id, holes: [id, id, ...]} ]}
             const arrOptions = [...contestArrOptions];
             const tempContests = [...contests];
+            const tempSubmittedContests = [...submittedContests];
             for (const contest of holesToUpdate.contests) {
                 contest.holes.forEach(hole_id => {
                     /*  find the particular contest of concern in contestArrOptions
@@ -258,7 +272,21 @@ export default function GolfCourseView() {
                     const found = tempContests.find(c => c.id == contest.contest_id);
                     found.holes.push({id: removed[0].value.id, hole_no: removed[0].label});
                 });
+                // find contest in submitted contests
+                const submittedContest = tempSubmittedContests.find(sc => sc.contest_id == contest.contest_id);
+                if (submittedContest) {
+                    // entry for this contest found, add holes not previously added
+                    submittedContest.holes.push(...contest.holes);
+                }else {
+                    const obj = {
+                        contest_id: contest.contest_id, 
+                        holes: contest.holes
+                    };
+                    tempSubmittedContests.push(obj);
+                }
             }
+            setSubmittedContests(tempSubmittedContests);
+            setHolesToUpdate(null);
             setContests(tempContests);
             setContestArrOptions(arrOptions);
             setNetworkRequest(false);
@@ -282,12 +310,25 @@ export default function GolfCourseView() {
             // after successfull hole removal from contest in db, add removed hole as an option back to drop down in order to add it back to contest
             const obj = contestArrOptions.find(option => option.id === holeToRemoveProp.contest_id);
             obj.contestOptions.push({label: holeToRemoveProp.hole_no, value: {id: holeToRemoveProp.hole_id, hole_no: holeToRemoveProp.hole_no}});
+            obj.contestOptions.sort((a, b) => {
+                const sub = a.label - b.label;
+                return sub;
+            });
             // remove hole from contest in UI
-            const c = [...contests]
+            const c = [...contests];
             const temp = c.find(contest => contest.id === holeToRemoveProp.contest_id);
             const holes = temp.holes.filter(hole => hole.id !== holeToRemoveProp.hole_id);
             temp.holes = holes;
+            // remove hole from list of submitted contests so it dosn't apprear as duplicate when trying to add back
+            const submittedContest = submittedContests.find(sc => sc.contest_id == holeToRemoveProp.contest_id);
+            if(submittedContest){
+                const holes = submittedContest.holes.filter(hole => hole.id !== holeToRemoveProp.hole_id);
+                submittedContest.holes = holes;
+                setSubmittedContests([...submittedContests]);
+            }
+            
             setContests(c);
+            setContestArrOptions(contestArrOptions);
             setNetworkRequest(false);
             setHoleToRemoveProp(null);
         } catch (error) {
