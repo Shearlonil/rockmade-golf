@@ -21,7 +21,7 @@ const columns = [
         width: 200,
     },
     {
-        key: 'score',
+        key: 'scoreLessHcp',
         label: 'Score',
         width: 100
     },

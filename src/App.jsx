@@ -20,6 +20,7 @@ import Staff from "./Routes/Dashboard/staff-dashboard/users/Staff.jsx";
 import GameBoard from "./Routes/Dashboard/client-dashboard/game-board/GameBoard.jsx";
 import Dashboard from "./Routes/Dashboard/MainDashboard.jsx";
 import Profile from "./Routes/Dashboard/MyProfilePage/MainProfile.jsx";
+import RecentGames from "./Routes/Dashboard/client-dashboard/recent-games/RecentGames.jsx";
 
 function App() {
     return (
@@ -48,6 +49,7 @@ function App() {
                     </Route>
                     <Route path="client" >
                         <Route path=":id/game/:name" element={<GameBoard />} />
+                        <Route path="games/recent" element={<RecentGames />} />
                     </Route>
 					<Route path={""} element={<Dashboard />} />
                 </Route>

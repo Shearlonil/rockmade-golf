@@ -20,14 +20,9 @@ const CustomHeader = ({ title, holeProps, idx }) => {
 
 const PlayerLeaderboardScoresDialog = ({ player, show, handleClose, columns, holeProps, totalPar }) => {
     const [p, setP] = useState([]);
-    // player score less hcp
-    const [scoreLessHcp, setScoreLessHcp] = useState(0);
 
     const modalLoaded = () => {
         setP([player]);
-        if (player) {
-            setScoreLessHcp(player.score - player.hcp);
-        }
     }
 
     return (
@@ -57,7 +52,7 @@ const PlayerLeaderboardScoresDialog = ({ player, show, handleClose, columns, hol
                         Par: <span className='fw-bold'> {totalPar} </span>
                     </span>
                     <span>
-                        Score: <span className='fw-bold'> {player?.score}/{scoreLessHcp} </span>
+                        Score: <span className='fw-bold'> {player?.score}/{player?.scoreLessHcp} </span>
                     </span>
                     <span>
                         Position: <span className='fw-bold'> {player?.position} </span>

@@ -29,7 +29,7 @@ const StaffCreationDialog = ({ show, handleClose, handleConfirm, message, networ
     };
 
     return (
-        <Modal show={show} onHide={handleClose}>
+        <Modal backdrop='static' show={show} onHide={handleClose}>
             <Modal.Header closeButton>
                 <Modal.Title>{message}</Modal.Title>
             </Modal.Header>

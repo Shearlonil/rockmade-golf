@@ -80,12 +80,12 @@ const GameBoard = () => {
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
     const [updatedCourseData, setUpdatedCoureData] = useState(null);
     
-    const offCanvasMenu = [
+    const [offCanvasMenu, setOffCanvasMenu] = useState([
         { label: "Enter Score", onClickParams: {evtName: 'enterScore'} },
         { label: "Leaderboards", onClickParams: {evtName: 'leaderboards'} },
         { label: "Settings", onClickParams: {evtName: 'settings'} },
         { label: "Share Game", onClickParams: {evtName: 'share'} },
-    ];
+    ]);
     const [activeMenuItem, setActiveMenuItem] = useState(offCanvasMenu[0].label);
 
     useEffect(() => {
@@ -134,6 +134,11 @@ const GameBoard = () => {
                     default:
                         break;
                 }
+
+                const decrypted_id = cryptoHelper.decryptData(user.id);
+                if(game.creator_id == decrypted_id){
+                    setOffCanvasMenu([...offCanvasMenu, { label: "End Game", onClickParams: {evtName: 'endGame'} }]);
+                }
                 const hp = buildHoleProps(game);
                 buildGameScores(game, hp);
             }
@@ -145,7 +150,7 @@ const GameBoard = () => {
             setNetworkRequest(false);
             setShowOrbitalLoader(false);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -175,6 +180,9 @@ const GameBoard = () => {
             case 'share':
                 setShowGameCodesModal(true);
                 break;
+            case 'endGame':
+                setActiveMenuItem(menus.label);
+                break;
         }
 	}
 
@@ -193,7 +201,7 @@ const GameBoard = () => {
             setNetworkRequest(false);
             callback(results);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -274,7 +282,7 @@ const GameBoard = () => {
             setShowOrbitalLoader(false);
             toast.info('Update successful');
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -306,7 +314,7 @@ const GameBoard = () => {
             setShowOrbitalLoader(false);
             toast.info('Update successful');
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was aborted, handle silently
                 return;
             }
@@ -337,7 +345,7 @@ const GameBoard = () => {
             }
             const userScore = new UserScore();
             userScore.id = user.id;
-            userScore.hcp = user.hcp;
+            userScore.hcp = user.UserGameGroup.user_hcp;
             userScore.ProfileImgKeyhash = user.ProfileImgKeyhash;
             userScore.name = user.fname + ' ' + user.lname;
             userScore.group = user.UserGameGroup.name;

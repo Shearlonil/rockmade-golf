@@ -6,7 +6,7 @@ import { VscRemove } from 'react-icons/vsc';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { isAfter } from 'date-fns';
+import { isAfter, format } from 'date-fns';
 import { Table, IconButton } from 'rsuite';
 const { Column, HeaderCell } = Table;
 
@@ -26,27 +26,24 @@ import InputDialog from '../../../Components/DialogBoxes/InputDialog';
 import AsyncSearchDialog from '../../../Components/DialogBoxes/AsyncSearchDialog';
 import useCourseController from '../../../api-controllers/course-controller-hook';
 
-const columns = [
+const ongoingGamesColumns = [
     {
         key: 'name',
         label: 'Name',
         fixed: true,
-        flexGrow: 2,
-        // width: 200
+        width: 200
     },
     {
         key: 'course_name',
         label: 'Course',
-        flexGrow: 2,
-        // fixed: true,
-        // width: 200
+        // flexGrow: 2,
+        width: 200
     },
     {
         key: 'hole_mode',
         label: 'Hole Mode',
         flexGrow: 1,
-        // fixed: true,
-        // width: 200
+        // width: 100
     },
     {
         key: 'date',
@@ -68,11 +65,45 @@ const columns = [
     },
 ];
 
-const ActionCell = ({ rowData, dataKey, onDelete, onViewGame, ...props }) => {
+const recentGamesColumns = [
+    {
+        key: 'name',
+        label: 'Name',
+        fixed: true,
+        // flexGrow: 2,
+        width: 200
+    },
+    {
+        key: 'mode',
+        label: 'Game',
+        flexGrow: 1,
+        // width: 200
+    },
+    {
+        key: 'hole_mode',
+        label: 'Hole Mode',
+        flexGrow: 1,
+        // width: 100
+    },
+    {
+        key: 'date',
+        label: 'Game Date',
+        flexGrow: 1,
+        // width: 100
+    },
+    {
+        key: 'players',
+        label: 'Players',
+        flexGrow: 1,
+        // width: 100
+    },
+];
+
+const ActionCell = ({ rowData, dataKey, onDelete, onViewGame, showDelete, ...props }) => {
     return (
         <Table.Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
             <IconButton icon={<GrView color='green' />} onClick={() => { onViewGame(rowData); }}  />
-            <IconButton appearance="subtle" icon={<VscRemove />} onClick={() => { onDelete(rowData); }}  />
+            {showDelete && <IconButton appearance="subtle" icon={<VscRemove />} onClick={() => { onDelete(rowData); }}  />}
         </Table.Cell>
   );
 };
@@ -180,13 +211,34 @@ const ClientDashboard = () => {
                         id: r.game_id,
                         name: r.name,
                         course_name: r.course_name,
-                        date: r.date,
+                        date: format(r.date, "dd/MM/yyyy"),
                         status: r.status === 1 ? "Yet to play" : "In play",
                         hole_mode: mode,
-                        createdAt: r.createdAt
+                        createdAt: format(r.createdAt, "dd/MM/yyyy")
                     }
                 });
                 setOngongRounds(rounds);
+                const recent = response.data.recent_games.map(r => {
+                    let hole_mode = 'Full 18';
+                    let mode = 'Member Games';
+                    if(r.hole_mode === 2){
+                        hole_mode = 'Font 9'
+                    }else if(r.hole_mode === 3) {
+                        hole_mode = 'Back 9'
+                    }
+                    if(r.mode === 1){
+                        mode = 'Tournament'
+                    }
+                    return {
+                        id: r.game_id,
+                        name: r.name,
+                        date: format(r.date, "dd/MM/yyyy"),
+                        hole_mode,
+                        mode,
+                        players: r.players
+                    }
+                });
+                setRecentGames(recent);
             }
             setNetworkRequest(false);
         } catch (error) {
@@ -210,6 +262,13 @@ const ClientDashboard = () => {
         const nameArr = data.name.split(' ');
         const strName = nameArr.join('+');
         navigate(`/dashboard/client/${data.id}/game/${strName}`);
+    }
+
+    const handleViewRecentGame = (data) => {
+        console.log(data);
+        const nameArr = data.name.split(' ');
+        const strName = nameArr.join('+');
+        navigate(`/dashboard/client/${data.id}/game/recent/${strName}`);
     }
 
     const createGame = () => {
@@ -408,7 +467,7 @@ const ClientDashboard = () => {
             {ongoigRounds.length > 0 && <h2 className='mt-3'>Ongoing Games</h2>}
             {ongoigRounds.length > 0 && 
                 <Table rowKey="id" data={ongoigRounds} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} className={` ${networkRequest ? 'disabledDiv' : ''}`}>
-                    {columns.map((column, idx) => {
+                    {ongoingGamesColumns.map((column, idx) => {
                         const { key, label, ...rest } = column;
                         return (
                             <Column {...rest} key={key} fullText>
@@ -419,7 +478,7 @@ const ClientDashboard = () => {
                     })}
                     <Column width={100} >
                         <HeaderCell>Actions...</HeaderCell>
-                        <ActionCell onDelete={handleOngoingGameDelete} onViewGame={handleViewOngoingGame} />
+                        <ActionCell onDelete={handleOngoingGameDelete} onViewGame={handleViewOngoingGame} showDelete={true} />
                     </Column>
                 </Table>
             }
@@ -458,8 +517,23 @@ const ClientDashboard = () => {
                     <div className="card shadow border-0 rounded-3 h-100 p-4">
                         <div className="card-body">
                             <h2 className="fw-bold">Recent Games</h2>
-                            <div className="d-flex justify-content-center flex-wrap gap-3">
-                            </div>
+                            {ongoigRounds.length > 0 && 
+                                <Table rowKey="id" data={recentGames} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} className={` ${networkRequest ? 'disabledDiv' : ''}`}>
+                                    {recentGamesColumns.map((column, idx) => {
+                                        const { key, label, ...rest } = column;
+                                        return (
+                                            <Column {...rest} key={key} fullText>
+                                                <HeaderCell>{label}</HeaderCell>
+                                                <Table.Cell dataKey={key} style={{ padding: 6 }} />
+                                            </Column>
+                                        );
+                                    })}
+                                    <Column width={100} >
+                                        <HeaderCell>Actions...</HeaderCell>
+                                        <ActionCell onViewGame={handleViewRecentGame} />
+                                    </Column>
+                                </Table>
+                            }
                         </div>
                     </div>
                 </Col>
@@ -477,7 +551,7 @@ const ClientDashboard = () => {
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='primary' className='w-100 fw-bold'>Game History</Button> 
+                        <Button variant='primary' className='w-100 fw-bold' onClick={() => navigate("client/games/recent")}>Game History</Button> 
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 

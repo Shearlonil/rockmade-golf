@@ -9,6 +9,7 @@ export class UserScore {
     constructor() {
         _userHoleScores.set(this, {
             score: 0,
+            scoreLessHcp: 0,
             txtScore: 'Score',
             lbParVal: Number.MAX_VALUE,
             name: '',
@@ -45,8 +46,10 @@ export class UserScore {
     // for leaderboards ranking
     get lbParVal() { return _userHoleScores.get(this).lbParVal }
 
-    // total score to display in leaderboards
+    // total actual score without subtracting hcp
     get score() { return _userHoleScores.get(this).score; }
+    // total score less hcp
+    get scoreLessHcp() { return _userHoleScores.get(this).scoreLessHcp; }
     // score text column in leaderboards
     get txtScore() { return _userHoleScores.get(this).txtScore; }
 
@@ -121,6 +124,7 @@ const calcToParVal = (userHoleScores, holePars) => {
         }
     }
 
-    userHoleScores.score = totalScores - userHoleScores.hcp;
+    userHoleScores.scoreLessHcp = totalScores - userHoleScores.hcp;
+    userHoleScores.score = totalScores;
     return totalScores - totalPars;
 }
