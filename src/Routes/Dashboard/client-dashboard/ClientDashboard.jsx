@@ -16,7 +16,6 @@ import handleErrMsg from '../../../Utils/error-handler';
 import cryptoHelper from '../../../Utils/crypto-helper';
 import { useAuth } from '../../../app-context/auth-context';
 import useUserController from '../../../api-controllers/user-controller-hook';
-import useGenericController from '../../../api-controllers/generic-controller-hook';
 import { OrbitalLoading } from '../../../Components/react-loading-indicators/Indicator';
 import ConfirmDialog from '../../../Components/DialogBoxes/ConfirmDialog';
 import useGameController from '../../../api-controllers/game-controller-hook';
@@ -116,7 +115,6 @@ const ClientDashboard = () => {
 
     const { logout, updateHCP } = useAuth();
     const { setUserHomeClub } =  useActiveCourses();
-    const { performGetRequests, download } = useGenericController();
     const { removeOngoingGame } = useGameController();
     const { gameCourseSearch  } = useCourseController();
     const { dashbaord, updateHomeClub } = useUserController();
@@ -517,7 +515,7 @@ const ClientDashboard = () => {
                     <div className="card shadow border-0 rounded-3 h-100 p-4">
                         <div className="card-body">
                             <h2 className="fw-bold">Recent Games</h2>
-                            {ongoigRounds.length > 0 && 
+                            {recentGames.length > 0 && 
                                 <Table rowKey="id" data={recentGames} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} className={` ${networkRequest ? 'disabledDiv' : ''}`}>
                                     {recentGamesColumns.map((column, idx) => {
                                         const { key, label, ...rest } = column;

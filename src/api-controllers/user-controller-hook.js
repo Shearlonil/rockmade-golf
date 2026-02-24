@@ -59,6 +59,7 @@ const useUserController = () => {
         }, {signal});
     }
     
+    // search user to add to game
     const gameUserSearch = async (signal, data) => {
         return await xhrAios.get(`/users/game/query`, {
             params: {

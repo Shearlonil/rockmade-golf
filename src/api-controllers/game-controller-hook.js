@@ -57,6 +57,22 @@ const useGameController = () => {
         return await xhrAios.put(`/games/rounds/ongoing/player/remove`, data, {signal});
     }
     
+    const userRecentGames = async (signal, data) => {
+        return await xhrAios.get(`/games/users/rounds/recent`, {
+            params: {
+                page_size: data.pageSize, cursor: data.game_group_id
+            }
+        }, {signal});
+    }
+    
+    const userRecentGamesSearch = async (signal, data) => {
+        return await xhrAios.get(`/games/users/rounds/recent/query`, {
+            params: {
+                page_size: data.pageSize, cursor: data.game_group_id, queryStr: data.queryStr
+            }
+        }, {signal});
+    }
+    
     return {
         createGame,
         updateGame,
@@ -70,6 +86,8 @@ const useGameController = () => {
         updateGroupSize,
         exchangeGroupPlayers,
         removePlayer,
+        userRecentGames,
+        userRecentGamesSearch,
     }
 }
 

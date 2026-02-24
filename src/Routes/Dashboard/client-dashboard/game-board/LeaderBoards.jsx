@@ -77,7 +77,7 @@ const LeaderBoards = ({networkRequest}) => {
         }
     }, [playerScores, game]);
 
-    const handleExpanded = (rowData) => {
+    const handleTableRowClicked = (rowData) => {
         setSelectedPlayer(rowData);
         setShowPlayerScoresModal(true);
     };
@@ -104,7 +104,7 @@ const LeaderBoards = ({networkRequest}) => {
     return (
         <span>
             <Table loading={networkRequest} rowKey={rowKey} data={leaderboardsScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
-                renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} onRowClick={data => handleExpanded(data) } >
+                renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} onRowClick={data => handleTableRowClicked(data) } >
                     
                 {columns.map((column, idx) => {
                     const { key, label, ...rest } = column;
