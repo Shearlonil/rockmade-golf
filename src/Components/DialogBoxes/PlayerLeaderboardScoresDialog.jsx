@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal } from 'react-bootstrap';
 import { Table } from 'rsuite';
+import ScoreCard from '../ScoreCard';
 const { Column, HeaderCell, Cell } = Table;
 
 const CustomHeader = ({ title, holeProps, idx }) => {
@@ -34,30 +35,7 @@ const PlayerLeaderboardScoresDialog = ({ player, show, handleClose, columns, hol
                 </span>
             </Modal.Header>
             <Modal.Body>
-                <Table rowKey="id" data={p} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={90} >
-                    {columns?.map((column, idx) => {
-                        const { key, label, ...rest } = column;
-                        return (
-                            <Column {...rest} key={key} fullText>
-                                <HeaderCell>
-                                    <CustomHeader title={label} holeProps={holeProps} idx={idx} />
-                                </HeaderCell>
-                                <Cell dataKey={key} style={{ padding: 6, fontWeight: 'bold', textAlign: 'center', color: 'green' }} />
-                            </Column>
-                        );
-                    })}
-                </Table>
-                <div className="d-flex justify-content-between m-3 fs-6">
-                    <span>
-                        Par: <span className='fw-bold'> {totalPar} </span>
-                    </span>
-                    <span>
-                        Score: <span className='fw-bold'> {player?.score}/{player?.scoreLessHcp} </span>
-                    </span>
-                    <span>
-                        Position: <span className='fw-bold'> {player?.position} </span>
-                    </span>
-                </div>
+                <ScoreCard columns={columns} holeProps={holeProps} totalPar={totalPar} player={player} tableData={p} />
             </Modal.Body>
         </Modal>
     )

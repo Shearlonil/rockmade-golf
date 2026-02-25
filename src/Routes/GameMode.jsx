@@ -23,7 +23,7 @@ import CourseSetup from "../Components/CourseSetup";
 import { useActiveCourses } from "../app-context/active-courses-context";
 import GameSetup from "../Components/GameSetup";
 import PlayerSelection from "../Components/PlayerSelection";
-import { useOngoingRound } from "../app-context/ongoing-game-context";
+import { useGame } from "../app-context/game-context";
 
 const GameMode = () => {
     const controllerRef = useRef(new AbortController());
@@ -35,7 +35,7 @@ const GameMode = () => {
     const { limitGameCourseSearch, gameCourseSearch } = useCourseController();
     const { createGame } = useGameController();
     const { authUser } = useAuthUser();    
-    const { setOngoingGame } = useOngoingRound();
+    const { setGamePlay } = useGame();
     const user = authUser();
 
     const [step, setStep] = useState(1);
@@ -74,7 +74,7 @@ const GameMode = () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
             controllerRef.current.abort();
             // clear the newly created ongoing game in context
-            setOngoingGame(null);
+            setGamePlay(null);
         };
     }, [location.pathname]);
 
@@ -99,7 +99,7 @@ const GameMode = () => {
 
 	const submitCourse = (data) => {
         setCourse(data);
-        setOngoingGame(data);
+        setGamePlay(data);
         setCourseSettingData(data);
         setHeroText('Add Contests to spice up game');
         setStep(3);

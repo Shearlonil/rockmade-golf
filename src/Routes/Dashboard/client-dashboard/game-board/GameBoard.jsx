@@ -26,7 +26,7 @@ import useGameController from '../../../../api-controllers/game-controller-hook'
 import PlayerSelection from '../../../../Components/PlayerSelection';
 import GameCodesViewDialog from '../../../../Components/DialogBoxes/GameCodesViewDialog';
 import { UserScore } from '../../../../Entities/UserScore';
-import { useOngoingRound } from '../../../../app-context/ongoing-game-context';
+import { useGame } from '../../../../app-context/game-context';
 
 const GameBoard = () => {
     const controllerRef = useRef(new AbortController());
@@ -40,9 +40,9 @@ const GameBoard = () => {
     const { gameCourseSearch,  } = useCourseController();
     const { performGetRequests } = useGenericController();
     const { updateGameSpices, updateGame } = useGameController();
-    const { ongoingGame, setOngoingGame, setScores, setGroups, setHoleProps } = useOngoingRound();
+    const { gamePlay, setGamePlay, setScores, setGroups, setHoleProps } = useGame();
     const { authUser } = useAuthUser();
-    const ongoingRound = ongoingGame();
+    const ongoingRound = gamePlay();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
@@ -97,6 +97,8 @@ const GameBoard = () => {
         return () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
             controllerRef.current.abort();
+            setScores([]);
+            setGamePlay(null);
         };
     }, [location.pathname]);
 
@@ -119,7 +121,7 @@ const GameBoard = () => {
             if(ongoingRoundsReq && ongoingRoundsReq.data){
                 const game = ongoingRoundsReq.data.game;
                 game.Course = ongoingRoundsReq.data.course;
-                setOngoingGame(game);
+                setGamePlay(game);
                 setCourseId(game.course_id);
                 switch (game.mode) {
                     case 1:
@@ -275,7 +277,7 @@ const GameBoard = () => {
             if(response && response.data){
                 const game = response.data.g;
                 game.Course = response.data.course;
-                setOngoingGame(game);
+                setGamePlay(game);
             }
             setConfirmDialogEvtName(null);
             setNetworkRequest(false);
@@ -307,7 +309,7 @@ const GameBoard = () => {
             // update GameHoleContests in game object
             const game = {...ongoingRound};
             game.GameHoleContests = response.data;
-            setOngoingGame(game);
+            setGamePlay(game);
             // update contests in holes
             buildHoleProps(game);
             setNetworkRequest(false);
@@ -439,8 +441,7 @@ const GameBoard = () => {
     return (
         <section className='container d-flex flex-column gap-4' style={{minHeight: '80vh'}}>
             <OffcanvasMenu menuItems={offCanvasMenu} menuItemClick={handleOffCanvasMenuItemClick} variant='danger' activeMenuItem={activeMenuItem} />
-            {/* NOTE: setting z-index of this row because of rsuite table which conflicts the drop down menu of react-select */}
-            <Row className="card shadow border-0 rounded-3 z-3 mt-5">
+            <Row className="card shadow border-0 rounded-3 mt-5">
                 <div className="card-body row ms-0 me-0 d-flex justify-content-between">
                     <div className="d-flex gap-3 align-items-center justify-content-center col-12 col-md-4 mb-3">
                         <img src={IMAGES.golf_course} alt ="Avatar" className="rounded-circle" width={50} height={50} />

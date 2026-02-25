@@ -25,7 +25,7 @@ import InputDialog from '../../../Components/DialogBoxes/InputDialog';
 import AsyncSearchDialog from '../../../Components/DialogBoxes/AsyncSearchDialog';
 import useCourseController from '../../../api-controllers/course-controller-hook';
 
-const ongoingGamesColumns = [
+const gamesColumns = [
     {
         key: 'name',
         label: 'Name',
@@ -115,7 +115,7 @@ const ClientDashboard = () => {
 
     const { logout, updateHCP } = useAuth();
     const { setUserHomeClub } =  useActiveCourses();
-    const { removeOngoingGame } = useGameController();
+    const { removegame } = useGameController();
     const { gameCourseSearch  } = useCourseController();
     const { dashbaord, updateHomeClub } = useUserController();
     const { authUser } = useAuthUser();
@@ -249,24 +249,21 @@ const ClientDashboard = () => {
         }
     }
 
-    const handleOngoingGameDelete = (data) => {
+    const handlegameDelete = (data) => {
         setRoundToDel(data);
         setConfirmDialogEvtName('removeOngoing');
         setDisplayMsg(`Delete ongoing round ${data.name}?. Action cannot be undone!`);
         setShowConfirmModal(true);
     }
 
-    const handleViewOngoingGame = (data) => {
+    const handleViewgame = (data) => {
         const nameArr = data.name.split(' ');
         const strName = nameArr.join('+');
         navigate(`/dashboard/client/${data.id}/game/${strName}`);
     }
 
-    const handleViewRecentGame = (data) => {
-        console.log(data);
-        const nameArr = data.name.split(' ');
-        const strName = nameArr.join('+');
-        navigate(`/dashboard/client/${data.id}/game/recent/${strName}`);
+    const handleViewRecentGame = (rowData) => {
+        navigate(`/dashboard/client/games/recent/${rowData.id}`);
     }
 
     const createGame = () => {
@@ -288,16 +285,16 @@ const ClientDashboard = () => {
         setShowConfirmModal(false);
         switch (confirmDialogEvtName) {
             case "removeOngoing":
-                delOngoingGame();
+                delgame();
                 break;
         }
     };
 
-	const delOngoingGame = async () => {
+	const delgame = async () => {
         try {
             resetAbortController();
             setNetworkRequest(true);
-            await removeOngoingGame(controllerRef.current.signal, roundToDel.id);
+            await removegame(controllerRef.current.signal, roundToDel.id);
             // remove game from table data
             const temp = [...ongoigRounds];
             const idx = temp.findIndex(o => o.id === roundToDel.id);
@@ -465,7 +462,7 @@ const ClientDashboard = () => {
             {ongoigRounds.length > 0 && <h2 className='mt-3'>Ongoing Games</h2>}
             {ongoigRounds.length > 0 && 
                 <Table rowKey="id" data={ongoigRounds} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} className={` ${networkRequest ? 'disabledDiv' : ''}`}>
-                    {ongoingGamesColumns.map((column, idx) => {
+                    {gamesColumns.map((column, idx) => {
                         const { key, label, ...rest } = column;
                         return (
                             <Column {...rest} key={key} fullText>
@@ -476,7 +473,7 @@ const ClientDashboard = () => {
                     })}
                     <Column width={100} >
                         <HeaderCell>Actions...</HeaderCell>
-                        <ActionCell onDelete={handleOngoingGameDelete} onViewGame={handleViewOngoingGame} showDelete={true} />
+                        <ActionCell onDelete={handlegameDelete} onViewGame={handleViewgame} showDelete={true} />
                     </Column>
                 </Table>
             }

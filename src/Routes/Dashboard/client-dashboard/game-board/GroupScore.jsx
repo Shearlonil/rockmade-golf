@@ -7,7 +7,7 @@ import RsuiteTableSkeletonLoader from '../../../../Components/RsuiteTableSkeleto
 import GroupScoreInputDialog from '../../../../Components/DialogBoxes/GroupScoreInputDialog';
 import useGameController from '../../../../api-controllers/game-controller-hook';
 import handleErrMsg from '../../../../Utils/error-handler';
-import { useOngoingRound } from '../../../../app-context/ongoing-game-context';
+import { useGame } from '../../../../app-context/game-context';
 
 const CustomHeader = ({ title, par }) => (
     <div className='d-flex flex-column justify-content-center align-items-center fw-bold text-dark'>
@@ -28,8 +28,8 @@ const CustomNameCell = ({ rowData, dataKey, ...props }) => (
 const GroupScore = ({columns = [], myGroup}) => {
     const controllerRef = useRef(new AbortController());
     const { updateGroupScores, updateGroupContestScores } = useGameController();
-    const { ongoingGame, setOngoingGame, scores, setScores, holeProps } = useOngoingRound();
-    const game = ongoingGame();
+    const { gamePlay, setGamePlay, scores, setScores, holeProps } = useGame();
+    const game = gamePlay();
     const game_id = game?.id;
     const playerScores = scores();
     const hp = holeProps();
@@ -79,7 +79,7 @@ const GroupScore = ({columns = [], myGroup}) => {
             if(game.status === 1){
                 // update game status to now playing (in play)
                 game.status = 2;
-                setOngoingGame(game);
+                setGamePlay(game);
             }
             setScores(playerScores);
         } catch (error) {
@@ -115,7 +115,7 @@ const GroupScore = ({columns = [], myGroup}) => {
             if(game.status === 1){
                 // update game status to now playing (in play)
                 game.status = 2;
-                setOngoingGame(game);
+                setGamePlay(game);
             }
             setScores(playerScores);
         } catch (error) {

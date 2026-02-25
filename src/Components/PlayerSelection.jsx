@@ -15,7 +15,7 @@ import useGameController from '../api-controllers/game-controller-hook';
 import handleErrMsg from '../Utils/error-handler';
 import GroupPlayerDialog from './DialogBoxes/GroupPlayerDialog';
 import ConfirmDialog from './DialogBoxes/ConfirmDialog';
-import { useOngoingRound } from '../app-context/ongoing-game-context';
+import { useGame } from '../app-context/game-context';
 import { UserScore } from '../Entities/UserScore';
 
 const groupSizeSchema = yup.object().shape({
@@ -53,8 +53,8 @@ const updateScoreInfo = (playerScores, selectedGroupPlayer, destGroupNo) => {
 const PlayerSelection = () => {
     const controllerRef = useRef(new AbortController());
     const { addPlayers, removePlayer, updatePlayerGroup, updateGroupSize, exchangeGroupPlayers } = useGameController();
-    const { ongoingGame, holeProps, scores, setScores, groups, setGroups, setOngoingGame } = useOngoingRound();
-    const game = ongoingGame();
+    const { gamePlay, holeProps, scores, setScores, groups, setGroups, setGamePlay } = useGame();
+    const gameRound = gamePlay();
     const gameGroupArr = groups();
     const hp = holeProps();
     const playerScores = scores();
@@ -82,12 +82,12 @@ const PlayerSelection = () => {
     } = useForm({ resolver: yupResolver(groupSizeSchema) });
 
     useEffect(() => {
-        if(game){
-            setSizeOfGroup(game.group_size);
-            const defaultGroupSize = groupSizeOptions.find(a => a.value === game.group_size );
+        if(gameRound){
+            setSizeOfGroup(gameRound.group_size);
+            const defaultGroupSize = groupSizeOptions.find(a => a.value === gameRound.group_size );
             setValue('group_size', defaultGroupSize);
         }
-    }, [gameGroupArr, game]);
+    }, [gameGroupArr, gameRound]);
 
 	const handleCloseModal = () => {
         setShowPlayerSearchDialog(false);
@@ -100,10 +100,10 @@ const PlayerSelection = () => {
 
     const handleSubmitUpdateGroupSize = () => {
         // if new group size is > current group size in db.... simply update
-        if(sizeOfGroup > game.group_size){
+        if(sizeOfGroup > gameRound.group_size){
             changeGroupSize();
         }
-        if(sizeOfGroup < game.group_size) {
+        if(sizeOfGroup < gameRound.group_size) {
             setDisplayMsg(`Reduction in group size detected. This will remove members following the ORDER bottom up`);
             setConfirmDialogEvtName('updateGroupSize');
             setShowConfirmModal(true);
@@ -139,11 +139,11 @@ const PlayerSelection = () => {
                     leaderboardScores.push(userScore);
                 }
                 const payload = {
-                    game_id: game.id,
+                    game_id: gameRound.id,
                     currentGroupSize: sizeOfGroup,
                     players: arr,
                     groupProp: {
-                        round_no: game.current_round,
+                        round_no: gameRound.current_round,
                         group_name: activeGroup.name,
                     }
                 }
@@ -155,7 +155,7 @@ const PlayerSelection = () => {
                 const g = temp.find(t => t.name === activeGroup.name);
                 g.members.push(...data);
                 // create hole scores for new added player(s) to use in leaderboards presentation
-                switch (game.hole_mode) {
+                switch (gameRound.hole_mode) {
                     case 1:
                         buildScores(1, 18, leaderboardScores, hp);
                         break;
@@ -170,7 +170,7 @@ const PlayerSelection = () => {
                 // update group size in context game in case the user didn't click the save button for updating the group size in db before adding players to group after adjusting size
                 const tempGame = {...game}
                 tempGame.group_size = sizeOfGroup;
-                setOngoingGame(tempGame);
+                setGamePlay(tempGame);
                 setGroups(temp);
                 setNetworkRequest(false);
                 setActiveGroup(null);
@@ -262,10 +262,10 @@ const PlayerSelection = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await updateGroupSize(controllerRef.current.signal, game.id, sizeOfGroup);
+            const response = await updateGroupSize(controllerRef.current.signal, gameRound.id, sizeOfGroup);
             // remove excess player from group if new size is smaller than previous
             const groups = [...gameGroupArr];
-            if(sizeOfGroup < game.group_size){
+            if(sizeOfGroup < gameRound.group_size){
                 groups.forEach(gameGroup => {
                     if(gameGroup.members.length > sizeOfGroup){
                         const members = gameGroup.members.slice(0, sizeOfGroup);
@@ -283,9 +283,9 @@ const PlayerSelection = () => {
             });
             setScores(newPlayerScores);
             // update group size in game
-            const temp = {...game}
+            const temp = {...gameRound}
             temp.group_size = sizeOfGroup;
-            setOngoingGame(temp);
+            setGamePlay(temp);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -301,7 +301,7 @@ const PlayerSelection = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await removePlayer(controllerRef.current.signal, {game_id: game.id, player_id: selectedGroupPlayer.id});
+            await removePlayer(controllerRef.current.signal, {game_id: gameRound.id, player_id: selectedGroupPlayer.id});
             const temp = [...gameGroupArr];
             const group = temp.find(arr => arr.name === selectedGroupPlayer.group);
             // remove player from group
@@ -330,11 +330,11 @@ const PlayerSelection = () => {
             resetAbortController();
             const groupNo = changedPlayerGroupDetails.value.name;
             const payload = {
-                game_id: game.id,
+                game_id: gameRound.id,
                 currentGroupSize: sizeOfGroup,
                 player_id: selectedGroupPlayer.id,
                 groupProp: {
-                    round_no: game.current_round,
+                    round_no: gameRound.current_round,
                     group_name: groupNo,
                 }
             };
@@ -365,7 +365,7 @@ const PlayerSelection = () => {
             setNetworkRequest(true);
             resetAbortController();
             const payload = {
-                game_id: game.id,
+                game_id: gameRound.id,
                 playerOne: {
                     id: selectedGroupPlayer.id,
                     group_name: selectedGroupPlayer.group,
@@ -454,7 +454,7 @@ const PlayerSelection = () => {
                     <div className="d-flex gap-4 col-12 col-md-4 mb-3">
                         <div className="d-flex flex-column w-100 gap-2">
                             <span className="align-self-start fw-bold">Group Size</span>
-                            <div className={`d-flex gap-3 ${game?.status > 1 ? "disabledDiv" : ''}`}>
+                            <div className={`d-flex gap-3 ${gameRound?.status > 1 ? "disabledDiv" : ''}`}>
                                 <Controller
                                     name="group_size"
                                     control={control}

@@ -10,7 +10,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ThreeDotLoading } from '../react-loading-indicators/Indicator';
 import IMAGES from '../../assets/images';
 import ImageComponent from '../ImageComponent';
-import { useOngoingRound } from '../../app-context/ongoing-game-context';
+import { useGame } from '../../app-context/game-context';
 import { useAuthUser } from '../../app-context/user-context';
 import cryptoHelper from '../../Utils/crypto-helper';
 import ErrorMessage from '../ErrorMessage';
@@ -26,9 +26,9 @@ const groupsSwapSchema = yup.object().shape({
 });
 
 const GroupPlayerDialog = ({ show, handleClose, handleDelete, handleChangeGroup, handleSwapPlayers, networkRequest, player }) => {
-    const { ongoingGame, groups } = useOngoingRound();
+    const { gamePlay, groups } = useGame();
     const { authUser } = useAuthUser();
-    const game = ongoingGame();
+    const game = gamePlay();
     const gameGroupz = groups();
     const user = authUser();
     

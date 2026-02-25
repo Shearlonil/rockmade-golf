@@ -47,7 +47,7 @@ const columns = [
 const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onSave, onViewCourse, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} onClick={() => { onViewCourse(rowData.id); }}  />
+            <IconButton icon={<GrView color='green' />} onClick={() => { onViewCourse(rowData.game_id); }}  />
         </Cell>
   );
 };
@@ -181,10 +181,11 @@ const RecentGames = () => {
     };
   
     const handleViewGameSummary = id => {
-        navigate(`/dashboard/staff/courses/${id}/view`);
+        navigate(`${id}`);
     };
 
     const handleTableRowClicked = (rowData) => {
+        navigate(`${rowData.game_id}`);
     };
 
     const cancelNameSearch = () => {

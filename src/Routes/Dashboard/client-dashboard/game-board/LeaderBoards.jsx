@@ -3,7 +3,7 @@ import { Table } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
 import RsuiteTableSkeletonLoader from '../../../../Components/RsuiteTableSkeletonLoader';
-import { useOngoingRound } from '../../../../app-context/ongoing-game-context';
+import { useGame } from '../../../../app-context/game-context';
 import PlayerLeaderboardScoresDialog from '../../../../Components/DialogBoxes/PlayerLeaderboardScoresDialog';
 
 const rowKey = 'id';
@@ -42,10 +42,10 @@ const CustomNameCell = ({ rowData, dataKey, ...props }) => (
 );
 
 const LeaderBoards = ({networkRequest}) => {
-    const { scores, holeProps, ongoingGame } = useOngoingRound();
+    const { scores, holeProps, gamePlay } = useGame();
     const playerScores = scores();
     const hp = holeProps();
-    const game = ongoingGame();
+    const game = gamePlay();
 
     const [leaderboardsScores, setLeaderboardsScores] = useState([]);
     const [selectedPlayer, setSelectedPlayer] = useState(null);

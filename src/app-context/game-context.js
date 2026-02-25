@@ -1,12 +1,12 @@
 import { createContext, useContext, useMemo, useState } from "react";
 
-const OngoingGameContext = createContext();
+const GameRoundContext = createContext();
 
 /*ref:  https://blog.logrocket.com/authentication-react-router-v6/
         https://blog.logrocket.com/react-context-tutorial/
 */
 export const GameProvider = ({ children }) => {
-    const [ongoingRound, setOngoingRound] = useState(null);
+    const [game, setGame] = useState(null);
     // scores (including contest scores, if any) for all players in the game. Players in the same group will be filtered from this array in GroupScore for display purposes
     const [playerScores, setPlayerScores] = useState([]);
     // all groups in the game
@@ -14,12 +14,12 @@ export const GameProvider = ({ children }) => {
     // properties of all holes (hcp and par)
     const [allHoleProps, setAllHoleProps] = useState();
     
-    const ongoingGame = () => {
-        return ongoingRound;
+    const gamePlay = () => {
+        return game;
     };
     
-    const setOngoingGame = (game) => {
-        setOngoingRound(game);
+    const setGamePlay = (game) => {
+        setGame(game);
     };
     
     const scores = () => {
@@ -48,8 +48,8 @@ export const GameProvider = ({ children }) => {
 
     const value = useMemo(
         () => ({
-            ongoingGame,
-            setOngoingGame,
+            gamePlay,
+            setGamePlay,
             scores,
             setScores,
             groups,
@@ -57,10 +57,10 @@ export const GameProvider = ({ children }) => {
             holeProps,
             setHoleProps,
         }),
-        [ongoingRound, playerScores, gameGroups, allHoleProps]
+        [game, playerScores, gameGroups, allHoleProps]
     );
 
-    return <OngoingGameContext.Provider value={value}>{children}</OngoingGameContext.Provider>;
+    return <GameRoundContext.Provider value={value}>{children}</GameRoundContext.Provider>;
 }
 
-export const useOngoingRound = () => useContext(OngoingGameContext);
+export const useGame = () => useContext(GameRoundContext);

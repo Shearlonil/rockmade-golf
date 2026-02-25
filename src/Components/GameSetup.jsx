@@ -9,14 +9,14 @@ import HolesContestsDialog from "./DialogBoxes/HolesContestsDialog";
 import { useActiveCourses } from "../app-context/active-courses-context";
 import handleErrMsg from "../Utils/error-handler";
 import useCourseController from "../api-controllers/course-controller-hook";
-import { useOngoingRound } from "../app-context/ongoing-game-context";
+import { useGame } from "../app-context/game-context";
 
 const GameSetup = ({ gameMode, setUpGame, handleCancel, networkRequest, btnRedText = 'Cancel', btnBlueText = 'Save', setHolesContests, setRounds }) => {
     const controllerRef = useRef(new AbortController());
     const { courseHolesContests, updateCoursesHolesContests } = useActiveCourses();
     const { finById } = useCourseController();
-    const { ongoingGame } = useOngoingRound();
-    const data = ongoingGame();
+    const { gamePlay } = useGame();
+    const data = gamePlay();
 
     const [gameDetails, setGameDetails] = useState(null);
 	const [showHolesContestsModal, setShowHolesContestsModal] = useState(false);
