@@ -2,22 +2,6 @@ import { useState } from 'react';
 import { Modal } from 'react-bootstrap';
 import { Table } from 'rsuite';
 import ScoreCard from '../ScoreCard';
-const { Column, HeaderCell, Cell } = Table;
-
-const CustomHeader = ({ title, holeProps, idx }) => {
-    if(idx === 0){
-        return <div className='d-flex flex-column justify-content-center align-items-center text-dark gap-2'>
-            <label className='fw-bold text-danger'>{title}</label>
-            <label>Handicap</label>
-            <label>Par</label>
-        </div>
-    }
-    return <div className='d-flex flex-column justify-content-center align-items-center text-dark gap-2'>
-        <label className='fw-bold text-danger'>{title}</label>
-        <label>{holeProps[idx]?.hcp_idx}</label>
-        <label>{holeProps[idx]?.par}</label>
-    </div>
-};
 
 const PlayerLeaderboardScoresDialog = ({ player, show, handleClose, columns, holeProps, totalPar }) => {
     const [p, setP] = useState([]);

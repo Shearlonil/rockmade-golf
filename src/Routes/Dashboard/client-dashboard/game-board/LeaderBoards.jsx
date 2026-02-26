@@ -28,7 +28,7 @@ const columns = [
     {
         key: 'toParVal',
         label: 'TO PAR',
-        width: 100
+        flexGrow: 1,
     },
 ];
 
@@ -64,7 +64,7 @@ const LeaderBoards = ({networkRequest}) => {
         const arr = [...playerScores];
         arr.sort((a, b) => (a.lbParVal - b.lbParVal) || (a.hcp - b.hcp)).forEach((score, idx) => score.position = idx + 1);
         setLeaderboardsScores(arr);
-        switch (game.hole_mode) {
+        switch (game?.hole_mode) {
             case 1:
                 buildGroupScoreTableColumns(1, 18, holeProps);
                 break;
@@ -112,11 +112,7 @@ const LeaderBoards = ({networkRequest}) => {
                         return (
                             <Column {...rest} key={key} >
                                 <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
-                                <CustomNameCell
-                                    dataKey={key}
-                                    name={''}
-                                    hcp={''}
-                                />
+                                <CustomNameCell dataKey={key} />
                             </Column>
                         )
                     }

@@ -403,7 +403,7 @@ const PlayerSelection = () => {
 
     const buildGroup = (datum, idx) => {
         return <div className='col-md-4 col-sm-12 mb-3' key={idx}>
-            <div className='card border-0 rounded-4 bg-light shadow'>
+            <div className='card border-0 rounded-4 bg-light shadow h-100 d-flex justify-content-between'>
                 <div className='d-flex flex-wrap p-2'>
                     {new Array(sizeOfGroup).fill(1).map((val, index) => {
                         if(datum.members[index]){

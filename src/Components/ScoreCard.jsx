@@ -34,13 +34,13 @@ const ScoreCard = ({columns = [], holeProps, totalPar, player, tableData = []}) 
             </Table>
             <div className="d-flex justify-content-between m-3 fs-6">
                 <span>
-                    Par: <span className='fw-bold'> {totalPar} </span>
+                    Par: <span className='fw-bold text-success fs-3'> {totalPar} </span>
                 </span>
                 <span>
-                    Score: <span className='fw-bold'> {player?.score}/{player?.scoreLessHcp} </span>
+                    Score: <span className='fw-bold text-success fs-3'> {player?.score}/{player?.scoreLessHcp} </span>
                 </span>
                 <span>
-                    Position: <span className='fw-bold'> {player?.position} </span>
+                    Position: <span className='fw-bold text-success fs-3'> {player?.position} </span>
                 </span>
             </div>
         </div>

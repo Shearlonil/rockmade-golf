@@ -15,6 +15,9 @@ import { useGame } from "../../../../app-context/game-context";
 import { UserScore } from "../../../../Entities/UserScore";
 import { IoPhonePortraitOutline } from 'react-icons/io5';
 import ScoreCard from "../../../../Components/ScoreCard";
+import ImageComponent from "../../../../Components/ImageComponent";
+import LeaderBoards from "../game-board/LeaderBoards";
+import PlayerList from "./PlayerList";
 
 const GameSummary = () => {
     const controllerRef = useRef(new AbortController());
@@ -79,7 +82,7 @@ const GameSummary = () => {
                 const game = response.data.game;
                 game.Course = response.data.course;
                 setRecentGame(game);
-                // setCourseId(game.course_id);
+                setGamePlay(game);
                 switch (game.mode) {
                     case 1:
                         setGameMode('Tournament');
@@ -165,6 +168,8 @@ const GameSummary = () => {
     
             const currentRoundScores = game.GameHoleRecords.filter(ghc => ghc.round_no === game.current_round);
             buildCurrentRoundScores(allScores, currentRoundScores);
+            // set positions
+            allScores.sort((a, b) => (a.lbParVal - b.lbParVal) || (a.hcp - b.hcp)).forEach((score, idx) => score.position = idx + 1);
             setScores(allScores);
         };
 
@@ -252,17 +257,16 @@ const GameSummary = () => {
                             <Skeleton count={1} width={200} />
                         </div>}
                     </div>
+                </div>
+            </Row>
 
-                    <div className='d-flex col-12 col-md-4 gap-4 align-items-center justify-content-center'>
-                        <div className="d-flex flex-column gap-1 align-items-center">
-                            {/* <IoSettings size={35} style={{ color: 'blue' }} onClick={ settingsClicked } /> */}
-                            <span className="fw-bold h6">Settings</span>
-                        </div>
-
-                        <div className="d-flex flex-column gap-1 align-items-center">
-                            {/* <IoMdRefreshCircle size={35} style={{ color: 'red' }} onClick={ refreshClicked } /> */}
-                            <span className="fw-bold h6">Refresh</span>
-                        </div>
+            <Row className='mt-4'>
+                <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center col-md-10 col-sm-12" >
+                    {myScore?.ProfileImgKeyhash && <ImageComponent image={myScore?.ProfileImgKeyhash} width={'100px'} height={'100px'} round={true} key_id={myScore?.ProfileImgKeyhash.key_hash} />}
+                    {!myScore?.ProfileImgKeyhash && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={100} height={100} />}
+                    <div className="d-flex flex-column">
+                        <span className="fw-bold h2">{myScore?.name}</span>
+                        <div> HCP: <span>{myScore?.hcp}</span> </div>
                     </div>
                 </div>
             </Row>
@@ -273,6 +277,21 @@ const GameSummary = () => {
                 </span>
                 <ScoreCard columns={columns} holeProps={hp} totalPar={totalPar} player={myScore} tableData={scoreCardTableData} />
             </div>
+
+            <Row className='mb-5'>
+                <div className="col-md-6 col-sm-12 mb-5">
+                    <span className="h2 text-danger fw-bold d-flex justify-content-center">Leaderboards</span>
+                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll'}}>
+                        <LeaderBoards networkRequest={networkRequest} />
+                    </div>
+                </div>
+                <div className="col-md-6 col-sm-12 mb-5">
+                    <span className="h2 text-primary fw-bold d-flex justify-content-center">Players ({playerScores?.length})</span>
+                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll'}}>
+                        <PlayerList networkRequest={networkRequest} />
+                    </div>
+                </div>
+            </Row>
         </section>
     );
 }
