@@ -39,6 +39,10 @@ const useUserController = () => {
         return await xhrAios.get(`/users/active/init/${pageSize}`, {signal});
     }
     
+    const playerInfo = async (signal, id) => {
+        return await xhrAios.get(`/users/dashboard/games/player/${id}`, {signal});
+    }
+    
     const dashbaord = async (signal) => {
         return await xhrAios.get(`/users/dashboard`, {signal});
     }
@@ -74,6 +78,7 @@ const useUserController = () => {
         status,
         updatePassword,
         activeStaffPageInit,
+        playerInfo,
         dashbaord,
         paginateFetch,
         userSearch,

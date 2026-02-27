@@ -24,6 +24,8 @@ import { useActiveCourses } from '../../../app-context/active-courses-context';
 import InputDialog from '../../../Components/DialogBoxes/InputDialog';
 import AsyncSearchDialog from '../../../Components/DialogBoxes/AsyncSearchDialog';
 import useCourseController from '../../../api-controllers/course-controller-hook';
+import { useGame } from '../../../app-context/game-context';
+import Skeleton from 'react-loading-skeleton';
 
 const gamesColumns = [
     {
@@ -107,6 +109,30 @@ const ActionCell = ({ rowData, dataKey, onDelete, onViewGame, showDelete, ...pro
   );
 };
 
+const buildTableData = (data) => {
+    return data.map(r => {
+        let hole_mode = 'Full 18';
+        let mode = 'Member Games';
+        if(r.hole_mode === 2){
+            hole_mode = 'Font 9'
+        }else if(r.hole_mode === 3) {
+            hole_mode = 'Back 9'
+        }
+        if(r.mode === 1){
+            mode = 'Tournament'
+        }
+        return {
+            id: r.id,
+            game_id: r.game_id,
+            name: r.name,
+            date: format(r.date, "dd/MM/yyyy"),
+            hole_mode,
+            mode,
+            players: r.players
+        }
+    });
+};
+
 const ClientDashboard = () => {
     const controllerRef = useRef(new AbortController());
     
@@ -118,6 +144,7 @@ const ClientDashboard = () => {
     const { removegame } = useGameController();
     const { gameCourseSearch  } = useCourseController();
     const { dashbaord, updateHomeClub } = useUserController();
+    const { setPlayerID } = useGame();
     const { authUser } = useAuthUser();
     const user = authUser();
 
@@ -186,7 +213,7 @@ const ClientDashboard = () => {
         setNetworkRequest(true);
         await logout();
         navigate("/");
-    }
+    };
 
     const initialize = async () => {
         try {
@@ -216,26 +243,7 @@ const ClientDashboard = () => {
                     }
                 });
                 setOngongRounds(rounds);
-                const recent = response.data.recent_games.map(r => {
-                    let hole_mode = 'Full 18';
-                    let mode = 'Member Games';
-                    if(r.hole_mode === 2){
-                        hole_mode = 'Font 9'
-                    }else if(r.hole_mode === 3) {
-                        hole_mode = 'Back 9'
-                    }
-                    if(r.mode === 1){
-                        mode = 'Tournament'
-                    }
-                    return {
-                        id: r.game_id,
-                        name: r.name,
-                        date: format(r.date, "dd/MM/yyyy"),
-                        hole_mode,
-                        mode,
-                        players: r.players
-                    }
-                });
+                const recent = buildTableData(response.data.recent_games);
                 setRecentGames(recent);
             }
             setNetworkRequest(false);
@@ -247,24 +255,26 @@ const ClientDashboard = () => {
             setNetworkRequest(false);
             toast.error(handleErrMsg(error).msg);
         }
-    }
+    };
 
     const handlegameDelete = (data) => {
         setRoundToDel(data);
         setConfirmDialogEvtName('removeOngoing');
         setDisplayMsg(`Delete ongoing round ${data.name}?. Action cannot be undone!`);
         setShowConfirmModal(true);
-    }
+    };
 
     const handleViewgame = (data) => {
         const nameArr = data.name.split(' ');
         const strName = nameArr.join('+');
         navigate(`/dashboard/client/${data.id}/game/${strName}`);
-    }
+    };
 
-    const handleViewRecentGame = (rowData) => {
-        navigate(`/dashboard/client/games/recent/${rowData.id}`);
-    }
+    const handleViewGameHistory = (rowData) => {
+        const decrypted_id = cryptoHelper.decryptData(user.id);
+        setPlayerID(decrypted_id);
+        navigate(`/dashboard/client/games/history/${rowData.game_id}/summary`);
+    };
 
     const createGame = () => {
         if(user && user.sub && isAfter(new Date(), new Date(cryptoHelper.decryptData(user.sub)).setHours(23, 59, 59, 0))){
@@ -273,7 +283,13 @@ const ClientDashboard = () => {
             return;
         }
         navigate('game/create');
-    }
+    };
+
+    const navigateGameHistory = () => {
+        const decrypted_id = cryptoHelper.decryptData(user.id);
+        setPlayerID(decrypted_id);
+        navigate("client/games/history");
+    };
 
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
@@ -387,7 +403,7 @@ const ClientDashboard = () => {
                 <Col xs={12} md={3} sm={12} className="mb-2">
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100" style={{minHeight: 170}}>
-                            <div className="card-body">
+                            {!networkRequest && <div className="card-body">
                                 <div className='d-flex flex-column justify-content-between'>
                                     <span className='align-self-end'>
                                         <IoSettings size={30} className='text-warning' onClick={() => {
@@ -398,7 +414,13 @@ const ClientDashboard = () => {
                                     <span className='h1 text-warning fw-bold' style={{fontSize: '50px'}}>{user?.hcp}</span>
                                 </div>
                                 <span>Handicap Index value</span>
-                            </div>
+                            </div>}
+                            {networkRequest && <div className="card-body">
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <Skeleton count={4} style={{width: '100%'}} />
+                                </div>
+                                <Skeleton count={2} style={{width: '100%'}} />
+                            </div>}
                             <div className="card-footer fw-bold bg-warning">
                                 HCP
                             </div>
@@ -408,12 +430,18 @@ const ClientDashboard = () => {
                 <Col xs={12} md={3} sm={12} className="mb-2">
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
-                            <div className="card-body">
+                            {!networkRequest && <div className="card-body">
                                 <div className='d-flex justify-content-between'>
                                     <span className='h1 text-danger fw-bold' style={{fontSize: '50px'}}>{coursesPlayed}</span>
                                 </div>
                                 <span>Number of courses played</span>
-                            </div>
+                            </div>}
+                            {networkRequest && <div className="card-body">
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <Skeleton count={4} style={{width: '100%'}} />
+                                </div>
+                                <Skeleton count={2} style={{width: '100%'}} />
+                            </div>}
                             <div className="card-footer text-white bg-danger">
                                 Courses Played
                             </div>
@@ -423,12 +451,18 @@ const ClientDashboard = () => {
                 <Col xs={12} md={3} sm={12} className="mb-2">
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
-                            <div className="card-body">
+                            {!networkRequest && <div className="card-body">
                                 <div className='d-flex justify-content-between'>
                                     <span className='h1 text-primary fw-bold' style={{fontSize: '50px'}}>{gamesPlayed}</span>
                                 </div>
                                 <span>Number of games played</span>
-                            </div>
+                            </div>}
+                            {networkRequest && <div className="card-body">
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <Skeleton count={4} style={{width: '100%'}} />
+                                </div>
+                                <Skeleton count={2} style={{width: '100%'}} />
+                            </div>}
                             <div className="card-footer text-white bg-primary">
                                 Total Games Played
                             </div>
@@ -438,7 +472,7 @@ const ClientDashboard = () => {
                 <Col xs={12} md={3} sm={12} className="mb-2">
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
-                            <div className="card-body">
+                            {!networkRequest && <div className="card-body">
                                 <div className='d-flex flex-column justify-content-between'>
                                     <span className='align-self-end'>
                                         <IoSettings size={30} style={{ color: 'green' }} onClick={() => {
@@ -448,7 +482,13 @@ const ClientDashboard = () => {
                                     </span>
                                     <span className='text-success fw-bold' style={{fontSize: '25px'}}>{homeClub?.name}</span>
                                 </div>
-                            </div>
+                            </div>}
+                            {networkRequest && <div className="card-body">
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <Skeleton count={4} style={{width: '100%'}} />
+                                </div>
+                                <Skeleton count={2} style={{width: '100%'}} />
+                            </div>}
                             <div className="card-footer text-white bg-success">
                                 Home Club
                             </div>
@@ -525,7 +565,7 @@ const ClientDashboard = () => {
                                     })}
                                     <Column width={100} >
                                         <HeaderCell>Actions...</HeaderCell>
-                                        <ActionCell onViewGame={handleViewRecentGame} />
+                                        <ActionCell onViewGame={handleViewGameHistory} />
                                     </Column>
                                 </Table>
                             }
@@ -546,7 +586,7 @@ const ClientDashboard = () => {
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='primary' className='w-100 fw-bold' onClick={() => navigate("client/games/recent")}>Game History</Button> 
+                        <Button variant='primary' className='w-100 fw-bold' onClick={navigateGameHistory}>Game History</Button> 
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 

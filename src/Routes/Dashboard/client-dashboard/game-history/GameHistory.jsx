@@ -14,6 +14,7 @@ import handleErrMsg from "../../../../Utils/error-handler";
 import IMAGES from "../../../../assets/images";
 import cryptoHelper from "../../../../Utils/crypto-helper";
 import useGameController from "../../../../api-controllers/game-controller-hook";
+import { useGame } from "../../../../app-context/game-context";
 
 const columns = [
     {
@@ -44,12 +45,36 @@ const columns = [
     },
 ];
 
-const ActionCell = ({ rowData, dataKey, onEdit, changeStatus, onSave, onViewCourse, ...props }) => {
+const ActionCell = ({ rowData, dataKey, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} onClick={() => { onViewCourse(rowData.game_id); }}  />
+            <IconButton icon={<GrView color='green' />} />
         </Cell>
   );
+};
+
+const buildTableData = (data) => {
+    return data.map(r => {
+        let hole_mode = 'Full 18';
+        let mode = 'Member Games';
+        if(r.hole_mode === 2){
+            hole_mode = 'Font 9'
+        }else if(r.hole_mode === 3) {
+            hole_mode = 'Back 9'
+        }
+        if(r.mode === 1){
+            mode = 'Tournament'
+        }
+        return {
+            id: r.id,
+            game_id: r.game_id,
+            name: r.name,
+            date: format(r.date, "dd/MM/yyyy"),
+            hole_mode,
+            mode,
+            players: r.players
+        }
+    });
 };
 
 const FixedLoader = () => (
@@ -69,15 +94,17 @@ const FixedLoader = () => (
 
 const tableHeight = 500;
 
-const RecentGames = () => {
+const GameHistory = () => {
     const controllerRef = useRef(new AbortController());
     
     const navigate = useNavigate();
     const location = useLocation();
 
     const { authUser } = useAuthUser();
-    const { userRecentGames, userRecentGamesSearch } = useGameController();
+    const { player_id, setPlayerID } = useGame();
+    const { userGameHistory, userGameHistorySearch } = useGameController();
     const user = authUser();
+    const playerID = player_id();
 
     const [networkRequest, setNetworkRequest] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState('');
@@ -92,7 +119,7 @@ const RecentGames = () => {
     const [yPos, setYPos] = useState(0);
     
     useEffect(() => {
-        if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
+        if(!user || cryptoHelper.decryptData(user.mode) !== '1' || !playerID){
             navigate("/");
             return;
         }
@@ -109,7 +136,7 @@ const RecentGames = () => {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
 
-            const response = await userRecentGames(controllerRef.current.signal, {game_group_id: cryptoHelper.encrypt('0'), pageSize});
+            const response = await userGameHistory(controllerRef.current.signal, {game_group_id: cryptoHelper.encrypt('0'), pageSize, playerID});
             const recent = buildTableData(response.data);
             setRecentGames(recent);
 
@@ -134,7 +161,7 @@ const RecentGames = () => {
                 pageSize,
                 queryStr: searchKeyword,
             }
-            const response = await userRecentGamesSearch(controllerRef.current.signal, data);
+            const response = await userGameHistorySearch(controllerRef.current.signal, data);
             const recent = buildTableData(response.data);
             setRecentGames(recent);
             setNetworkRequest(false);
@@ -179,13 +206,9 @@ const RecentGames = () => {
             loadMore();
         }
     };
-  
-    const handleViewGameSummary = id => {
-        navigate(`${id}`);
-    };
 
     const handleTableRowClicked = (rowData) => {
-        navigate(`${rowData.game_id}`);
+        navigate(`${rowData.game_id}/summary`);
     };
 
     const cancelNameSearch = () => {
@@ -207,10 +230,10 @@ const RecentGames = () => {
                         pageSize,
                         queryStr: searchKeyword,
                     }
-                    response = await userRecentGamesSearch(controllerRef.current.signal, data);
+                    response = await userGameHistorySearch(controllerRef.current.signal, data);
                     break;
                 default:
-                    response = await userRecentGames(controllerRef.current.signal, {game_group_id: cryptoHelper.encrypt(recentGames[recentGames.length - 1].id.toString()), pageSize});
+                    response = await userGameHistory(controllerRef.current.signal, {game_group_id: cryptoHelper.encrypt(recentGames[recentGames.length - 1].id.toString()), pageSize});
                     break;
             }
             const recent = buildTableData(response.data);
@@ -235,30 +258,6 @@ const RecentGames = () => {
         controllerRef.current = new AbortController();
     };
 
-    const buildTableData = (data) => {
-        return data.map(r => {
-            let hole_mode = 'Full 18';
-            let mode = 'Member Games';
-            if(r.hole_mode === 2){
-                hole_mode = 'Font 9'
-            }else if(r.hole_mode === 3) {
-                hole_mode = 'Back 9'
-            }
-            if(r.mode === 1){
-                mode = 'Tournament'
-            }
-            return {
-                id: r.id,
-                game_id: r.game_id,
-                name: r.name,
-                date: format(r.date, "dd/MM/yyyy"),
-                hole_mode,
-                mode,
-                players: r.players
-            }
-        });
-    };
-
     return (
         <section className='container d-flex flex-column gap-4' style={{minHeight: '60vh'}}>
             {/* NOTE: setting z-index of this row because of rsuite table which conflicts the drop down menu of react-select */}
@@ -266,35 +265,22 @@ const RecentGames = () => {
                 <div className="card-body row ms-0 me-0">
                     <div className="d-flex gap-3 align-items-center col-12 col-md-4 mb-3">
                         <img src={IMAGES.golf_course} alt ="Avatar" className="rounded-circle" width={50} height={50} />
-                        <span className="text-danger fw-bold h2">Recent Games</span>
+                        <span className="text-danger fw-bold h2">Game History</span>
                     </div>
 
                     <div className="d-flex flex-column gap-2 justify-content-center col-12 col-md-4 mb-3">
-                        {/* <FloatingLabel
-                            controlId="floatingInput1"
-                            label="Search"
-                            className="w-100 mt-2"
-                        >
-                            <Form.Control
-                                className="border border-dark"
-                                type="text"
-                                placeholder="Search"
-                                onKeyDown={handleKeyDown}
-                            />
-                            
-                        </FloatingLabel> */}
                         <InputGroup inside w={300} className="border border-dark">
-                                <Input value={searchKeyword} onChange={setSearchKeyword} onKeyDown={handleKeyDown} />
-                                {searchKeyword ? (
-                                    <InputGroup.Button onClick={cancelNameSearch}>
-                                        <MdCancel color="red" />
-                                    </InputGroup.Button>
-                                ) : (
-                                    <InputGroup.Addon>
-                                        <IoIosSearch />
-                                    </InputGroup.Addon>
-                                )}
-                            </InputGroup>
+                            <Input value={searchKeyword} onChange={setSearchKeyword} onKeyDown={handleKeyDown} />
+                            {searchKeyword ? (
+                                <InputGroup.Button onClick={cancelNameSearch}>
+                                    <MdCancel color="red" />
+                                </InputGroup.Button>
+                            ) : (
+                                <InputGroup.Addon>
+                                    <IoIosSearch />
+                                </InputGroup.Addon>
+                            )}
+                        </InputGroup>
                     </div>
                 </div>
             </Row>
@@ -313,7 +299,8 @@ const RecentGames = () => {
                     })}
                     <Column width={150} >
                         <HeaderCell>Actions...</HeaderCell>
-                        <ActionCell onViewCourse={handleViewGameSummary} />
+                        {/* click method not given to ActionCell here as onRowClick method will still fire when any method passed on to ActionCell is called */}
+                        <ActionCell />
                     </Column>
                 </Table>
                 {networkRequest && <FixedLoader />}
@@ -322,4 +309,4 @@ const RecentGames = () => {
     )
 }
 
-export default RecentGames;
+export default GameHistory;

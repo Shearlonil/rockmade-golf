@@ -20,8 +20,9 @@ import Staff from "./Routes/Dashboard/staff-dashboard/users/Staff.jsx";
 import GameBoard from "./Routes/Dashboard/client-dashboard/game-board/GameBoard.jsx";
 import Dashboard from "./Routes/Dashboard/MainDashboard.jsx";
 import Profile from "./Routes/Dashboard/MyProfilePage/MainProfile.jsx";
-import RecentGames from "./Routes/Dashboard/client-dashboard/recent-games/RecentGames.jsx";
-import GameSummary from "./Routes/Dashboard/client-dashboard/recent-games/GameSummary.jsx";
+import GameHistory from "./Routes/Dashboard/client-dashboard/game-history/GameHistory.jsx";
+import GameSummary from "./Routes/Dashboard/client-dashboard/game-history/GameSummary.jsx";
+import PlayerInfo from "./Routes/Dashboard/client-dashboard/game-history/PlayerInfo.jsx";
 
 function App() {
     return (
@@ -50,8 +51,9 @@ function App() {
                     </Route>
                     <Route path="client" >
                         <Route path=":id/game/:name" element={<GameBoard />} />
-                        <Route path="games/recent" element={<RecentGames />} />
-                        <Route path="games/recent/:id" element={<GameSummary />} />
+                        <Route path="games/history" element={<GameHistory />} />
+                        <Route path="games/history/:id/summary" element={<GameSummary />} />
+                        <Route path="games/player/:id" element={<PlayerInfo />} />
                     </Route>
 					<Route path={""} element={<Dashboard />} />
                 </Route>

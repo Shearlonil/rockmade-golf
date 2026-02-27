@@ -13,7 +13,6 @@ import handleErrMsg from "../../../../Utils/error-handler";
 import { toast } from "react-toastify";
 import { useGame } from "../../../../app-context/game-context";
 import { UserScore } from "../../../../Entities/UserScore";
-import { IoPhonePortraitOutline } from 'react-icons/io5';
 import ScoreCard from "../../../../Components/ScoreCard";
 import ImageComponent from "../../../../Components/ImageComponent";
 import LeaderBoards from "../game-board/LeaderBoards";
@@ -28,17 +27,17 @@ const GameSummary = () => {
 
     const { logout } = useAuth();
     const { authUser } = useAuthUser();
-    const { setScores, setGamePlay, setHoleProps, holeProps, scores } = useGame();
+    const { setScores, setGamePlay, setHoleProps, holeProps, scores, player_id, setGameOrganizer } = useGame();
     const { findRecentGameById } = useGameController();
     const user = authUser();
     const playerScores = scores();
+    const playerID = player_id();
     const hp = holeProps();
 
     const [networkRequest, setNetworkRequest] = useState(true);
     const [recentGame, setRecentGame] = useState(null);
     const [gameMode, setGameMode] = useState(null);
-    const [myScore, setMyScore] = useState(null);
-    const [gameOrganizer, setGameOrganizer] = useState(null);
+    const [userOfInterestScore, setUserOfInterestScore] = useState(null);
     const [totalPar, setTotalPar] = useState(0);
     const [scoreCardTableData, setScoreCardTableData] = useState([]);
     // column headers for table displayed in GroupScore component
@@ -52,7 +51,7 @@ const GameSummary = () => {
     ]);
     
     useEffect(() => {
-        if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
+        if(!user || cryptoHelper.decryptData(user.mode) !== '1' || !playerID){
             logoutUnauthorized();
         }
 
@@ -102,7 +101,6 @@ const GameSummary = () => {
             }
             setNetworkRequest(false);
         } catch (error) {
-            console.log(error);
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
@@ -128,17 +126,6 @@ const GameSummary = () => {
             const allScores = [];
             // const arr = [];
             game.users.forEach(user => {
-                // if(user.UserGameGroup.round_no === game.current_round){
-                //     const group = arr.find(g => g.name === user.UserGameGroup.name);
-                //     if(group){
-                //         group.members.push(user);
-                //     }else {
-                //         arr.push({
-                //             name: user.UserGameGroup.name,
-                //             members: [user]
-                //         });
-                //     }
-                // }
                 const userScore = new UserScore();
                 userScore.id = user.id;
                 userScore.hcp = user.UserGameGroup.user_hcp;
@@ -146,9 +133,10 @@ const GameSummary = () => {
                 userScore.name = user.fname + ' ' + user.lname;
                 userScore.group = user.UserGameGroup.name;
                 allScores.push(userScore);
-                if(user.id == decrypted_id){
-                    setMyScore(userScore);
+                if(user.id == playerID){
                     setScoreCardTableData([userScore]);
+                    // player of interest....
+                    setUserOfInterestScore(userScore);
                 }
                 if(user.id == game.creator_id){
                     setGameOrganizer(userScore);
@@ -246,7 +234,7 @@ const GameSummary = () => {
                             <span className="text-success fw-bold">{recentGame && recentGame.createdAt && format(recentGame.createdAt, "dd/MM/yyyy")}</span>
                         </div>}
                         {networkRequest && <div className="d-flex flex-column gap-1">
-                            <Skeleton count={2} width={200} />
+                            <Skeleton count={2} style={{width: '100%'}} />
                         </div>}
                     </div>
 
@@ -254,7 +242,7 @@ const GameSummary = () => {
                         <span className="fw-bold h6">Location</span>
                         {!networkRequest && <span className="fw-bold text-success h4">{recentGame?.Course.name}</span>}
                         {networkRequest && <div className="d-flex flex-column gap-1">
-                            <Skeleton count={1} width={200} />
+                            <Skeleton count={1} style={{width: '100%'}} />
                         </div>}
                     </div>
                 </div>
@@ -262,11 +250,11 @@ const GameSummary = () => {
 
             <Row className='mt-4'>
                 <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center col-md-10 col-sm-12" >
-                    {myScore?.ProfileImgKeyhash && <ImageComponent image={myScore?.ProfileImgKeyhash} width={'100px'} height={'100px'} round={true} key_id={myScore?.ProfileImgKeyhash.key_hash} />}
-                    {!myScore?.ProfileImgKeyhash && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={100} height={100} />}
+                    {userOfInterestScore?.ProfileImgKeyhash && <ImageComponent image={userOfInterestScore?.ProfileImgKeyhash} width={'100px'} height={'100px'} round={true} key_id={userOfInterestScore?.ProfileImgKeyhash.key_hash} />}
+                    {!userOfInterestScore?.ProfileImgKeyhash && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={100} height={100} />}
                     <div className="d-flex flex-column">
-                        <span className="fw-bold h2">{myScore?.name}</span>
-                        <div> HCP: <span>{myScore?.hcp}</span> </div>
+                        <span className="fw-bold h2">{userOfInterestScore?.name}</span>
+                        <div> HCP: <span>{userOfInterestScore?.hcp}</span> </div>
                     </div>
                 </div>
             </Row>
@@ -275,7 +263,7 @@ const GameSummary = () => {
                 <span className="fw-bold">
                     Scorecard
                 </span>
-                <ScoreCard columns={columns} holeProps={hp} totalPar={totalPar} player={myScore} tableData={scoreCardTableData} />
+                <ScoreCard columns={columns} holeProps={hp} totalPar={totalPar} player={userOfInterestScore} tableData={scoreCardTableData} />
             </div>
 
             <Row className='mb-5'>

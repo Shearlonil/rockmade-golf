@@ -1,4 +1,3 @@
-import React from 'react'
 import { Table } from 'rsuite';
 
 import ImageComponent from '../../../../Components/ImageComponent';
@@ -7,6 +6,7 @@ import IMAGES from '../../../../assets/images';
 import { useGame } from '../../../../app-context/game-context';
 import { useAuthUser } from '../../../../app-context/user-context';
 import cryptoHelper from '../../../../Utils/crypto-helper';
+import { useNavigate } from 'react-router-dom';
 const { Column, HeaderCell, Cell } = Table;
 
 const columns = [
@@ -24,11 +24,17 @@ const columns = [
     },
 ];
 
-const CustomNameCell = ({ rowData, dataKey, ...props }) => (
+const CustomNameCell = ({ rowData, organizer, dataKey, ...props }) => (
     <Cell {...props} style={{ padding: 2 }} fullText>
         <div className='d-flex flex-column justify-content-center align-items-start text-dark'>
             <label className='fw-bold'>{rowData.name}</label>
-            <small className="text-muted">HCP {rowData.hcp}</small>
+            <div className="d-flex gap-2">
+                <small className="text-muted">HCP {rowData.hcp}</small>
+                {organizer && organizer.id == rowData.id && <>
+                    <small className="text-muted">|</small> 
+                    <small className="text-muted">Organizer</small>
+                </>}
+            </div>
         </div>
     </Cell>
 );
@@ -53,10 +59,13 @@ const ImageCell = ({ rowData, dataKey, ...props }) => (
 );
 
 const PlayerList = ({networkRequest}) => {
-    const { scores } = useGame();
+    const navigate = useNavigate();
+
+    const { scores, gameOrganizer } = useGame();
     const { authUser } = useAuthUser();
     const user = authUser();
     const playerScores = scores();
+    const organizer = gameOrganizer();
 
     const handleTableRowClicked = (rowData) => {
         const decrypted_id = cryptoHelper.decryptData(user.id);
@@ -64,7 +73,7 @@ const PlayerList = ({networkRequest}) => {
             // doesn't make sense for current logged in user to click on themself
             return;
         }
-        console.log(rowData);
+        navigate(`/dashboard/client/games/player/${rowData.id}`);
     };
 
     return (
@@ -84,7 +93,7 @@ const PlayerList = ({networkRequest}) => {
                 return (
                     <Column {...rest} key={key} >
                         <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
-                        <CustomNameCell dataKey={key} />
+                        <CustomNameCell dataKey={key} organizer={organizer} />
                     </Column>
                 );
             })}
