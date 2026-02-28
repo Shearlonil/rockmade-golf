@@ -38,7 +38,7 @@ const OffcanvasMenu = ({ menuItems = [], menuItemClick = () => {}, variant="succ
 				</Offcanvas.Header>
 				<Offcanvas.Body>
 					<Nav className="flex-column">
-						{menuItems &&
+						{menuItems.length > 0 &&
 							menuItems.map((menus) => (
 								<Nav.Link
 									key={menus.label}

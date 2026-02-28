@@ -32,6 +32,14 @@ const useGameController = () => {
         return await xhrAios.get(`/games/rounds/recent/${id}`, {signal});
     }
 
+    const findPlayerGameHistoryById = async (signal, data) => {
+        return await xhrAios.get(`/games/rounds/history`, 
+        {
+            game_id: data.id,
+            player_id: data.player_id
+        }, {signal});
+    }
+
     const findOngoingRoundById = async (signal, id) => {
         return await xhrAios.get(`/games/rounds/ongoing/${id}`, {signal});
     }
@@ -64,7 +72,7 @@ const useGameController = () => {
     const userGameHistory = async (signal, data) => {
         return await xhrAios.get(`/games/users/rounds/history`, {
             params: {
-                page_size: data.pageSize, cursor: data.game_group_id, player_id: data.playerID
+                page_size: data.pageSize, cursor: data.game_group_id, player_id: data.player_id
             }
         }, {signal});
     }
@@ -72,7 +80,7 @@ const useGameController = () => {
     const userGameHistorySearch = async (signal, data) => {
         return await xhrAios.get(`/games/users/rounds/history/query`, {
             params: {
-                page_size: data.pageSize, cursor: data.game_group_id, queryStr: data.queryStr
+                page_size: data.pageSize, cursor: data.game_group_id, queryStr: data.queryStr, player_id: data.player_id
             }
         }, {signal});
     }
@@ -86,6 +94,7 @@ const useGameController = () => {
         updateGameSpices,
         findOngoingRoundById,
         findRecentGameById,
+        findPlayerGameHistoryById,
         addPlayers,
         updatePlayerGroup,
         updateGroupSize,

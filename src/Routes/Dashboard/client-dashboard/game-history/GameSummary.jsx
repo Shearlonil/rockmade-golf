@@ -51,8 +51,12 @@ const GameSummary = () => {
     ]);
     
     useEffect(() => {
-        if(!user || cryptoHelper.decryptData(user.mode) !== '1' || !playerID){
+        if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
             logoutUnauthorized();
+        }
+
+        if(!playerID){
+            navigate('/dashboard');
         }
 
         initialize();
@@ -269,13 +273,13 @@ const GameSummary = () => {
             <Row className='mb-5'>
                 <div className="col-md-6 col-sm-12 mb-5">
                     <span className="h2 text-danger fw-bold d-flex justify-content-center">Leaderboards</span>
-                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll'}}>
+                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll', minHeight: 300}}>
                         <LeaderBoards networkRequest={networkRequest} />
                     </div>
                 </div>
                 <div className="col-md-6 col-sm-12 mb-5">
                     <span className="h2 text-primary fw-bold d-flex justify-content-center">Players ({playerScores?.length})</span>
-                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll'}}>
+                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll', minHeight: 300}}>
                         <PlayerList networkRequest={networkRequest} />
                     </div>
                 </div>

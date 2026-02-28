@@ -168,7 +168,7 @@ const PlayerSelection = () => {
                 }
                 setScores([...playerScores, ...leaderboardScores]);
                 // update group size in context game in case the user didn't click the save button for updating the group size in db before adding players to group after adjusting size
-                const tempGame = {...game}
+                const tempGame = {...gameRound}
                 tempGame.group_size = sizeOfGroup;
                 setGamePlay(tempGame);
                 setGroups(temp);
@@ -350,7 +350,6 @@ const PlayerSelection = () => {
             setShowGroupPlayer(false);
             setNetworkRequest(false);
         } catch (error) {
-            console.log(error);
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
@@ -431,7 +430,7 @@ const PlayerSelection = () => {
         </div>
     };
 
-    const buildPlayerGroups = gameGroupArr.map((datum, i) => { return buildGroup(datum, i) });
+    const buildPlayerGroups = gameGroupArr.map((datum, idx) => buildGroup(datum, idx) );
 
     const resetAbortController = () => {
         // Cancel previous request if it exists
@@ -484,7 +483,7 @@ const PlayerSelection = () => {
 
                 {/* PLAYER GRID */}
                 <div className="mb-4 row">
-                    {buildPlayerGroups}
+                    {gameGroupArr && gameGroupArr.length > 0 && buildPlayerGroups}
                 </div>
             </div>
 			<PlayerSearchDialog

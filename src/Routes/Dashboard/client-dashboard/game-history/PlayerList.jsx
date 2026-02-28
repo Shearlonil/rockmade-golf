@@ -61,7 +61,7 @@ const ImageCell = ({ rowData, dataKey, ...props }) => (
 const PlayerList = ({networkRequest}) => {
     const navigate = useNavigate();
 
-    const { scores, gameOrganizer } = useGame();
+    const { scores, gameOrganizer, setPlayerID } = useGame();
     const { authUser } = useAuthUser();
     const user = authUser();
     const playerScores = scores();
@@ -73,6 +73,8 @@ const PlayerList = ({networkRequest}) => {
             // doesn't make sense for current logged in user to click on themself
             return;
         }
+        // update clicked player in game-context
+        setPlayerID(rowData.id);
         navigate(`/dashboard/client/games/player/${rowData.id}`);
     };
 

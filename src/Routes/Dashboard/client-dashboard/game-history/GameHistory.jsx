@@ -109,7 +109,6 @@ const GameHistory = () => {
     const [networkRequest, setNetworkRequest] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState('');
     
-    //  data returned from DataPagination
     const [recentGames, setRecentGames] = useState([]);
     const [pageSize, setPageSize] = useState(10);
     // fetch mode: normal fetch or game name search. 0 (normal), 1 (game name search)
@@ -119,8 +118,18 @@ const GameHistory = () => {
     const [yPos, setYPos] = useState(0);
     
     useEffect(() => {
-        if(!user || cryptoHelper.decryptData(user.mode) !== '1' || !playerID){
+        if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
             navigate("/");
+            return;
+        }
+
+        // in case no player id set prior to viewing this page, set it to logged in user
+        if (!playerID) {
+            const decrypted_id = cryptoHelper.decryptData(user.id);
+            setPlayerID(decrypted_id);
+            /*  AS player id has just been set and being part of dependency list for userEffect, it makes sense to prevent further execution of useEffect until new player id is returned
+                from context. Without return keyword, initialize will be called first without wating for the new player id set to be retrieved from game-context. Then later called again
+                when new player_id is retrieved from the context (since it's part of the dependency list)*/
             return;
         }
 
@@ -129,14 +138,20 @@ const GameHistory = () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
             controllerRef.current.abort();
         };
-    }, [location.pathname]);
+    }, [location.pathname, player_id]);
 
     const initialize = async () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
 
-            const response = await userGameHistory(controllerRef.current.signal, {game_group_id: cryptoHelper.encrypt('0'), pageSize, playerID});
+            const data = {
+                player_id: playerID,
+                game_group_id: cryptoHelper.encrypt(Number.MAX_VALUE.toString()), 
+                // game_group_id: cryptoHelper.encrypt('0'), 
+                pageSize,
+            }
+            const response = await userGameHistory(controllerRef.current.signal, data);
             const recent = buildTableData(response.data);
             setRecentGames(recent);
 
@@ -157,7 +172,9 @@ const GameHistory = () => {
             setNetworkRequest(true);
             resetAbortController();
             const data = {
-                game_group_id: cryptoHelper.encrypt('0'), 
+                player_id: playerID,
+                game_group_id: cryptoHelper.encrypt(Number.MAX_VALUE.toString()), 
+                // game_group_id: cryptoHelper.encrypt('0'), 
                 pageSize,
                 queryStr: searchKeyword,
             }
@@ -226,6 +243,7 @@ const GameHistory = () => {
             switch (fetchType) {
                 case 1:
                     const data = {
+                        player_id: playerID,
                         game_group_id: cryptoHelper.encrypt(recentGames[recentGames.length - 1].id.toString()), 
                         pageSize,
                         queryStr: searchKeyword,
@@ -233,7 +251,12 @@ const GameHistory = () => {
                     response = await userGameHistorySearch(controllerRef.current.signal, data);
                     break;
                 default:
-                    response = await userGameHistory(controllerRef.current.signal, {game_group_id: cryptoHelper.encrypt(recentGames[recentGames.length - 1].id.toString()), pageSize});
+                    const datum = {
+                        player_id: playerID,
+                        game_group_id: cryptoHelper.encrypt(recentGames[recentGames.length - 1].id.toString()), 
+                        pageSize,
+                    }
+                    response = await userGameHistory(controllerRef.current.signal, datum);
                     break;
             }
             const recent = buildTableData(response.data);
@@ -270,7 +293,7 @@ const GameHistory = () => {
 
                     <div className="d-flex flex-column gap-2 justify-content-center col-12 col-md-4 mb-3">
                         <InputGroup inside w={300} className="border border-dark">
-                            <Input value={searchKeyword} onChange={setSearchKeyword} onKeyDown={handleKeyDown} />
+                            <Input value={searchKeyword} onChange={setSearchKeyword} onKeyDown={handleKeyDown} placeholder='Search games' />
                             {searchKeyword ? (
                                 <InputGroup.Button onClick={cancelNameSearch}>
                                     <MdCancel color="red" />

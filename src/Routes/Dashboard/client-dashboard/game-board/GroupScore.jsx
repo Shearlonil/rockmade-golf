@@ -152,11 +152,7 @@ const GroupScore = ({columns = [], myGroup}) => {
                         return (
                             <Column {...rest} key={key} >
                                 <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
-                                <CustomNameCell
-                                    dataKey={key}
-                                    name={''}
-                                    hcp={''}
-                                />
+                                <CustomNameCell dataKey={key} />
                             </Column>
                         )
                     }

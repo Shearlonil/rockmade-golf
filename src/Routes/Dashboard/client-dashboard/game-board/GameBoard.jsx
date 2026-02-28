@@ -28,6 +28,13 @@ import GameCodesViewDialog from '../../../../Components/DialogBoxes/GameCodesVie
 import { UserScore } from '../../../../Entities/UserScore';
 import { useGame } from '../../../../app-context/game-context';
 
+const offcanvasMenuItems = [
+    { label: "Enter Score", onClickParams: {evtName: 'enterScore'} },
+    { label: "Leaderboards", onClickParams: {evtName: 'leaderboards'} },
+    { label: "Settings", onClickParams: {evtName: 'settings'} },
+    { label: "Share Game", onClickParams: {evtName: 'share'} },
+];
+
 const GameBoard = () => {
     const controllerRef = useRef(new AbortController());
     
@@ -80,13 +87,8 @@ const GameBoard = () => {
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
     const [updatedCourseData, setUpdatedCoureData] = useState(null);
     
-    const [offCanvasMenu, setOffCanvasMenu] = useState([
-        { label: "Enter Score", onClickParams: {evtName: 'enterScore'} },
-        { label: "Leaderboards", onClickParams: {evtName: 'leaderboards'} },
-        { label: "Settings", onClickParams: {evtName: 'settings'} },
-        { label: "Share Game", onClickParams: {evtName: 'share'} },
-    ]);
-    const [activeMenuItem, setActiveMenuItem] = useState(offCanvasMenu[0].label);
+    const [offCanvasMenu, setOffCanvasMenu] = useState([]);
+    const [activeMenuItem, setActiveMenuItem] = useState(offcanvasMenuItems[0].label);
 
     useEffect(() => {
         if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
@@ -139,7 +141,9 @@ const GameBoard = () => {
 
                 const decrypted_id = cryptoHelper.decryptData(user.id);
                 if(game.creator_id == decrypted_id){
-                    setOffCanvasMenu([...offCanvasMenu, { label: "End Game", onClickParams: {evtName: 'endGame'} }]);
+                    setOffCanvasMenu([...offcanvasMenuItems, { label: "End Game", onClickParams: {evtName: 'endGame'} }]);
+                }else {
+                    setOffCanvasMenu([...offcanvasMenuItems]);
                 }
                 const hp = buildHoleProps(game);
                 buildGameScores(game, hp);
@@ -453,7 +457,7 @@ const GameBoard = () => {
 
                     <div className="d-flex flex-column gap-1 align-items-center justify-content-center col-12 col-md-4">
                         <span className="fw-bold h6">Location</span>
-                        <span className="fw-bold text-success h4">{ongoingRound?.Course.name}</span>
+                        <span className="fw-bold text-success h4">{ongoingRound?.Course?.name}</span>
                     </div>
 
                     <div className='d-flex col-12 col-md-4 gap-4 align-items-center justify-content-center'>

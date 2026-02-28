@@ -35,7 +35,7 @@ const GameMode = () => {
     const { limitGameCourseSearch, gameCourseSearch } = useCourseController();
     const { createGame } = useGameController();
     const { authUser } = useAuthUser();    
-    const { setGamePlay } = useGame();
+    const { setGamePlay, setGroups } = useGame();
     const user = authUser();
 
     const [step, setStep] = useState(1);
@@ -99,6 +99,9 @@ const GameMode = () => {
 
 	const submitCourse = (data) => {
         setCourse(data);
+        /*  temporarily set gamPlay in context to use in GameSetup jsx. The format of data object is a little different from the expected gamePlay object. But this sets up an object to use
+            in GameSetup for game creation to continue. When create Game button is clicked in GameSetup jsx, the returned response will then be used to set up the gamePlay object in context
+        */
         setGamePlay(data);
         setCourseSettingData(data);
         setHeroText('Add Contests to spice up game');
@@ -135,6 +138,8 @@ const GameMode = () => {
             };
             const response = await createGame(controllerRef.current.signal, data);
             setOngoingRound(response.data);
+            // save actual game play. Read comment in submitCourse function to understand
+            setGamePlay(response.data);
             buildGameGroup(response.data);
             setHeroText('Create Groups and Add Players');
             setStep(4);
@@ -190,7 +195,8 @@ const GameMode = () => {
                 }
             }
         });
-        setGameGroupArr(arr);
+        // setGameGroupArr(arr);
+        setGroups(arr);
     };
 
     const resetAbortController = () => {
@@ -271,7 +277,7 @@ const GameMode = () => {
                         setHolesContests={setHolesContests}
                         setRounds={setNewRounds} />}
 
-                {step === 4 && <PlayerSelection gameGroupArr={gameGroupArr} game={ongoingRound} />}
+                {step === 4 && <PlayerSelection />}
                 {step === 4 && 
                     <div className='row mb-5'>
                         <div className="col-12 d-flex align-items-center justify-content-center">
