@@ -43,6 +43,10 @@ const useUserController = () => {
         return await xhrAios.get(`/users/dashboard/games/player/${id}`, {signal});
     }
     
+    const playedCourses = async (signal, id) => {
+        return await xhrAios.get(`/users/courses/played/${id}`, {signal});
+    }
+    
     const dashbaord = async (signal) => {
         return await xhrAios.get(`/users/dashboard`, {signal});
     }
@@ -74,6 +78,7 @@ const useUserController = () => {
 
     return {
         onboard,
+        playedCourses,
         updateHomeClub,
         status,
         updatePassword,

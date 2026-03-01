@@ -28,16 +28,8 @@ const useGameController = () => {
         return await xhrAios.post(`/games/spices/update`, data, {signal});
     }
 
-    const findRecentGameById = async (signal, id) => {
-        return await xhrAios.get(`/games/rounds/recent/${id}`, {signal});
-    }
-
-    const findPlayerGameHistoryById = async (signal, data) => {
-        return await xhrAios.get(`/games/rounds/history`, 
-        {
-            game_id: data.id,
-            player_id: data.player_id
-        }, {signal});
+    const findGameHistoryById = async (signal, id) => {
+        return await xhrAios.get(`/games/rounds/history/${id}`, {signal});
     }
 
     const findOngoingRoundById = async (signal, id) => {
@@ -93,8 +85,7 @@ const useGameController = () => {
         removegame,
         updateGameSpices,
         findOngoingRoundById,
-        findRecentGameById,
-        findPlayerGameHistoryById,
+        findGameHistoryById,
         addPlayers,
         updatePlayerGroup,
         updateGroupSize,

@@ -18,6 +18,7 @@ import handleErrMsg from '../../../../Utils/error-handler';
 import useUserController from '../../../../api-controllers/user-controller-hook';
 import useGameController from '../../../../api-controllers/game-controller-hook';
 import cryptoHelper from '../../../../Utils/crypto-helper';
+import UserPlayedCoursesDialog from '../../../../Components/DialogBoxes/UserPlayedCoursesDialog';
 
 const columns = [
     {
@@ -116,6 +117,7 @@ const PlayerInfo = () => {
     const [pageLoad, setPageLoad] = useState(true);
     const [coursesPlayed, setCoursesPlayed] = useState(0);
     const [searchKeyword, setSearchKeyword] = useState('');
+	const [showCoursesPlayed, setShowCoursesPlayed] = useState(false);
     
     const [recentGames, setRecentGames] = useState([]);
     const [pageSize, setPageSize] = useState(10);
@@ -216,6 +218,12 @@ const PlayerInfo = () => {
             loadMore();
         }
     };
+
+	const handleCloseModal = () => {
+        setShowCoursesPlayed(false);
+    };
+
+    const viewUserPlayedCourses = () => setShowCoursesPlayed(true);
 
     const handleTableRowClicked = (rowData) => {
         navigate(`/dashboard/client/games/history/${rowData.game_id}/summary`);
@@ -328,7 +336,7 @@ const PlayerInfo = () => {
                                 <div className='d-flex justify-content-between'>
                                     <span className='h1 text-danger fw-bold' style={{fontSize: '50px'}}>{coursesPlayed}</span>
                                 </div>
-                                <Button variant='outline-danger' style={{width: '100px'}}>View</Button>
+                                <Button variant='outline-danger' style={{width: '100px'}} onClick={viewUserPlayedCourses}>View</Button>
                             </div>}
                             {pageLoad && <div className="card-body">
                                 <div className='d-flex flex-column justify-content-between'>
@@ -379,6 +387,11 @@ const PlayerInfo = () => {
                 </Table>
                 {networkRequest && <FixedLoader />}
             </Box>
+            <UserPlayedCoursesDialog
+                show={showCoursesPlayed}
+                handleClose={handleCloseModal}
+                user_id={id}
+            />
         </section>
     )
 }

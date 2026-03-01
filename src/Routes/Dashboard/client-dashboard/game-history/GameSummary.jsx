@@ -28,7 +28,7 @@ const GameSummary = () => {
     const { logout } = useAuth();
     const { authUser } = useAuthUser();
     const { setScores, setGamePlay, setHoleProps, holeProps, scores, player_id, setGameOrganizer } = useGame();
-    const { findRecentGameById } = useGameController();
+    const { findGameHistoryById } = useGameController();
     const user = authUser();
     const playerScores = scores();
     const playerID = player_id();
@@ -79,7 +79,7 @@ const GameSummary = () => {
             setScores([]);
             setNetworkRequest(true);
             resetAbortController();
-            const response = await findRecentGameById(controllerRef.current.signal, id);
+            const response = await findGameHistoryById(controllerRef.current.signal, id);
 
             if(response && response.data){
                 const game = response.data.game;
@@ -125,45 +125,45 @@ const GameSummary = () => {
         controllerRef.current = new AbortController();
     };
     
-        const buildGameScores = (game, holeProps) => {
-            const decrypted_id = cryptoHelper.decryptData(user.id);
-            const allScores = [];
-            // const arr = [];
-            game.users.forEach(user => {
-                const userScore = new UserScore();
-                userScore.id = user.id;
-                userScore.hcp = user.UserGameGroup.user_hcp;
-                userScore.ProfileImgKeyhash = user.ProfileImgKeyhash;
-                userScore.name = user.fname + ' ' + user.lname;
-                userScore.group = user.UserGameGroup.name;
-                allScores.push(userScore);
-                if(user.id == playerID){
-                    setScoreCardTableData([userScore]);
-                    // player of interest....
-                    setUserOfInterestScore(userScore);
-                }
-                if(user.id == game.creator_id){
-                    setGameOrganizer(userScore);
-                }
-            });
-            switch (game.hole_mode) {
-                case 1:
-                    buildGroupScoreTableColumns(1, 18, allScores, holeProps);
-                    break;
-                case 2:
-                    buildGroupScoreTableColumns(1, 9, allScores, holeProps);
-                    break;
-                case 3:
-                    buildGroupScoreTableColumns(10, 18, allScores, holeProps);
-                    break;
+    const buildGameScores = (game, holeProps) => {
+        const decrypted_id = cryptoHelper.decryptData(user.id);
+        const allScores = [];
+        // const arr = [];
+        game.users.forEach(user => {
+            const userScore = new UserScore();
+            userScore.id = user.id;
+            userScore.hcp = user.UserGameGroup.user_hcp;
+            userScore.ProfileImgKeyhash = user.ProfileImgKeyhash;
+            userScore.name = user.fname + ' ' + user.lname;
+            userScore.group = user.UserGameGroup.name;
+            allScores.push(userScore);
+            if(user.id == playerID){
+                setScoreCardTableData([userScore]);
+                // player of interest....
+                setUserOfInterestScore(userScore);
             }
-    
-            const currentRoundScores = game.GameHoleRecords.filter(ghc => ghc.round_no === game.current_round);
-            buildCurrentRoundScores(allScores, currentRoundScores);
-            // set positions
-            allScores.sort((a, b) => (a.lbParVal - b.lbParVal) || (a.hcp - b.hcp)).forEach((score, idx) => score.position = idx + 1);
-            setScores(allScores);
-        };
+            if(user.id == game.creator_id){
+                setGameOrganizer(userScore);
+            }
+        });
+        switch (game.hole_mode) {
+            case 1:
+                buildGroupScoreTableColumns(1, 18, allScores, holeProps);
+                break;
+            case 2:
+                buildGroupScoreTableColumns(1, 9, allScores, holeProps);
+                break;
+            case 3:
+                buildGroupScoreTableColumns(10, 18, allScores, holeProps);
+                break;
+        }
+
+        const currentRoundScores = game.GameHoleRecords.filter(ghc => ghc.round_no === game.current_round);
+        buildCurrentRoundScores(allScores, currentRoundScores);
+        // set positions
+        allScores.sort((a, b) => (a.lbParVal - b.lbParVal) || (a.hcp - b.hcp)).forEach((score, idx) => score.position = idx + 1);
+        setScores(allScores);
+    };
 
     const buildHoleProps = (game) => {
         const obj = {};
