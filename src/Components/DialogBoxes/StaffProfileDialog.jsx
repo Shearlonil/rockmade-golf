@@ -1,71 +1,48 @@
-import { useRef, useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Select from "react-select";
-import {
-    RiUserLine,
-    RiMailLine,
-} from "react-icons/ri";
+import { RiUserLine, } from "react-icons/ri";
 import { IoPhonePortraitOutline } from "react-icons/io5";
-import { toast } from 'react-toastify';
 
 import ErrorMessage from '../ErrorMessage';
 import { ThreeDotLoading } from '../react-loading-indicators/Indicator';
-import { schema } from '../../Utils/yup-schema-validator/staff-schema';
+import { personal_info_schema } from '../../Utils/yup-schema-validator/staff-schema';
 import { gender } from '../../Utils/data';
-import handleErrMsg from '../../Utils/error-handler';
-import useStaffController from '../../api-controllers/staff-controller';
+import { useAuthUser } from '../../app-context/user-context';
 
-const StaffCreationDialog = ({ show, handleClose, handleConfirm, message, networkRequest }) => {
-    const controllerRef = useRef(new AbortController());
-    
-    const { getAuths } = useStaffController();
-
-    const [authOptions, setAuthOptions] = useState([]);
-    const [authsLoading, setAuthsLoading] = useState(true);
+const StaffProfileDialog = ({ show, handleClose, handleConfirm, networkRequest }) => {
+    const { authUser } = useAuthUser();
+    const user = authUser();
 
     const {
         handleSubmit,
         register,
         control,
+        setValue,
         formState: { errors },
     } = useForm({
-        resolver: yupResolver(schema),
+        resolver: yupResolver(personal_info_schema),
     });
 
-    const handleEntered = async () => {
-        try {
-            setAuthsLoading(true);
-            const response = await getAuths(controllerRef.current.signal);
-
-            if(response && response.data){
-                setAuthOptions(response.data.map(auth => ({label: auth.name, value: auth})));
-            }
-            setAuthsLoading(false);
-        } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
-                // Request was intentionally aborted, handle silently
-                return;
-            }
-            setAuthsLoading(false);
-            toast.error(handleErrMsg(error).msg);
+    const modalLoaded = () => {
+        if(user){
+            setValue('fname', user.firstName);
+            setValue('lname', user.lastName);
+            setValue('phone', user.phone);
+            const sex = gender.find(g => g.value.toLowerCase() === user.sex.toLowerCase());
+            setValue("sex", sex);
         }
     };
-
-    const handleExited = async () => {
-        controllerRef.current.abort();
-        handleClose();
-    }
     
     const onSubmit = async (formData) => {
         handleConfirm(formData);
     };
 
     return (
-        <Modal backdrop='static' show={show} onHide={handleExited} onEntered={handleEntered}>
+        <Modal backdrop='static' show={show} onHide={handleClose} onEntered={modalLoaded}>
             <Modal.Header closeButton>
-                <Modal.Title>{message}</Modal.Title>
+                <Modal.Title>Edit Profile</Modal.Title>
             </Modal.Header>
             <Form>
                 <Modal.Body>
@@ -103,15 +80,15 @@ const StaffCreationDialog = ({ show, handleClose, handleConfirm, message, networ
                     <div className="row g-3 mb-3">
                         <div className="col-md-6">
                             <label className="form-label fw-bold">
-                                Phone Number
+                               Phone
                             </label>
                             <div className="input-group">
                                 <span className="input-group-text bg-light">
                                     <IoPhonePortraitOutline size={18} />
                                 </span>
                                 <Form.Control
-                                    type="number"
-                                    placeholder="Phone Number"
+                                    type="text"
+                                    placeholder="Phone"
                                     {...register("phone")}
                                 />
                             </div>
@@ -137,47 +114,6 @@ const StaffCreationDialog = ({ show, handleClose, handleConfirm, message, networ
                             <ErrorMessage source={errors.sex} />
                         </div>
                     </div>
-
-                    <div className="row g-3 mb-3">
-                        <div className="col-12">
-                            <label className="form-label fw-bold">
-                                Email
-                            </label>
-                            <div className="input-group">
-                                <span className="input-group-text bg-light">
-                                    <RiMailLine size={18} />
-                                </span>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="john@example.com"
-                                    {...register("email")}
-                                />
-                            </div>
-                            <ErrorMessage source={errors.email} />
-                        </div>
-                    </div>
-
-                    <div className="row g-3 mb-3">
-                        <div className="col-12">
-                            <label className="form-label fw-bold">Authorities</label>
-                            <Controller
-                                name="authorities"
-                                control={control}
-                                render={({ field: { onChange, value } }) => (
-                                    <Select
-                                        isMulti
-                                        name="authorities"
-                                        placeholder="Select Authorities..."
-                                        className="text-dark col-12"
-                                        options={authOptions}
-                                        isLoading={authsLoading}
-                                        onChange={(val) => onChange(val)}
-                                    />
-                                )}
-                            />
-                            <ErrorMessage source={errors.authorities} />
-                        </div>
-                    </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="danger" onClick={handleClose} disabled={networkRequest} style={{minWidth: '150px'}}>
@@ -186,7 +122,7 @@ const StaffCreationDialog = ({ show, handleClose, handleConfirm, message, networ
                     </Button>
                     <Button variant="primary" onClick={handleSubmit(onSubmit)} disabled={networkRequest} style={{minWidth: '150px'}}>
                         {networkRequest && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
-                        {!networkRequest && 'Create Account'}
+                        {!networkRequest && 'Update Profile'}
                     </Button>
                 </Modal.Footer>
             </Form>
@@ -194,4 +130,4 @@ const StaffCreationDialog = ({ show, handleClose, handleConfirm, message, networ
     )
 }
 
-export default StaffCreationDialog;
+export default StaffProfileDialog;

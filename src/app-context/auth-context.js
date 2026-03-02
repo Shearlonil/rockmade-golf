@@ -53,6 +53,18 @@ export const AuthProvider = ({ children }) => {
         */
         setAxiosToken(jwt);
     }
+
+    // call this function when staff want to update personal info
+    const updateStaffPersonalInfo = async (signal, data) => {
+        const response = await xhrAios.put(`/staff/profile/info/update`, data, {signal});
+        //  remove the token prefix from the token for jwtDecode to decode the token
+        const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
+        setJwtTokenValue(jwt);
+        /*  Update token in axios. A Bug detected on signin in, Axios won't attach bearer token to request after first login. Will only start attaching after page refresh.
+            This is a make shift to circumvent the bug
+        */
+        setAxiosToken(jwt);
+    }
     
     const updateHCP = async (signal, data) => {
         const response = await xhrAios.put(`/users/profile/hcp/update`, data, {signal});
@@ -65,8 +77,21 @@ export const AuthProvider = ({ children }) => {
         setAxiosToken(jwt);
     }
     
+    // updating client email
     const updateEmail = async (signal, data) => {
         const response = await xhrAios.put(`/users/profile/email/update`, data, {signal});
+        //  remove the token prefix from the token for jwtDecode to decode the token
+        const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
+        setJwtTokenValue(jwt);
+        /*  Update token in axios. A Bug detected on signin in, Axios won't attach bearer token to request after first login. Will only start attaching after page refresh.
+            This is a make shift to circumvent the bug
+        */
+        setAxiosToken(jwt);
+    }
+    
+    // updating staff email
+    const updateStaffEmail = async (signal, data) => {
+        const response = await xhrAios.put(`/staff/profile/email/update`, data, {signal});
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -107,8 +132,10 @@ export const AuthProvider = ({ children }) => {
             clientLogin,
             staffLogin,
             updatePersonalInfo,
+            updateStaffPersonalInfo,
             updateHCP,
             updateEmail,
+            updateStaffEmail,
             updateProfileImg,
             logout,
             getCurrentYear,

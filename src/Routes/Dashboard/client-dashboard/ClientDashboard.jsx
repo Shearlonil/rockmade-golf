@@ -143,7 +143,7 @@ const ClientDashboard = () => {
     const { setUserHomeClub } =  useActiveCourses();
     const { removegame } = useGameController();
     const { gameCourseSearch  } = useCourseController();
-    const { dashbaord, updateHomeClub } = useUserController();
+    const { dashboard, updateHomeClub } = useUserController();
     const { setPlayerID } = useGame();
     const { authUser } = useAuthUser();
     const user = authUser();
@@ -219,7 +219,7 @@ const ClientDashboard = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const response = await dashbaord(controllerRef.current.signal);
+            const response = await dashboard(controllerRef.current.signal);
             if(response && response.data){
                 setCoursesPlayed(response.data.courses_played);
                 setGamesPlayed(response.data.games_played);

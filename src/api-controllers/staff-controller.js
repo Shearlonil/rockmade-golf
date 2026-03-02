@@ -7,6 +7,14 @@ const useStaffController = () => {
     const register = async (signal, data) => {
         return await xhrAios.post('/staff/register', data, {signal});
     }
+    
+    const updatePassword = async (signal, data) => {
+        return await xhrAios.put(`/staff/profile/pw/update`, data, {signal});
+    }
+    
+    const dashboard = async (signal) => {
+        return await xhrAios.get(`/staff/dashboard`, {signal});
+    }
 
     const findByIdWithAuths = async (signal, id) => {
         return await xhrAios.get(`/staff/profile/search/${id}`, {signal});
@@ -40,14 +48,22 @@ const useStaffController = () => {
         return await xhrAios.put('/staff/roles/update', data, {signal});
     }
 
+    // get authorities to use in registering new users
+    const getAuths = async (signal) => {
+        return await xhrAios.get(`/staff/auths`, {signal});
+    }
+
     return {
         register,
+        updatePassword,
+        dashboard,
         findByIdWithAuths,
         status,
         activeStaffPageInit,
         paginateFetch,
         staffSearch,
         updateRoles,
+        getAuths,
     }
 }
 

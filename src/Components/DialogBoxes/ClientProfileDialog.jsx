@@ -40,7 +40,7 @@ const ClientProfileDialog = ({ show, handleClose, handleConfirm, networkRequest 
     };
 
     return (
-        <Modal show={show} onHide={handleClose} onEntered={modalLoaded}>
+        <Modal backdrop='static' show={show} onHide={handleClose} onEntered={modalLoaded}>
             <Modal.Header closeButton>
                 <Modal.Title>Edit Profile</Modal.Title>
             </Modal.Header>

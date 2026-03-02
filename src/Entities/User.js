@@ -10,6 +10,7 @@ export default class User {
                 lastName: whom.lname,
                 status: whom.status,
                 email: whom.email,
+                phone: whom.phone,
                 sex: whom.sex,
                 mode: whom.mode,
                 regDate: whom.regDate,
@@ -45,6 +46,10 @@ export default class User {
     get email() { return _userProps.get(this).email }
     
     set email(email) { _userProps.get(this).email = email }
+
+    get phone() { return _userProps.get(this).phone }
+    
+    set phone(phone) { _userProps.get(this).phone = phone }
 
     get mode() { return _userProps.get(this).mode }
     

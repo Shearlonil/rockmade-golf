@@ -3,11 +3,11 @@ import { Button, Col, Row } from 'react-bootstrap';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Skeleton from 'react-loading-skeleton';
 
 import { useAuthUser } from '../../../app-context/user-context';
 import IMAGES from '../../../assets/images';
 import handleErrMsg from '../../../Utils/error-handler';
-import useGenericController from '../../../api-controllers/generic-controller-hook';
 import OffcanvasMenu from '../../../Components/OffcanvasMenu';
 import cryptoHelper from '../../../Utils/crypto-helper';
 import StaffCreationDialog from '../../../Components/DialogBoxes/StaffCreationDialog';
@@ -21,20 +21,24 @@ const StaffDashboard = () => {
     const location = useLocation();
     
     const { register } = useStaffController();
-    const { performGetRequests } = useGenericController();
+    const { dashboard } = useStaffController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
-    const [authOptions, setAuthOptions] = useState([]);
     const [showStaffCreationModal, setShowStaffCreationModal] = useState(false);
 	const [showStaffProfileModal, setShowStaffProfileModal] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
     const [newUser, setNewUser] = useState(null);
+    
     const [topPlayedCoursesData, setTopPlayedCoursesData] = useState([ { name: "Fetching Data", value: 1, color: "#0088FE" } ]);
-    const [mostPlayedContestsData, setMostPlayedContestsData] = useState([]);
+    const [monthlyRevenueData, setMonthlyRevenueData] = useState([]);
+    const [totalContests, setTotalContests] = useState(0);
+    const [totalUsers, setTotalUsers] = useState(0);
+    const [subscribedUsers, setSubscribedUsers] = useState(0);
+    const [activeGolfCourses, setActiveGolfCourses] = useState(0);
     
     const usersOffCanvasMenu = [
         { label: "Golf Courses", onClickParams: {evtName: 'viewGolfCourses'} },
@@ -77,7 +81,7 @@ const StaffDashboard = () => {
         if(!user || cryptoHelper.decryptData(user.mode) === '1'){
             navigate("/");
         }
-        setMostPlayedContestsData([{month: months[0], amount: 1000}]);
+        setMonthlyRevenueData([{month: months[0], amount: 1000}]);
 
         initialize();
         return () => {
@@ -90,12 +94,29 @@ const StaffDashboard = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const urls = [ '/staff/auths' ];
-            const response = await performGetRequests(urls, controllerRef.current.signal);
-            const { 0: authReq } = response;
-
-            if(authReq && authReq.data){
-                setAuthOptions(authReq.data.map(auth => ({label: auth.name, value: auth})));
+            const response = await dashboard(controllerRef.current.signal);
+            setTotalUsers(response.data.total_users.total_users);
+            setActiveGolfCourses(response.data.active_courses.total_courses);
+            setSubscribedUsers(response.data.sub_users.sub_users);
+            setTotalContests(response.data.total_contests);
+            const arr = [];
+            response.data.top_courses.forEach((top_course, idx) =>  {
+                const obj = {
+                    name : top_course.name,
+                    value : top_course.occurence,
+                    color: COLORS[idx],
+                }
+                arr.push(obj);
+            });
+            setTopPlayedCoursesData(arr);
+            if(response && response.data && response.data.top_courses.length <= 0){
+                setTopPlayedCoursesData([
+                    {
+                        name: "No Data",
+                        value: 1,
+                        color: COLORS[4]
+                    }
+                ]);
             }
 
             setNetworkRequest(false);
@@ -217,11 +238,20 @@ const StaffDashboard = () => {
             </Row>
             <Row className='mt-4'>
                 <Col xs={12} md={3} sm={12} className="mb-2">
-                    <div className="p-2">
+                    <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100" style={{minHeight: 170}}>
-                            <div className="card-body">
-                                This is some text within a card body.
-                            </div>
+                            {!networkRequest && <div className="card-body">
+                                <div className='d-flex justify-content-between'>
+                                    <span className='h1 text-warning fw-bold' style={{fontSize: '50px'}}>{totalUsers}</span>
+                                </div>
+                                <span>All Registered Users</span>
+                            </div>}
+                            {networkRequest && <div className="card-body">
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <Skeleton count={4} style={{width: '100%'}} />
+                                </div>
+                                <Skeleton count={2} style={{width: '100%'}} />
+                            </div>}
                             <div className="card-footer fw-bold bg-warning">
                                 Total Users
                             </div>
@@ -231,9 +261,18 @@ const StaffDashboard = () => {
                 <Col xs={12} md={3} sm={12} className="mb-2">
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
-                            <div className="card-body">
-                                This is some text within a card body.
-                            </div>
+                            {!networkRequest && <div className="card-body">
+                                <div className='d-flex justify-content-between'>
+                                    <span className='h1 text-danger fw-bold' style={{fontSize: '50px'}}>{subscribedUsers}</span>
+                                </div>
+                                <span>Number Subscribed Users</span>
+                            </div>}
+                            {networkRequest && <div className="card-body">
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <Skeleton count={4} style={{width: '100%'}} />
+                                </div>
+                                <Skeleton count={2} style={{width: '100%'}} />
+                            </div>}
                             <div className="card-footer text-white bg-danger">
                                 Subscribed Users
                             </div>
@@ -243,9 +282,18 @@ const StaffDashboard = () => {
                 <Col xs={12} md={3} sm={12} className="mb-2">
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
-                            <div className="card-body">
-                                This is some text within a card body.
-                            </div>
+                            {!networkRequest && <div className="card-body">
+                                <div className='d-flex justify-content-between'>
+                                    <span className='h1 text-primary fw-bold' style={{fontSize: '50px'}}>{activeGolfCourses}</span>
+                                </div>
+                                <span>Number of active golf courses</span>
+                            </div>}
+                            {networkRequest && <div className="card-body">
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <Skeleton count={4} style={{width: '100%'}} />
+                                </div>
+                                <Skeleton count={2} style={{width: '100%'}} />
+                            </div>}
                             <div className="card-footer text-white bg-primary">
                                 Total Golf Courses
                             </div>
@@ -255,9 +303,18 @@ const StaffDashboard = () => {
                 <Col xs={12} md={3} sm={12} className="mb-2">
                     <div className="p-2 h-100">
                         <div className="card shadow border-0 rounded-3 h-100">
-                            <div className="card-body">
-                                This is some text within a card body.
-                            </div>
+                            {!networkRequest && <div className="card-body">
+                                <div className='d-flex justify-content-between'>
+                                    <span className='h1 text-success fw-bold' style={{fontSize: '50px'}}>{totalContests}</span>
+                                </div>
+                                <span>Total available contests</span>
+                            </div>}
+                            {networkRequest && <div className="card-body">
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <Skeleton count={4} style={{width: '100%'}} />
+                                </div>
+                                <Skeleton count={2} style={{width: '100%'}} />
+                            </div>}
                             <div className="card-footer text-white bg-success">
                                 Total Contests
                             </div>
@@ -274,7 +331,7 @@ const StaffDashboard = () => {
                                 <ResponsiveContainer aspect={1.99} height={400}>
                                     <BarChart
                                         width={'100%'}
-                                        data={mostPlayedContestsData}
+                                        data={monthlyRevenueData}
                                         margin={{
                                             top: 5,
                                             right: 30,
@@ -315,6 +372,13 @@ const StaffDashboard = () => {
                                 </PieChart>
                             </div>
                             <div className="d-flex align-items-start flex-wrap gap-3">
+                                {topPlayedCoursesData.map((entry, index) => (
+                                    <div className="d-flex gap-3" key={`cell-${index}`}>
+                                        {/* https://stackoverflow.com/questions/49070926/i-want-to-create-a-small-square-colour-filled-box-in-html-css-and-most-import */}
+                                        <div style={{height: '20px', width: '20px', backgroundColor: `${entry.color}`}}></div>
+                                        <span>{`${entry.name}`}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -355,7 +419,6 @@ const StaffDashboard = () => {
 				message={displayMsg}
                 networkRequest={networkRequest}
                 setNetworkREquest={setNetworkRequest}
-                authOptions={authOptions}
 			/>
         </section>
     )
