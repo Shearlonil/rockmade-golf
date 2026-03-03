@@ -59,6 +59,7 @@ const useUserController = () => {
         }, {signal});
     }
     
+    // for use by admin to search players
     const userSearch = async (signal, data) => {
         return await xhrAios.get(`/users/query`, {
             params: {

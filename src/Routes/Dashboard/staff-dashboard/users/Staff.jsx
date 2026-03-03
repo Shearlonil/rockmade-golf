@@ -20,9 +20,7 @@ import { pageSizeOptions, statusOptions } from "../../../../Utils/data";
 import RsuiteTableSkeletonLoader from "../../../../Components/RsuiteTableSkeletonLoader";
 import useStaffController from "../../../../api-controllers/staff-controller";
 import StaffCreationDialog from "../../../../Components/DialogBoxes/StaffCreationDialog";
-import useGenericController from "../../../../api-controllers/generic-controller-hook";
 import StaffProfileViewDialog from "../../../../Components/DialogBoxes/StaffProfileViewDialog";
-import cryptoHelper from "../../../../Utils/crypto-helper";
 
 const columns = [
     {
@@ -79,14 +77,12 @@ const Staff = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { performGetRequests } = useGenericController();
-    const { paginateFetch, staffSearch, status, register, updateRoles } = useStaffController();
+    const { paginateFetch, staffSearch, status, register, updateRoles, activeStaffPageInit } = useStaffController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
     const [networkRequest, setNetworkRequest] = useState(false);
     const [userOptions, setUserOptions] = useState([]);
-    const [authOptions, setAuthOptions] = useState([]);
     const [userStatus, setUserStatus] = useState(true);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [showStaffCreationModal, setShowStaffCreationModal] = useState(false);
@@ -121,22 +117,16 @@ const Staff = () => {
         try {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
-            const urls = [ `/staff/active/init/${pageSize}`, '/staff/auths' ];
-            const response = await performGetRequests(urls, controllerRef.current.signal);
-            const { 0: staffInitReq, 1: authReq } = response;
+            const response = await activeStaffPageInit(controllerRef.current.signal, pageSize);
 
-            //	check if the request to fetch pkg doesn't fail before setting values to display
-            if(staffInitReq && staffInitReq.data){
-                const { count, results } = staffInitReq.data;
+            //	check if the request to fetch staff doesn't fail before setting values to display
+            if(response && response.data){
+                const { count, results } = response.data;
                 setUserOptions(results?.map(staff => ({label: staff.fname + " " + staff.lname, value: staff})));
                 if(results && count){
                     setUsers(results);
                     setTotalItemsCount(count);
                 }
-            }
-
-            if(authReq && authReq.data){
-                setAuthOptions(authReq.data.map(auth => ({label: auth.name, value: auth})));
             }
 
             setNetworkRequest(false);
@@ -247,9 +237,8 @@ const Staff = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const decrypted_id = cryptoHelper.decryptData(editedUser.id);
-            await status(controllerRef.current.signal, {id: decrypted_id, status: false});
-            setUsers(users.filter(staff => decrypted_id !== staff.id));
+            await status(controllerRef.current.signal, {id: editedUser.id, status: false});
+            setUsers(users.filter(staff => editedUser.id !== staff.id));
             setTotalItemsCount(users.length - 1);
             setEditedUser(null);
             setNetworkRequest(false);
@@ -267,9 +256,8 @@ const Staff = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const decrypted_id = cryptoHelper.decryptData(editedUser.id);
-            await status(controllerRef.current.signal, {id: decrypted_id, status: true});
-            setUsers(users.filter(staff => decrypted_id !== staff.id));
+            await status(controllerRef.current.signal, {id: editedUser.id, status: true});
+            setUsers(users.filter(staff => editedUser.id !== staff.id));
             setTotalItemsCount(users.length - 1);
             setEditedUser(null);
             setNetworkRequest(false);
@@ -284,6 +272,10 @@ const Staff = () => {
     };
 
     const handleChangeStatus = staff => {
+        if(!user.hasAuth(100)){
+            toast.info('Account not authorized to delete/restore staff profile');
+            return;
+        }
         if(staff.status){
             setConfirmDialogEvtName('remove');
             setDisplayMsg(`Delete ${staff.fname + " " + staff.lname} from active list?`);
@@ -298,6 +290,10 @@ const Staff = () => {
     };
 
     const handleViewStaff = staff => {
+        if(!user.hasAuth(105)){
+            toast.info('Account not authorized to view staff profile');
+            return;
+        }
         setEditedUser(staff);
         setDisplayMsg('Profile View');
         setShowStaffProfileModal(true);
@@ -350,13 +346,17 @@ const Staff = () => {
     };
 
     const handleAuthUpdate = async (auths) => {
+        if(!user.hasAuth(102)){
+            toast.info('Account not authorized to update staff roles');
+            return;
+        }
         try {
             setNetworkRequest(true);
             resetAbortController();
 
             const authArr = auths.map(auth => ( {id: auth.id, code: auth.code} ));
 
-            await updateRoles(controllerRef.current.signal, {id: cryptoHelper.decryptData(editedUser.id), authorities: authArr});
+            await updateRoles(controllerRef.current.signal, {id: editedUser.id, authorities: authArr});
             
             setEditedUser(null);
             setNetworkRequest(false);
@@ -372,6 +372,10 @@ const Staff = () => {
     };
 
     const handleAddStaff = () => {
+        if(!user.hasAuth(101)){
+            toast.info('Account not authorized to create staff profile');
+            return;
+        }
         setDisplayMsg('Add New Staff');
         setShowStaffCreationModal(true);
     }
@@ -512,7 +516,6 @@ const Staff = () => {
 				message={displayMsg}
                 networkRequest={networkRequest}
                 setNetworkREquest={setNetworkRequest}
-                authOptions={authOptions}
 			/>
 			<StaffProfileViewDialog
 				show={showStaffProfileModal}
@@ -520,7 +523,6 @@ const Staff = () => {
 				handleConfirm={handleAuthUpdate}
 				message={displayMsg}
                 networkRequest={networkRequest}
-                authOptions={authOptions}
                 staff={editedUser}
 			/>
         </section>

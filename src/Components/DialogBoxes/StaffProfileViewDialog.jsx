@@ -14,14 +14,14 @@ import { ThreeDotLoading } from '../react-loading-indicators/Indicator';
 import useStaffController from '../../api-controllers/staff-controller';
 import handleErrMsg from '../../Utils/error-handler';
 
-const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, networkRequest, authOptions, staff }) => {
-
+const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, networkRequest, staff }) => {
     const controllerRef = useRef(new AbortController());
+    
+    const { findByIdWithAuths } = useStaffController();
+
     const [authsLoading, setAuthsLoading] = useState(false);
     const [allowedAuths, setAllowedAuths] = useState([]);
     const [selectOptions, setSelectOptions] = useState([]);
-
-    const { findByIdWithAuths } = useStaffController();
 
     const {
         handleSubmit,
@@ -36,7 +36,6 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
     };
 
     const modalLoaded = async () => {
-        // console.log(authOptions);
         try {
             //	check if the request to fetch authorities doesn't fail before setting values to display
             if(staff){
@@ -48,12 +47,12 @@ const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, net
                 setValue('creator', staff.creator_fname + " " + staff.creator_lname);
 				setAuthsLoading(true);
                 controllerRef.current = new AbortController();
-                const decrypted_id = cryptoHelper.decryptData(editedUser.id);
-                const response = await findByIdWithAuths(controllerRef.current.signal, decrypted_id);
+                const response = await findByIdWithAuths(controllerRef.current.signal, staff.id);
+                const authOpts = response.data.all_auths.map(auth => ({label: auth.name, value: auth}));
                 const arr = [];
                 const options = []; // options for select
-                authOptions.forEach(authOption => {
-                    const found = response.data.Authorities?.find(a => authOption.value.id === a.id);
+                authOpts.forEach(authOption => {
+                    const found = response.data.staff.Authorities?.find(a => authOption.value.id === a.id);
                     if(found){
                         arr.push(authOption.value);
                     }else {

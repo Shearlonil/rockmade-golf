@@ -9,41 +9,58 @@ import { GrView } from "react-icons/gr";
 import { Table, IconButton, Input, InputGroup, Loader, Box } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
-import { useAuthUser } from "../../../../app-context/user-context";
-import handleErrMsg from "../../../../Utils/error-handler";
-import IMAGES from "../../../../assets/images";
-import cryptoHelper from "../../../../Utils/crypto-helper";
-import useGameController from "../../../../api-controllers/game-controller-hook";
-import { useGame } from "../../../../app-context/game-context";
+import IMAGES from "../../../assets/images";
+import ImageComponent from "../../../Components/ImageComponent";
+import handleErrMsg from "../../../Utils/error-handler";
 
 const columns = [
     {
-        key: 'name',
-        label: 'Name',
+        key: 'ProfileImgKeyhash',
+        label: 'Avatar',
+        fixed: true,
+        width: 70,
+    },
+    {
+        key: 'fname',
+        label: 'First Name',
         fixed: true,
         width: 200
     },
     {
-        key: 'mode',
-        label: 'Game',
+        key: 'lname',
+        label: 'Last Name',
+        width: 200
+    },
+    {
+        key: 'hc',
+        label: 'Home Club',
         flexGrow: 1,
     },
     {
-        key: 'hole_mode',
-        label: 'Hole Mode',
-        flexGrow: 1,
-    },
-    {
-        key: 'date',
-        label: 'Game Date',
-        flexGrow: 1,
-    },
-    {
-        key: 'players',
-        label: 'Players',
-        flexGrow: 1,
+        key: 'hcp',
+        label: 'HCP',
+        width: 200
     },
 ];
+
+const ImageCell = ({ rowData, dataKey, ...props }) => (
+    <Cell {...props} style={{ padding: 0 }}>
+        <div
+        style={{
+            width: 50,
+            height: 50,
+            // background: '#f5f5f5',
+            borderRadius: 6,
+            marginTop: 2,
+            overflow: 'hidden',
+            display: 'inline-block'
+        }}
+        >
+            {rowData?.ProfileImgKeyhash && <ImageComponent image={rowData?.ProfileImgKeyhash} width={'40px'} height={'40px'} round={true} key_id={rowData?.ProfileImgKeyhash.key_hash} />}
+            {!rowData?.ProfileImgKeyhash && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={40} height={40} />}
+        </div>
+  </Cell>
+);
 
 const ActionCell = ({ rowData, dataKey, ...props }) => {
     return (
@@ -94,111 +111,39 @@ const FixedLoader = () => (
 
 const tableHeight = 500;
 
-const GameHistory = () => {
+const Players = () => {
     const controllerRef = useRef(new AbortController());
     
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { authUser } = useAuthUser();
-    const { player_id, setPlayerID } = useGame();
-    const { userGameHistory, userGameHistorySearch } = useGameController();
-    const user = authUser();
-    const playerID = player_id();
-
     const [networkRequest, setNetworkRequest] = useState(false);
-    const [searchKeyword, setSearchKeyword] = useState('');
-    
-    const [recentGames, setRecentGames] = useState([]);
+    const [players, setPlayers] = useState([]);
     const [pageSize, setPageSize] = useState(10);
-    // fetch mode: normal fetch or game name search. 0 (normal), 1 (game name search)
+    // fetch mode: home club players search or other club players search. 0 (same hc), 1 (others)
     const [fetchType, setFetchType] = useState(0);
+    const [searchKeyword, setSearchKeyword] = useState('');
     // control handleScroll behaviour of table
     const [xPos, setXPos] = useState(0);
     const [yPos, setYPos] = useState(0);
-    
-    useEffect(() => {
-        if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
-            navigate("/");
-            return;
-        }
-
-        // in case no player id set prior to viewing this page, set it to logged in user
-        if (!playerID) {
-            const decrypted_id = cryptoHelper.decryptData(user.id);
-            setPlayerID(decrypted_id);
-            /*  AS player id has just been set and being part of dependency list for userEffect, it makes sense to prevent further execution of useEffect until new player id is returned
-                from context. Without return keyword, initialize will be called first without wating for the new player id set to be retrieved from game-context. Then later called again
-                when new player_id is retrieved from the context (since it's part of the dependency list)*/
-            return;
-        }
-
-        initialize();
-        return () => {
-            // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
-            controllerRef.current.abort();
-        };
-    }, [location.pathname, player_id]);
-
-    const initialize = async () => {
-        try {
-            controllerRef.current = new AbortController();
-            setNetworkRequest(true);
-
-            const data = {
-                player_id: playerID,
-                game_group_id: cryptoHelper.encrypt(Number.MAX_VALUE.toString()), 
-                // game_group_id: cryptoHelper.encrypt('0'), 
-                pageSize,
-            }
-            const response = await userGameHistory(controllerRef.current.signal, data);
-            const recent = buildTableData(response.data);
-            setRecentGames(recent);
-
-            setNetworkRequest(false);
-        } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
-                // Request was intentionally aborted, handle silently
-                return;
-            }
-            setNetworkRequest(false);
-            toast.error(handleErrMsg(error).msg);
-        }
-    };
-
-    const asyncRecentGameSearch = async () => {
-        /*  refs: https://stackoverflow.com/questions/65963103/how-can-i-setup-react-select-to-work-correctly-with-server-side-data-by-using  */
-        try {
-            setNetworkRequest(true);
-            resetAbortController();
-            const data = {
-                player_id: playerID,
-                game_group_id: cryptoHelper.encrypt(Number.MAX_VALUE.toString()), 
-                // game_group_id: cryptoHelper.encrypt('0'), 
-                pageSize,
-                queryStr: searchKeyword,
-            }
-            const response = await userGameHistorySearch(controllerRef.current.signal, data);
-            const recent = buildTableData(response.data);
-            setRecentGames(recent);
-            setNetworkRequest(false);
-        } catch (error) {
-            if (error.name === 'AbortError' || error.name === 'CanceledError') {
-                // Request was intentionally aborted, handle silently
-                return;
-            }
-            setNetworkRequest(false);
-            toast.error(handleErrMsg(error).msg);
-        }
-    };
 
 	const handleKeyDown = (event) => {
 		if (event.key === 'Enter') {
 			const searchString = event.target.value;
             setFetchType(1);
-			asyncRecentGameSearch();
+			asyncPlayersSearch();
 		}
 	}
+
+    const handleTableRowClicked = (rowData) => {
+        // navigate(`${rowData.game_id}/summary`);
+    };
+
+    const cancelNameSearch = () => {
+        setSearchKeyword('');
+        setFetchType(0);
+        // initialize();
+    }
 
     const handleScroll = (x, y) => {
         /*  This method only handles user scroll, both x or y scrolling. Which means even when the user scrolls x wise, this method fires. To stop network request or limit network request
@@ -216,23 +161,13 @@ const GameHistory = () => {
             // this prevents network request when the user scrolls x wise but reaches end of x, i. e scroll bar reaches edge of the screen. 
             return;
         }
-        const contextHeight = recentGames.length * 46;
+        const contextHeight = players.length * 46;
         const top = Math.abs(y);
 
         if (contextHeight - top - tableHeight < 400) {
             loadMore();
         }
     };
-
-    const handleTableRowClicked = (rowData) => {
-        navigate(`${rowData.game_id}/summary`);
-    };
-
-    const cancelNameSearch = () => {
-        setSearchKeyword('');
-        setFetchType(0);
-        initialize();
-    }
   
     const loadMore = async () => {
         try {
@@ -243,25 +178,49 @@ const GameHistory = () => {
             switch (fetchType) {
                 case 1:
                     const data = {
-                        player_id: playerID,
-                        game_group_id: cryptoHelper.encrypt(recentGames[recentGames.length - 1].id.toString()), 
+                        // player_id: playerID,
+                        // game_group_id: cryptoHelper.encrypt(players[players.length - 1].id.toString()), 
                         pageSize,
                         queryStr: searchKeyword,
                     }
-                    response = await userGameHistorySearch(controllerRef.current.signal, data);
+                    // response = await userGameHistorySearch(controllerRef.current.signal, data);
                     break;
                 default:
                     const datum = {
-                        player_id: playerID,
-                        game_group_id: cryptoHelper.encrypt(recentGames[recentGames.length - 1].id.toString()), 
+                        // player_id: playerID,
+                        // game_group_id: cryptoHelper.encrypt(players[players.length - 1].id.toString()), 
                         pageSize,
                     }
-                    response = await userGameHistory(controllerRef.current.signal, datum);
+                    // response = await userGameHistory(controllerRef.current.signal, datum);
                     break;
             }
             const recent = buildTableData(response.data);
-            setRecentGames([...recentGames, ...recent]);
+            setPlayers([...players, ...recent]);
 
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+    
+    const asyncPlayersSearch = async () => {
+        /*  refs: https://stackoverflow.com/questions/65963103/how-can-i-setup-react-select-to-work-correctly-with-server-side-data-by-using  */
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const data = {
+                // player_id: playerID,
+                pageSize,
+                queryStr: searchKeyword,
+            }
+            const response = await userGameHistorySearch(controllerRef.current.signal, data);
+            const recent = buildTableData(response.data);
+            setRecentGames(recent);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -286,8 +245,8 @@ const GameHistory = () => {
             <Row className="card shadow border-0 rounded-3 mt-5">
                 <div className="card-body row ms-0 me-0">
                     <div className="d-flex gap-3 align-items-center col-12 col-md-4 mb-3">
-                        <img src={IMAGES.golf_course} alt ="Avatar" className="rounded-circle" width={50} height={50} />
-                        <span className="text-danger fw-bold h2">Game History</span>
+                        <img src={IMAGES.svg_playing_golf_SECONDARY} alt ="Avatar" className="rounded-circle" width={50} height={50} />
+                        <span className="text-danger fw-bold h2">Players</span>
                     </div>
 
                     <div className="d-flex flex-column gap-2 justify-content-center col-12 col-md-4 mb-3">
@@ -306,21 +265,29 @@ const GameHistory = () => {
                     </div>
                 </div>
             </Row>
-
+            
             <Box pos="relative">
-                <Table rowKey="id" affixHeader affixHorizontalScrollbar data={recentGames} height={tableHeight} hover={true} virtualized onScroll={handleScroll} 
+                <Table rowKey="id" affixHeader affixHorizontalScrollbar data={players} height={tableHeight} hover={true} virtualized onScroll={handleScroll} 
                     onRowClick={data => handleTableRowClicked(data) } >
                     {columns.map((column, idx) => {
                         const { key, label, ...rest } = column;
+                        if(idx === 0){
+                            return (
+                                <Column {...rest} key={key} fullText>
+                                    <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
+                                    <ImageCell dataKey={key} />
+                                </Column>
+                            )
+                        }
                         return (
                             <Column {...rest} key={key} fullText>
-                                <HeaderCell>{label}</HeaderCell>
+                                <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
                                 <Cell dataKey={key} style={{ padding: 6 }} />
                             </Column>
                         );
                     })}
                     <Column width={150} >
-                        <HeaderCell>Actions...</HeaderCell>
+                        <HeaderCell className='fw-bold text-dark'>Actions...</HeaderCell>
                         {/* click method not given to ActionCell here as onRowClick method will still fire when any method passed on to ActionCell is called */}
                         <ActionCell />
                     </Column>
@@ -331,4 +298,4 @@ const GameHistory = () => {
     )
 }
 
-export default GameHistory;
+export default Players;

@@ -23,6 +23,7 @@ import Profile from "./Routes/Dashboard/MyProfilePage/MainProfile.jsx";
 import GameHistory from "./Routes/Dashboard/client-dashboard/game-history/GameHistory.jsx";
 import GameSummary from "./Routes/Dashboard/client-dashboard/game-history/GameSummary.jsx";
 import PlayerInfo from "./Routes/Dashboard/client-dashboard/game-history/PlayerInfo.jsx";
+import Players from "./Routes/Dashboard/client-dashboard/Players.jsx";
 
 function App() {
     return (
@@ -54,6 +55,7 @@ function App() {
                         <Route path="games/history" element={<GameHistory />} />
                         <Route path="games/history/:id/summary" element={<GameSummary />} />
                         <Route path="games/player/:id" element={<PlayerInfo />} />
+                        <Route path="players/list" element={<Players />} />
                     </Route>
 					<Route path={""} element={<Dashboard />} />
                 </Route>

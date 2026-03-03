@@ -27,7 +27,6 @@ const StaffDashboard = () => {
 
     const [networkRequest, setNetworkRequest] = useState(false);
     const [showStaffCreationModal, setShowStaffCreationModal] = useState(false);
-	const [showStaffProfileModal, setShowStaffProfileModal] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
@@ -44,7 +43,6 @@ const StaffDashboard = () => {
         { label: "Golf Courses", onClickParams: {evtName: 'viewGolfCourses'} },
         { label: "Contests", onClickParams: {evtName: 'contests'} },
         { label: "Users", onClickParams: {evtName: 'users'} },
-        { label: "Change Password", onClickParams: {evtName: 'pw'} },
     ];
     
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8a2be2"];
@@ -213,7 +211,6 @@ const StaffDashboard = () => {
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
         setShowStaffCreationModal(false);
-        setShowStaffProfileModal(false);
     };
 
     const resetAbortController = () => {
@@ -228,7 +225,7 @@ const StaffDashboard = () => {
         <section className='container' style={{minHeight: '60vh'}}>
             <OffcanvasMenu menuItems={usersOffCanvasMenu} menuItemClick={handleOffCanvasMenuItemClick} variant='danger' />
             <Row className='mt-4'>
-                <div className="d-flex flex-wrap gap-4 align-items-center" >
+                <div className="d-flex flex-wrap gap-4 align-items-center col-md-8 col-sm-12" >
                     <img src={IMAGES.image1} alt ="Avatar" className="rounded-circle" width={100} height={100} />
                     <div className="d-flex flex-wrap gap-2 fw-bold h2">
                         <span>{user.firstName}</span>

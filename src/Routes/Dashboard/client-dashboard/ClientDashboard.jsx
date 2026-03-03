@@ -154,6 +154,7 @@ const ClientDashboard = () => {
 
     const [roundToDel, setRoundToDel] = useState(null);
     const [coursesPlayed, setCoursesPlayed] = useState(0);
+    const [homeClubPlayers, setHomeClubPlayers] = useState(0);
     const [gamesPlayed, setGamesPlayed] = useState(0);
     const [homeClub, setHomeClub] = useState("");
     const [ongoigRounds, setOngongRounds] = useState([]);
@@ -225,6 +226,7 @@ const ClientDashboard = () => {
                 setGamesPlayed(response.data.games_played);
                 setHomeClub(response.data.home_club);
                 setUserHomeClub(response.data.home_club);
+                setHomeClubPlayers(response.data.hc_players);
                 const rounds = response.data.ongoing_rounds.map(r => {
                     let mode = 'Full 18';
                     if(r.hole_mode === 2){
@@ -256,6 +258,8 @@ const ClientDashboard = () => {
             toast.error(handleErrMsg(error).msg);
         }
     };
+
+    const viewHomeClubPlayers = () => navigate('client/players/list');
 
     const handlegameDelete = (data) => {
         setRoundToDel(data);
@@ -390,7 +394,7 @@ const ClientDashboard = () => {
     return (
         <section className='container' style={{minHeight: '60vh'}}>
             <Row className='mt-4'>
-                <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center col-md-10 col-sm-12" >
+                <div className="d-flex flex-wrap gap-4 align-items-center col-md-8 col-sm-12" >
                     {user.blur && <ImageComponent image={user.blur} width={'100px'} height={'100px'} round={true} key_id={user.blur.key_hash} />}
                     {!user.blur && <img src={IMAGES.member_icon} alt ="Avatar" className="rounded-circle" width={100} height={100} />}
                     <div className="d-flex flex-wrap gap-2 fw-bold h2">
@@ -398,6 +402,27 @@ const ClientDashboard = () => {
                         <span> {user.lastName}</span>
                     </div>
                 </div>
+                <Col xs={12} md={4} sm={12} className="mb-2">
+                    <div className="p-2 h-100">
+                        <div className="card shadow border-0 rounded-3 h-100">
+                            {!networkRequest && <div className="card-body">
+                                <div className='d-flex justify-content-between'>
+                                    <span className='h1 text-success fw-bold' style={{fontSize: '50px'}}>{homeClubPlayers}</span>
+                                </div>
+                                <Button variant='outline-success' style={{width: '100px'}} onClick={viewHomeClubPlayers}>View</Button>
+                            </div>}
+                            {networkRequest && <div className="card-body">
+                                <div className='d-flex flex-column justify-content-between'>
+                                    <Skeleton count={4} style={{width: '100%'}} />
+                                </div>
+                                <Skeleton count={2} style={{width: '100%'}} />
+                            </div>}
+                            <div className="card-footer text-white bg-success">
+                                Home Club Players
+                            </div>
+                        </div>
+                    </div>
+                </Col>
             </Row>
             <Row className='mt-4'>
                 <Col xs={12} md={3} sm={12} className="mb-2">
