@@ -58,6 +58,24 @@ const useUserController = () => {
             }
         }, {signal});
     }
+
+    // for use by players to search other players
+    const playerSearch = async (signal, data) => {
+        return await xhrAios.get(`/users/players`, {
+            params: {
+                page_size: data.pageSize, cursor: data.cursor, hc: data.hc
+            }
+        }, {signal});
+    }
+
+    // for use by players to search other players
+    const playerQryStrSearch = async (signal, data) => {
+        return await xhrAios.get(`/users/players/query`, {
+            params: {
+                page_size: data.pageSize, cursor: data.cursor, hc: data.hc, queryStr: data.queryStr, 
+            }
+        }, {signal});
+    }
     
     // for use by admin to search players
     const userSearch = async (signal, data) => {
@@ -88,6 +106,8 @@ const useUserController = () => {
         dashboard,
         paginateFetch,
         userSearch,
+        playerSearch,
+        playerQryStrSearch,
         gameUserSearch,
     }
 }

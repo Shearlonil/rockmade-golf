@@ -21,6 +21,17 @@ const gameModes = [
     },
 ];
 
+const courseSearchOptions = [
+	{
+		label: 'Home Club',
+		value: true
+	},
+	{
+		label: 'All Clubs',
+		value: false
+	},
+];
+
 const groupSizeOptions = [
 	{
 		label: '2',
@@ -38,7 +49,7 @@ const groupSizeOptions = [
 		label: '5',
 		value: 5
 	}
-]
+];
 
 const gender = [
 	{
@@ -206,6 +217,7 @@ const dynamic18Pars = [
 export {
 	gameModes,
     groupSizeOptions,
+	courseSearchOptions,
 	gender,
 	holeMode,
 	dynamic18Fields,

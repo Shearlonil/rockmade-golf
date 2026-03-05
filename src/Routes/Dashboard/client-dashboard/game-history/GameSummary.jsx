@@ -128,7 +128,6 @@ const GameSummary = () => {
     const buildGameScores = (game, holeProps) => {
         const decrypted_id = cryptoHelper.decryptData(user.id);
         const allScores = [];
-        // const arr = [];
         game.users.forEach(user => {
             const userScore = new UserScore();
             userScore.id = user.id;

@@ -18,9 +18,19 @@ function NavBar() {
     const { authUser } = useAuthUser();
 	const user = authUser();
 
+	const [expanded, setExpanded] = useState(false);
+
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [displayMsg, setDisplayMsg] = useState("");
+
+	const handleToggle = () => {
+		setExpanded(!expanded);
+	};
+
+	const handleNavSelect = () => {
+		setExpanded(false); // Close the navbar on selection (for mobile)
+	};
 
 	const handleCloseModal = () => {
 		setShowConfirmModal(false);
@@ -47,20 +57,35 @@ function NavBar() {
 
     return (
         <>
-            <Navbar expand="lg" bg="" variant="light" className="p-3 shadow">
+            <Navbar expand="lg" expanded={expanded} bg="" variant="light" className="p-3 shadow" onToggle={handleToggle}>
                 <Container>
-                    <Navbar.Brand onClick={() => navigate("/")}>
+                    <Navbar.Brand 
+                        onClick={() => {
+                            navigate("/");
+                            handleNavSelect();
+                        }}
+                    >
                         <img src={IMAGES.logo} width={"130px"} height={"50px"} alt="logo" />
                     </Navbar.Brand>
 
                     {/* Toggle + mobile donate */}
                     <div className="d-flex ms-auto align-items-center">
                         {/* Mobile login/logout */}
-                        {!user && <Nav.Link className={`custom-btn btn d-lg-none me-2 text-white ${isLoggingOut && "disabled"} ${user && 'text-danger'}`} onClick={() => navigate("/login")} >
+                        {!user && <Nav.Link className={`custom-btn btn d-lg-none me-2 text-white ${isLoggingOut && "disabled"} ${user && 'text-danger'}`} 
+                            onClick={() => {
+                                navigate("/login");
+                                handleNavSelect();
+                            }} 
+                            >
                             Login 
                         </Nav.Link>}
 
-                        {user && <Nav.Link className={`custom-btn btn d-lg-none me-2 text-white ${isLoggingOut && "disabled"} ${user && 'text-danger'}`} onClick={() => confirmLogout()} >
+                        {user && <Nav.Link className={`custom-btn btn d-lg-none me-2 text-white ${isLoggingOut && "disabled"} ${user && 'text-danger'}`} 
+                            onClick={() => {
+                                confirmLogout();
+                                handleNavSelect();
+                            }} 
+                        >
                             {isLoggingOut && ( <ThreeDotLoading color="#ffffffff" size="small" /> )}
 							{user && `Logout`}
                         </Nav.Link>}
@@ -71,19 +96,19 @@ function NavBar() {
 
                     <Navbar.Collapse id="main-navbar">
                         <Nav className="ms-auto me-auto align-items-lg-center">
-                            <Nav.Link as={NavLink} to="/" className={`${location.pathname === "/" && "nav-link activeLink nav-text" }`} >
+                            <Nav.Link as={NavLink} to="/" onClick={handleNavSelect} className={`${location.pathname === "/" && "nav-link activeLink nav-text" }`} >
                                 Home
                             </Nav.Link>
 
-                            <Nav.Link as={NavLink} to="/about" className={`${location.pathname === "/about" && "nav-link activeLink nav-text" }`} >
+                            <Nav.Link as={NavLink} to="/about" onClick={handleNavSelect} className={`${location.pathname === "/about" && "nav-link activeLink nav-text" }`} >
                                 About
                             </Nav.Link>
 
-                            <Nav.Link as={NavLink} to="/memberships" className={`${location.pathname === "/memberships" && "nav-link activeLink nav-text" }`} >
+                            <Nav.Link as={NavLink} to="/memberships" onClick={handleNavSelect} className={`${location.pathname === "/memberships" && "nav-link activeLink nav-text" }`} >
                                 Membership
                             </Nav.Link>
 
-							{user && <Nav.Link as={NavLink} to="/dashboard" className={`${location.pathname === "/dashboard" && "nav-link activeLink nav-text" }`} >
+							{user && <Nav.Link as={NavLink} to="/dashboard" onClick={handleNavSelect} className={`${location.pathname === "/dashboard" && "nav-link activeLink nav-text" }`} >
 								Dashboard
 							</Nav.Link>}
                         </Nav>

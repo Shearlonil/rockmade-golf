@@ -3,7 +3,7 @@ import { Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { MdCancel } from "react-icons/md";
-import { format } from 'date-fns';
+import Select from 'react-select';
 import { IoIosSearch } from "react-icons/io";
 import { GrView } from "react-icons/gr";
 import { Table, IconButton, Input, InputGroup, Loader, Box } from 'rsuite';
@@ -12,6 +12,12 @@ const { Column, HeaderCell, Cell } = Table;
 import IMAGES from "../../../assets/images";
 import ImageComponent from "../../../Components/ImageComponent";
 import handleErrMsg from "../../../Utils/error-handler";
+import useUserController from "../../../api-controllers/user-controller-hook";
+import { useAuthUser } from "../../../app-context/user-context";
+import cryptoHelper from "../../../Utils/crypto-helper";
+import RsuiteTableSkeletonLoader from "../../../Components/RsuiteTableSkeletonLoader";
+import { courseSearchOptions } from "../../../Utils/data";
+import { useGame } from "../../../app-context/game-context";
 
 const columns = [
     {
@@ -49,7 +55,6 @@ const ImageCell = ({ rowData, dataKey, ...props }) => (
         style={{
             width: 50,
             height: 50,
-            // background: '#f5f5f5',
             borderRadius: 6,
             marginTop: 2,
             overflow: 'hidden',
@@ -71,25 +76,14 @@ const ActionCell = ({ rowData, dataKey, ...props }) => {
 };
 
 const buildTableData = (data) => {
-    return data.map(r => {
-        let hole_mode = 'Full 18';
-        let mode = 'Member Games';
-        if(r.hole_mode === 2){
-            hole_mode = 'Font 9'
-        }else if(r.hole_mode === 3) {
-            hole_mode = 'Back 9'
-        }
-        if(r.mode === 1){
-            mode = 'Tournament'
-        }
+    return data.map(datum => {
         return {
-            id: r.id,
-            game_id: r.game_id,
-            name: r.name,
-            date: format(r.date, "dd/MM/yyyy"),
-            hole_mode,
-            mode,
-            players: r.players
+            id: datum.id,
+            fname: datum.fname,
+            lname: datum.lname,
+            hcp: datum.hcp,
+            ProfileImgKeyhash: datum.ProfileImgKeyhash,
+            hc: datum.Course.name,
         }
     });
 };
@@ -117,32 +111,119 @@ const Players = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const { setPlayerID } = useGame();
+    const { authUser } = useAuthUser();
+    const { playerSearch, playerQryStrSearch } = useUserController();
+    const user = authUser();
+
     const [networkRequest, setNetworkRequest] = useState(false);
+    const [loadMoreRequest, setLoadMoreRequest] = useState(false);
     const [players, setPlayers] = useState([]);
     const [pageSize, setPageSize] = useState(10);
-    // fetch mode: home club players search or other club players search. 0 (same hc), 1 (others)
+    // fetch mode: name like search or regular search without player name, just using course/club filter.. 0 (regular), 1 (name like search)
     const [fetchType, setFetchType] = useState(0);
+    const [clubFilter, setClubFilter] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState('');
     // control handleScroll behaviour of table
     const [xPos, setXPos] = useState(0);
     const [yPos, setYPos] = useState(0);
+        
+    useEffect(() => {
+        initialize();
+        return () => {
+            // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
+            controllerRef.current.abort();
+        };
+    }, [location.pathname]);
+
+    const initialize = async () => {
+        try {
+            controllerRef.current = new AbortController();
+            setNetworkRequest(true);
+            
+            const data = {
+                hc: clubFilter,
+                cursor: cryptoHelper.encrypt('0'), 
+                pageSize,
+            }
+            const response = await playerSearch(controllerRef.current.signal, data);
+            const decrypted_id = cryptoHelper.decryptData(user.id);
+            // const decrypted_id = 0;
+            const players = buildTableData(response.data.filter(datum => datum.id != decrypted_id));
+            setPlayers(players);
+
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
 
 	const handleKeyDown = (event) => {
 		if (event.key === 'Enter') {
 			const searchString = event.target.value;
             setFetchType(1);
-			asyncPlayersSearch();
+			playersQuerySearch();
 		}
 	}
 
     const handleTableRowClicked = (rowData) => {
-        // navigate(`${rowData.game_id}/summary`);
+        const decrypted_id = cryptoHelper.decryptData(user.id);
+        if(rowData.id == decrypted_id){
+            // doesn't make sense for current logged in user to click on themself
+            return;
+        }
+        // update clicked player in game-context
+        setPlayerID(rowData.id);
+        navigate(`/dashboard/client/games/player/${rowData.id}`);
+    };
+
+    const handleCourseFilterChange = async (val) => {
+        try {
+            resetAbortController();
+            setNetworkRequest(true);
+            // clear table data
+            setPlayers([]);
+
+            setClubFilter(val.value);
+            const data = {
+                hc: val.value,
+                cursor: cryptoHelper.encrypt('0'), 
+                pageSize,
+            }
+            let response;
+            switch (fetchType) {
+                case 1:
+                    data.queryStr = searchKeyword;
+                    response = await playerQryStrSearch(controllerRef.current.signal, data);
+                    break;
+                default:
+                    response = await playerSearch(controllerRef.current.signal, data);
+                    break;
+            }
+            const decrypted_id = cryptoHelper.decryptData(user.id);
+            const players = buildTableData(response.data.filter(datum => datum.id != decrypted_id));
+            setPlayers(players);
+
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
     };
 
     const cancelNameSearch = () => {
         setSearchKeyword('');
         setFetchType(0);
-        // initialize();
+        initialize();
     }
 
     const handleScroll = (x, y) => {
@@ -172,55 +253,54 @@ const Players = () => {
     const loadMore = async () => {
         try {
             resetAbortController();
-            setNetworkRequest(true);
+            setLoadMoreRequest(true);
 
             let response;
+            const data = {
+                hc: clubFilter,
+                cursor: cryptoHelper.encrypt(players[players.length - 1].id.toString()), 
+                pageSize,
+            }
             switch (fetchType) {
                 case 1:
-                    const data = {
-                        // player_id: playerID,
-                        // game_group_id: cryptoHelper.encrypt(players[players.length - 1].id.toString()), 
-                        pageSize,
-                        queryStr: searchKeyword,
-                    }
-                    // response = await userGameHistorySearch(controllerRef.current.signal, data);
+                    data.queryStr = searchKeyword;
+                    response = await playerQryStrSearch(controllerRef.current.signal, data);
                     break;
                 default:
-                    const datum = {
-                        // player_id: playerID,
-                        // game_group_id: cryptoHelper.encrypt(players[players.length - 1].id.toString()), 
-                        pageSize,
-                    }
-                    // response = await userGameHistory(controllerRef.current.signal, datum);
+                    response = await playerSearch(controllerRef.current.signal, data);
                     break;
             }
-            const recent = buildTableData(response.data);
-            setPlayers([...players, ...recent]);
+            if(response && response.data && response.data.length > 0){
+                const recent = buildTableData(response.data);
+                setPlayers([...players, ...recent]);
+            }
 
-            setNetworkRequest(false);
+            setLoadMoreRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
-            setNetworkRequest(false);
+            setLoadMoreRequest(false);
             toast.error(handleErrMsg(error).msg);
         }
     };
     
-    const asyncPlayersSearch = async () => {
+    const playersQuerySearch = async () => {
         /*  refs: https://stackoverflow.com/questions/65963103/how-can-i-setup-react-select-to-work-correctly-with-server-side-data-by-using  */
         try {
             setNetworkRequest(true);
             resetAbortController();
+            setPlayers([]);
             const data = {
-                // player_id: playerID,
+                hc: clubFilter,
                 pageSize,
+                cursor: cryptoHelper.encrypt('0'), 
                 queryStr: searchKeyword,
             }
-            const response = await userGameHistorySearch(controllerRef.current.signal, data);
+            const response = await playerQryStrSearch(controllerRef.current.signal, data);
             const recent = buildTableData(response.data);
-            setRecentGames(recent);
+            setPlayers(recent);
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
@@ -242,16 +322,17 @@ const Players = () => {
 
     return (
         <section className='container d-flex flex-column gap-4' style={{minHeight: '60vh'}}>
-            <Row className="card shadow border-0 rounded-3 mt-5">
+            <Row className="card shadow border-0 z-3 rounded-3 mt-5">
                 <div className="card-body row ms-0 me-0">
                     <div className="d-flex gap-3 align-items-center col-12 col-md-4 mb-3">
                         <img src={IMAGES.svg_playing_golf_SECONDARY} alt ="Avatar" className="rounded-circle" width={50} height={50} />
                         <span className="text-danger fw-bold h2">Players</span>
                     </div>
 
-                    <div className="d-flex flex-column gap-2 justify-content-center col-12 col-md-4 mb-3">
+                    <div className="d-flex flex-column gap-2 align-items-center justify-content-center col-12 col-md-4 mb-3">
+                            <span className="align-self-start fw-bold">Search</span>
                         <InputGroup inside w={300} className="border border-dark">
-                            <Input value={searchKeyword} onChange={setSearchKeyword} onKeyDown={handleKeyDown} placeholder='Search games' />
+                            <Input value={searchKeyword} onChange={setSearchKeyword} onKeyDown={handleKeyDown} placeholder='Search players' />
                             {searchKeyword ? (
                                 <InputGroup.Button onClick={cancelNameSearch}>
                                     <MdCancel color="red" />
@@ -263,37 +344,60 @@ const Players = () => {
                             )}
                         </InputGroup>
                     </div>
+                    <div className="d-flex gap-4 col-12 col-md-4 mb-3">
+                        <div className="d-flex flex-column w-100 gap-2">
+                            <span className="align-self-start fw-bold">Filter</span>
+                            <div className={`d-flex gap-3`}>
+                                <Select
+                                    required
+                                    isSearchable={false}
+                                    name="group_size"
+                                    placeholder="Golf Course..."
+                                    className="text-dark col-12"
+                                    defaultValue={courseSearchOptions[0]}
+                                    options={courseSearchOptions}
+                                    onChange={(val) => { 
+                                        handleCourseFilterChange(val);
+                                        // onChange(val);
+                                    }}
+                                    // value={value}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </Row>
             
-            <Box pos="relative">
-                <Table rowKey="id" affixHeader affixHorizontalScrollbar data={players} height={tableHeight} hover={true} virtualized onScroll={handleScroll} 
-                    onRowClick={data => handleTableRowClicked(data) } >
-                    {columns.map((column, idx) => {
-                        const { key, label, ...rest } = column;
-                        if(idx === 0){
+            <Row>
+                <Box pos="relative">
+                    <Table rowKey="id" loading={networkRequest} affixHeader affixHorizontalScrollbar data={players} height={tableHeight} hover={true} virtualized onScroll={handleScroll} 
+                        onRowClick={data => handleTableRowClicked(data) } renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} >
+                        {columns.map((column, idx) => {
+                            const { key, label, ...rest } = column;
+                            if(idx === 0){
+                                return (
+                                    <Column {...rest} key={key} fullText>
+                                        <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
+                                        <ImageCell dataKey={key} />
+                                    </Column>
+                                )
+                            }
                             return (
                                 <Column {...rest} key={key} fullText>
                                     <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
-                                    <ImageCell dataKey={key} />
+                                    <Cell dataKey={key} style={{ padding: 6 }} />
                                 </Column>
-                            )
-                        }
-                        return (
-                            <Column {...rest} key={key} fullText>
-                                <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
-                                <Cell dataKey={key} style={{ padding: 6 }} />
-                            </Column>
-                        );
-                    })}
-                    <Column width={150} >
-                        <HeaderCell className='fw-bold text-dark'>Actions...</HeaderCell>
-                        {/* click method not given to ActionCell here as onRowClick method will still fire when any method passed on to ActionCell is called */}
-                        <ActionCell />
-                    </Column>
-                </Table>
-                {networkRequest && <FixedLoader />}
-            </Box>
+                            );
+                        })}
+                        <Column width={70} >
+                            <HeaderCell className='fw-bold text-dark'>Actions...</HeaderCell>
+                            {/* click method not given to ActionCell here as onRowClick method will still fire when any method passed on to ActionCell is called */}
+                            <ActionCell />
+                        </Column>
+                    </Table>
+                    {loadMoreRequest && <FixedLoader />}
+                </Box>
+            </Row>
         </section>
     )
 }

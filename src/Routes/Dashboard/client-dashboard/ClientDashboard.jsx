@@ -226,7 +226,7 @@ const ClientDashboard = () => {
                 setGamesPlayed(response.data.games_played);
                 setHomeClub(response.data.home_club);
                 setUserHomeClub(response.data.home_club);
-                setHomeClubPlayers(response.data.hc_players);
+                setHomeClubPlayers(response.data.hc_players - 1);
                 const rounds = response.data.ongoing_rounds.map(r => {
                     let mode = 'Full 18';
                     if(r.hole_mode === 2){
