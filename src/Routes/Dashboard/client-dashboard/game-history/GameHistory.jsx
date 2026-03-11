@@ -15,6 +15,7 @@ import IMAGES from "../../../../assets/images";
 import cryptoHelper from "../../../../Utils/crypto-helper";
 import useGameController from "../../../../api-controllers/game-controller-hook";
 import { useGame } from "../../../../app-context/game-context";
+import useSessionStorage from "../../../../app-context/useSessionStorage";
 
 const columns = [
     {
@@ -48,7 +49,7 @@ const columns = [
 const ActionCell = ({ rowData, dataKey, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} />
+            <IconButton icon={<GrView color='blue' />} />
         </Cell>
   );
 };
@@ -225,7 +226,10 @@ const GameHistory = () => {
     };
 
     const handleTableRowClicked = (rowData) => {
-        navigate(`${rowData.game_id}/summary`);
+        useSessionStorage.setValue('recent_game_id', rowData.game_id.toString());
+        const nameArr = rowData.name.split(' ');
+        const strName = nameArr.join('+');
+        navigate(`summary/${strName}`);
     };
 
     const cancelNameSearch = () => {
@@ -314,13 +318,13 @@ const GameHistory = () => {
                         const { key, label, ...rest } = column;
                         return (
                             <Column {...rest} key={key} fullText>
-                                <HeaderCell>{label}</HeaderCell>
+                                <HeaderCell className='fw-bold text-primary'>{label}</HeaderCell>
                                 <Cell dataKey={key} style={{ padding: 6 }} />
                             </Column>
                         );
                     })}
                     <Column width={150} >
-                        <HeaderCell>Actions...</HeaderCell>
+                        <HeaderCell className='fw-bold text-primary'>Actions...</HeaderCell>
                         {/* click method not given to ActionCell here as onRowClick method will still fire when any method passed on to ActionCell is called */}
                         <ActionCell />
                     </Column>

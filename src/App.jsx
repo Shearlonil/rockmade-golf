@@ -53,8 +53,8 @@ function App() {
                     <Route path="client" >
                         <Route path=":id/game/:name" element={<GameBoard />} />
                         <Route path="games/history" element={<GameHistory />} />
-                        <Route path="games/history/:id/summary" element={<GameSummary />} />
-                        <Route path="games/player/:id" element={<PlayerInfo />} />
+                        <Route path="games/history/summary/:name" element={<GameSummary />} />
+                        <Route path="games/player/:name" element={<PlayerInfo />} />
                         <Route path="players/list" element={<Players />} />
                     </Route>
 					<Route path={""} element={<Dashboard />} />

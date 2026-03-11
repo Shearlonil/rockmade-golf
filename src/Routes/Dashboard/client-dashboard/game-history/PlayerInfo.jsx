@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, Col, Row } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { IoIosSearch } from "react-icons/io";
@@ -19,6 +19,7 @@ import useUserController from '../../../../api-controllers/user-controller-hook'
 import useGameController from '../../../../api-controllers/game-controller-hook';
 import cryptoHelper from '../../../../Utils/crypto-helper';
 import UserPlayedCoursesDialog from '../../../../Components/DialogBoxes/UserPlayedCoursesDialog';
+import useSessionStorage from '../../../../app-context/useSessionStorage';
 
 const columns = [
     {
@@ -52,7 +53,7 @@ const columns = [
 const ActionCell = ({ rowData, dataKey, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} />
+            <IconButton icon={<GrView color='blue' />} />
         </Cell>
   );
 };
@@ -103,14 +104,14 @@ const PlayerInfo = () => {
     
     const navigate = useNavigate();
     const location = useLocation();
-    const { id } = useParams();
 
     const { playerInfo } = useUserController();
     const { userGameHistory, userGameHistorySearch } = useGameController();
-
+    
     const { logout } = useAuth();
     const { authUser } = useAuthUser();
     const user = authUser();
+    const id = useSessionStorage.getValue('user_id');
 
     const [player, setPlayer] = useState(null);
     const [networkRequest, setNetworkRequest] = useState(false);
@@ -130,6 +131,11 @@ const PlayerInfo = () => {
     useEffect(() => {
         if(!user){
             logout();
+        }
+
+        if(!id){
+            navigate('/dashboard/client/players/list');
+            return;
         }
 
         initialize();
@@ -226,7 +232,10 @@ const PlayerInfo = () => {
     const viewUserPlayedCourses = () => setShowCoursesPlayed(true);
 
     const handleTableRowClicked = (rowData) => {
-        navigate(`/dashboard/client/games/history/${rowData.game_id}/summary`);
+        useSessionStorage.setValue('recent_game_id', rowData.game_id.toString());
+        const nameArr = rowData.name.split(' ');
+        const strName = nameArr.join('+');
+        navigate(`/dashboard/client/games/history/summary/${strName}`);
     };
   
     const loadMore = async () => {
@@ -374,13 +383,13 @@ const PlayerInfo = () => {
                         const { key, label, ...rest } = column;
                         return (
                             <Column {...rest} key={key} fullText>
-                                <HeaderCell>{label}</HeaderCell>
+                                <HeaderCell className='fw-bold text-primary'>{label}</HeaderCell>
                                 <Cell dataKey={key} style={{ padding: 6 }} />
                             </Column>
                         );
                     })}
                     <Column width={150} >
-                        <HeaderCell>Actions...</HeaderCell>
+                        <HeaderCell className='fw-bold text-primary'>Actions...</HeaderCell>
                         {/* click method not given to ActionCell here as onRowClick method will still fire when any method passed on to ActionCell is called */}
                         <ActionCell />
                     </Column>

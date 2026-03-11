@@ -115,7 +115,7 @@ const GolfCourseCreation = () => {
 
             setNetworkRequest(false);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }
@@ -206,7 +206,7 @@ const GolfCourseCreation = () => {
             setNetworkRequest(false);
             navigate('/dashboard/staff/courses/create');
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
             }

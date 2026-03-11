@@ -157,7 +157,7 @@ const PlayerRegistrationPage = () => {
             await onboard(controllerRef.current.signal, data);
             await clientLogin({email: data.email, pw: cryptoHelper.encrypt(data.pw)});
             setNetworkRequest(false);
-            navigate("/memberships");
+            navigate("/dashboard");
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently

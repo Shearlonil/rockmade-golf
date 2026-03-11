@@ -26,6 +26,7 @@ import AsyncSearchDialog from '../../../Components/DialogBoxes/AsyncSearchDialog
 import useCourseController from '../../../api-controllers/course-controller-hook';
 import { useGame } from '../../../app-context/game-context';
 import Skeleton from 'react-loading-skeleton';
+import useSessionStorage from '../../../app-context/useSessionStorage';
 
 const gamesColumns = [
     {
@@ -103,7 +104,7 @@ const recentGamesColumns = [
 const ActionCell = ({ rowData, dataKey, onDelete, onViewGame, showDelete, ...props }) => {
     return (
         <Table.Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} onClick={() => { onViewGame(rowData); }}  />
+            <IconButton icon={<GrView color='blue' />} onClick={() => { onViewGame(rowData); }}  />
             {showDelete && <IconButton appearance="subtle" icon={<VscRemove />} onClick={() => { onDelete(rowData); }}  />}
         </Table.Cell>
   );
@@ -138,7 +139,7 @@ const ClientDashboard = () => {
     
     const navigate = useNavigate();
     const location = useLocation();
-
+    
     const { logout, updateHCP } = useAuth();
     const { setUserHomeClub } =  useActiveCourses();
     const { removegame } = useGameController();
@@ -276,8 +277,11 @@ const ClientDashboard = () => {
 
     const handleViewGameHistory = (rowData) => {
         const decrypted_id = cryptoHelper.decryptData(user.id);
+        useSessionStorage.setValue('recent_game_id', rowData.game_id.toString());
         setPlayerID(decrypted_id);
-        navigate(`/dashboard/client/games/history/${rowData.game_id}/summary`);
+        const nameArr = rowData.name.split(' ');
+        const strName = nameArr.join('+');
+        navigate(`/dashboard/client/games/history/summary/${strName}`);
     };
 
     const createGame = () => {
@@ -531,13 +535,13 @@ const ClientDashboard = () => {
                         const { key, label, ...rest } = column;
                         return (
                             <Column {...rest} key={key} fullText>
-                                <HeaderCell>{label}</HeaderCell>
+                                <HeaderCell className='fw-bold text-primary'>{label}</HeaderCell>
                                 <Table.Cell dataKey={key} style={{ padding: 6 }} />
                             </Column>
                         );
                     })}
                     <Column width={100} >
-                        <HeaderCell>Actions...</HeaderCell>
+                        <HeaderCell className='fw-bold text-primary'>Actions...</HeaderCell>
                         <ActionCell onDelete={handlegameDelete} onViewGame={handleViewgame} showDelete={true} />
                     </Column>
                 </Table>
@@ -577,23 +581,21 @@ const ClientDashboard = () => {
                     <div className="card shadow border-0 rounded-3 h-100 p-4">
                         <div className="card-body">
                             <h2 className="fw-bold">Recent Games</h2>
-                            {recentGames.length > 0 && 
-                                <Table rowKey="id" data={recentGames} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} className={` ${networkRequest ? 'disabledDiv' : ''}`}>
-                                    {recentGamesColumns.map((column, idx) => {
-                                        const { key, label, ...rest } = column;
-                                        return (
-                                            <Column {...rest} key={key} fullText>
-                                                <HeaderCell>{label}</HeaderCell>
-                                                <Table.Cell dataKey={key} style={{ padding: 6 }} />
-                                            </Column>
-                                        );
-                                    })}
-                                    <Column width={100} >
-                                        <HeaderCell>Actions...</HeaderCell>
-                                        <ActionCell onViewGame={handleViewGameHistory} />
-                                    </Column>
-                                </Table>
-                            }
+                            <Table rowKey="id" data={recentGames} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} className={` ${networkRequest ? 'disabledDiv' : ''}`}>
+                                {recentGamesColumns.map((column, idx) => {
+                                    const { key, label, ...rest } = column;
+                                    return (
+                                        <Column {...rest} key={key} fullText>
+                                            <HeaderCell className='fw-bold text-primary'>{label}</HeaderCell>
+                                            <Table.Cell dataKey={key} style={{ padding: 6 }} />
+                                        </Column>
+                                    );
+                                })}
+                                <Column width={100} >
+                                    <HeaderCell className='fw-bold text-primary'>Actions...</HeaderCell>
+                                    <ActionCell onViewGame={handleViewGameHistory} />
+                                </Column>
+                            </Table>
                         </div>
                     </div>
                 </Col>

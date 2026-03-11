@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Row } from "react-bootstrap";
+import { toast } from "react-toastify";
 import { format } from "date-fns";
 import Skeleton from "react-loading-skeleton";
 
@@ -7,24 +8,23 @@ import IMAGES from "../../../../assets/images";
 import useGameController from "../../../../api-controllers/game-controller-hook";
 import cryptoHelper from "../../../../Utils/crypto-helper";
 import { useAuth } from "../../../../app-context/auth-context";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthUser } from "../../../../app-context/user-context";
 import handleErrMsg from "../../../../Utils/error-handler";
-import { toast } from "react-toastify";
 import { useGame } from "../../../../app-context/game-context";
 import { UserScore } from "../../../../Entities/UserScore";
 import ScoreCard from "../../../../Components/ScoreCard";
 import ImageComponent from "../../../../Components/ImageComponent";
 import LeaderBoards from "../game-board/LeaderBoards";
 import PlayerList from "./PlayerList";
+import useSessionStorage from "../../../../app-context/useSessionStorage";
 
 const GameSummary = () => {
     const controllerRef = useRef(new AbortController());
     
     const navigate = useNavigate();
     const location = useLocation();
-    const { id } = useParams();
-
+    
     const { logout } = useAuth();
     const { authUser } = useAuthUser();
     const { setScores, setGamePlay, setHoleProps, holeProps, scores, player_id, setGameOrganizer } = useGame();
@@ -33,6 +33,7 @@ const GameSummary = () => {
     const playerScores = scores();
     const playerID = player_id();
     const hp = holeProps();
+    const id = useSessionStorage.getValue('recent_game_id');
 
     const [networkRequest, setNetworkRequest] = useState(true);
     const [recentGame, setRecentGame] = useState(null);
@@ -55,8 +56,9 @@ const GameSummary = () => {
             logoutUnauthorized();
         }
 
-        if(!playerID){
-            navigate('/dashboard');
+        if(!playerID || !id){
+            navigate('/dashboard/client/games/history');
+            return;
         }
 
         initialize();

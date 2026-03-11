@@ -18,6 +18,7 @@ import cryptoHelper from "../../../Utils/crypto-helper";
 import RsuiteTableSkeletonLoader from "../../../Components/RsuiteTableSkeletonLoader";
 import { courseSearchOptions } from "../../../Utils/data";
 import { useGame } from "../../../app-context/game-context";
+import useSessionStorage from "../../../app-context/useSessionStorage";
 
 const columns = [
     {
@@ -70,7 +71,7 @@ const ImageCell = ({ rowData, dataKey, ...props }) => (
 const ActionCell = ({ rowData, dataKey, ...props }) => {
     return (
         <Cell {...props} style={{ padding: '6px', display: 'flex', gap: '4px', width: '400px' }}>
-            <IconButton icon={<GrView color='green' />} />
+            <IconButton icon={<GrView color='blue' />} />
         </Cell>
   );
 };
@@ -179,7 +180,15 @@ const Players = () => {
         }
         // update clicked player in game-context
         setPlayerID(rowData.id);
-        navigate(`/dashboard/client/games/player/${rowData.id}`);
+        useSessionStorage.setValue('user_id', rowData.id.toString());
+        const name = rowData.fname + " " + rowData.lname;
+        const nameArr = name.split(' ');
+        const strName = nameArr.join('+');
+        /*  Ref: Gemini after searching => encrypt url slugs javascript
+            Remove accents, replace invalid chars with spaces, replace multiple spaces/hyphens with a single hyphen
+        */
+        const slug = cryptoHelper.encrypt(rowData.id.toString()).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, ' ').trim().replace(/[\s-]+/g, '-');
+        navigate(`/dashboard/client/games/player/${strName}`);
     };
 
     const handleCourseFilterChange = async (val) => {
@@ -377,20 +386,20 @@ const Players = () => {
                             if(idx === 0){
                                 return (
                                     <Column {...rest} key={key} fullText>
-                                        <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
+                                        <HeaderCell className='fw-bold text-primary'>{label}</HeaderCell>
                                         <ImageCell dataKey={key} />
                                     </Column>
                                 )
                             }
                             return (
                                 <Column {...rest} key={key} fullText>
-                                    <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
+                                    <HeaderCell className='fw-bold text-primary'>{label}</HeaderCell>
                                     <Cell dataKey={key} style={{ padding: 6 }} />
                                 </Column>
                             );
                         })}
                         <Column width={70} >
-                            <HeaderCell className='fw-bold text-dark'>Actions...</HeaderCell>
+                            <HeaderCell className='fw-bold text-primary'>Actions...</HeaderCell>
                             {/* click method not given to ActionCell here as onRowClick method will still fire when any method passed on to ActionCell is called */}
                             <ActionCell />
                         </Column>

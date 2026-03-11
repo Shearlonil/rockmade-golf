@@ -1,4 +1,5 @@
 import { Table } from 'rsuite';
+const { Column, HeaderCell, Cell } = Table;
 
 import ImageComponent from '../../../../Components/ImageComponent';
 import RsuiteTableSkeletonLoader from '../../../../Components/RsuiteTableSkeletonLoader';
@@ -7,7 +8,7 @@ import { useGame } from '../../../../app-context/game-context';
 import { useAuthUser } from '../../../../app-context/user-context';
 import cryptoHelper from '../../../../Utils/crypto-helper';
 import { useNavigate } from 'react-router-dom';
-const { Column, HeaderCell, Cell } = Table;
+import useSessionStorage from '../../../../app-context/useSessionStorage';
 
 const columns = [
     {
@@ -75,7 +76,14 @@ const PlayerList = ({networkRequest}) => {
         }
         // update clicked player in game-context
         setPlayerID(rowData.id);
-        navigate(`/dashboard/client/games/player/${rowData.id}`);
+        useSessionStorage.setValue('user_id', rowData.id.toString());
+        const nameArr = rowData.name.split(' ');
+        const strName = nameArr.join('+');
+        /*  Ref: Gemini after searching => encrypt url slugs javascript
+            Remove accents, replace invalid chars with spaces, replace multiple spaces/hyphens with a single hyphen
+        */
+        const slug = cryptoHelper.encrypt(rowData.id.toString()).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, ' ').trim().replace(/[\s-]+/g, '-');
+        navigate(`/dashboard/client/games/player/${strName}`);
     };
 
     return (
