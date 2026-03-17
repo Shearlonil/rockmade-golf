@@ -43,6 +43,7 @@ const StaffDashboard = () => {
         { label: "Golf Courses", onClickParams: {evtName: 'viewGolfCourses'} },
         { label: "Contests", onClickParams: {evtName: 'contests'} },
         { label: "Users", onClickParams: {evtName: 'users'} },
+        { label: "Membership Plans", onClickParams: {evtName: 'subPlans'} },
     ];
     
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8a2be2"];
@@ -146,6 +147,9 @@ const StaffDashboard = () => {
                 break;
             case 'pw':
                 navigate('/dashboard/users');
+                break;
+            case 'subPlans':
+                navigate('/dashboard/staff/membership/plans');
                 break;
         }
 	}

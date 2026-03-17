@@ -322,25 +322,25 @@ const Contests = () => {
         setContests(nextData);
     };
 
-    const handleChangeStatus = course => {
-        if(course.status){
+    const handleChangeStatus = contest => {
+        if(contest.status){
             setConfirmDialogEvtName('remove');
-            setDisplayMsg(`Delete ${course.name} from active list?`);
+            setDisplayMsg(`Delete ${contest.name} from active list?`);
             setShowConfirmModal(true);
-            setEditedContest(course);
+            setEditedContest(contest);
         }else {
             setConfirmDialogEvtName('restore');
-            setDisplayMsg(`Restore ${course.name} from list of inactive contests?`);
+            setDisplayMsg(`Restore ${contest.name} from list of inactive contests?`);
             setShowConfirmModal(true);
-            setEditedContest(course);
+            setEditedContest(contest);
         }
     };
   
-    const handleSave = async (course) => {
+    const handleSave = async (contest) => {
         setConfirmDialogEvtName('save');
-        setDisplayMsg(`Save changes made to ${course.name}?`);
+        setDisplayMsg(`Save changes made to ${contest.name}?`);
         setShowConfirmModal(true);
-        setEditedContest(course);
+        setEditedContest(contest);
     };
 
     const handleAddContest = () => {

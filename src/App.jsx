@@ -24,6 +24,7 @@ import GameHistory from "./Routes/Dashboard/client-dashboard/game-history/GameHi
 import GameSummary from "./Routes/Dashboard/client-dashboard/game-history/GameSummary.jsx";
 import PlayerInfo from "./Routes/Dashboard/client-dashboard/game-history/PlayerInfo.jsx";
 import Players from "./Routes/Dashboard/client-dashboard/Players.jsx";
+import MembershipPlans from "./Routes/Dashboard/staff-dashboard/MembershipPlans.jsx";
 
 function App() {
     return (
@@ -49,6 +50,7 @@ function App() {
 				            <Route path="create" element={<GolfCourseCreation />} />
 				            <Route path="" element={<Courses />} />
                         </Route>
+                        <Route index path="membership/plans" element={<MembershipPlans />} />
                     </Route>
                     <Route path="client" >
                         <Route path=":id/game/:name" element={<GameBoard />} />
