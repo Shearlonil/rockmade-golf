@@ -1,4 +1,188 @@
 import IMAGES from "../assets/images";
+import {
+    HiBolt,
+    HiOutlineTrophy,
+} from "react-icons/hi2";
+import { BiBullseye } from "react-icons/bi";
+import {
+    HiClock,
+    HiShieldCheck,
+    HiUsers,
+} from "react-icons/hi";
+
+const pricing = {
+	bronze: {
+		monthly: 79,
+		yearly: 79 * 12 * 0.85,
+		features: [
+			"50+ premium courses",
+			"7-day advance tee times",
+			"Monthly group coaching",
+			"Member events",
+			"Basic insurance",
+		],
+	},
+	silver: {
+		monthly: 149,
+		yearly: 149 * 12 * 0.83,
+		popular: true,
+		features: [
+			"150+ premium courses",
+			"14-day advance tee times",
+			"Weekly pro coaching",
+			"Priority tournament entry",
+			"Premium insurance",
+			"VIP event access",
+		],
+	},
+	gold: {
+		monthly: 299,
+		yearly: 299 * 12 * 0.8,
+		features: [
+			"Unlimited worldwide access",
+			"30-day advance tee times",
+			"Unlimited 1-on-1 coaching",
+			"Guaranteed tournament spots",
+			"Complete insurance",
+			"All VIP experiences",
+			"Concierge",
+			"Pro shop discounts",
+		],
+	},
+};
+
+const features = [
+	{
+		Icon: HiOutlineTrophy,
+		title: "Exclusive Tournaments",
+		desc: "Compete in members-only events with prestigious prizes.",
+	},
+	{
+		Icon: HiClock,
+		title: "Priority Tee Times",
+		desc: "Book up to 14 days in advance at premium courses.",
+	},
+	{
+		Icon: BiBullseye,
+		title: "Pro Coaching",
+		desc: "Personalized training with PGA-certified instructors.",
+	},
+	{
+		Icon: HiUsers,
+		title: "Elite Network",
+		desc: "Connect with influential golfers and business leaders.",
+	},
+	{
+		Icon: HiShieldCheck,
+		title: "Premium Insurance",
+		desc: "Full coverage for equipment, travel, and tournaments.",
+	},
+	{
+		Icon: HiBolt,
+		title: "VIP Experiences",
+		desc: "Pro-am events, player meet-ups, behind-the-scenes tours.",
+	},
+];
+
+const testimonials = [
+	{
+		name: "Michael Chen",
+		tier: "Gold",
+		avatar: "MC",
+		content: "RockMade Golf transformed my game and my network.",
+	},
+	{
+		name: "Sarah Williams",
+		tier: "Silver",
+		avatar: "SW",
+		content: "The exclusive tournaments are incredible.",
+	},
+	{
+		name: "David Rodriguez",
+		tier: "Gold",
+		avatar: "DR",
+		content: "Best investment in my golf journey.",
+	},
+	{
+		name: "Emma Thompson",
+		tier: "Bronze",
+		avatar: "ET",
+		content: "Even as a Bronze member I get amazing courses.",
+	},
+	{
+		name: "James Patterson",
+		tier: "Gold",
+		avatar: "JP",
+		content: "Improved my handicap by 4 strokes.",
+	},
+];
+
+const ambassadors = [
+	{
+		name: "Alex Morgan",
+		role: "PGA Tour Professional",
+		achievement: "2023 Masters Top 10",
+		handicap: "+4.2",
+	},
+	{
+		name: "Jessica Lee",
+		role: "LPGA Rising Star",
+		achievement: "2024 Rookie of the Year",
+		handicap: "+3.8",
+	},
+	{
+		name: "Robert Hayes",
+		role: "Club Champion",
+		achievement: "15x Regional Winner",
+		handicap: "0.2",
+	},
+];
+
+const galleryItems = [
+	{
+		id: 1,
+		src: IMAGES.image1,
+		title: "Championship Tournament",
+		caption: "Annual Masters Qualifier",
+	},
+	{
+		id: 2,
+		src: IMAGES.image2,
+		title: "Pro-Am Event",
+		caption: "Playing with PGA Pros",
+	},
+	{
+		id: 3,
+		src: IMAGES.image3,
+		title: "Sunrise Session",
+		caption: "Early Morning at Pebble Beach",
+	},
+	{
+		id: 4,
+		src: IMAGES.image4,
+		title: "Member Networking",
+		caption: "Business on the Fairway",
+	},
+	{
+		id: 5,
+		src: IMAGES.image5,
+		title: "Coaching Clinic",
+		caption: "Swing Analysis Session",
+	},
+	{
+		id: 6,
+		src: IMAGES.image6,
+		title: "Victory Celebration",
+		caption: "Gold Member Awards",
+	},
+];
+
+const stats = [
+	{ num: 1200, label: "Active Members", suffix: "+" },
+	{ num: 45, label: "Annual Tournaments", suffix: "" },
+	{ num: 150, label: "Partner Courses", suffix: "+" },
+	{ num: 98, label: "Member Satisfaction", suffix: "%" },
+];
 
 const gameModes = [
     {
@@ -215,6 +399,11 @@ const dynamic18Pars = [
 ];
 
 export {
+	features,
+	testimonials,
+	ambassadors,
+	galleryItems,
+	stats,
 	gameModes,
     groupSizeOptions,
 	courseSearchOptions,

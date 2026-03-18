@@ -35,8 +35,8 @@ const StaffDashboard = () => {
     const [topPlayedCoursesData, setTopPlayedCoursesData] = useState([ { name: "Fetching Data", value: 1, color: "#0088FE" } ]);
     const [monthlyRevenueData, setMonthlyRevenueData] = useState([]);
     const [totalContests, setTotalContests] = useState(0);
-    const [totalUsers, setTotalUsers] = useState(0);
-    const [subscribedUsers, setSubscribedUsers] = useState(0);
+    const [totalPlayers, setTotalPlayers] = useState(0);
+    const [subscribedPlayers, setSubscribedPlayers] = useState(0);
     const [activeGolfCourses, setActiveGolfCourses] = useState(0);
     
     const usersOffCanvasMenu = [
@@ -94,9 +94,9 @@ const StaffDashboard = () => {
             controllerRef.current = new AbortController();
             setNetworkRequest(true);
             const response = await dashboard(controllerRef.current.signal);
-            setTotalUsers(response.data.total_users.total_users);
+            setTotalPlayers(response.data.total_users.total_users);
             setActiveGolfCourses(response.data.active_courses.total_courses);
-            setSubscribedUsers(response.data.sub_users.sub_users);
+            setSubscribedPlayers(response.data.sub_users.sub_users);
             setTotalContests(response.data.total_contests);
             const arr = [];
             response.data.top_courses.forEach((top_course, idx) =>  {
@@ -243,9 +243,9 @@ const StaffDashboard = () => {
                         <div className="card shadow border-0 rounded-3 h-100" style={{minHeight: 170}}>
                             {!networkRequest && <div className="card-body">
                                 <div className='d-flex justify-content-between'>
-                                    <span className='h1 text-warning fw-bold' style={{fontSize: '50px'}}>{totalUsers}</span>
+                                    <span className='h1 text-warning fw-bold' style={{fontSize: '50px'}}>{totalPlayers}</span>
                                 </div>
-                                <span>All Registered Users</span>
+                                <span>All Registered Players</span>
                             </div>}
                             {networkRequest && <div className="card-body">
                                 <div className='d-flex flex-column justify-content-between'>
@@ -254,7 +254,7 @@ const StaffDashboard = () => {
                                 <Skeleton count={2} style={{width: '100%'}} />
                             </div>}
                             <div className="card-footer fw-bold bg-warning">
-                                Total Users
+                                Total Players
                             </div>
                         </div>
                     </div>
@@ -264,9 +264,9 @@ const StaffDashboard = () => {
                         <div className="card shadow border-0 rounded-3 h-100">
                             {!networkRequest && <div className="card-body">
                                 <div className='d-flex justify-content-between'>
-                                    <span className='h1 text-danger fw-bold' style={{fontSize: '50px'}}>{subscribedUsers}</span>
+                                    <span className='h1 text-danger fw-bold' style={{fontSize: '50px'}}>{subscribedPlayers}</span>
                                 </div>
-                                <span>Number Subscribed Users</span>
+                                <span>Number Subscribed Players</span>
                             </div>}
                             {networkRequest && <div className="card-body">
                                 <div className='d-flex flex-column justify-content-between'>
@@ -275,7 +275,7 @@ const StaffDashboard = () => {
                                 <Skeleton count={2} style={{width: '100%'}} />
                             </div>}
                             <div className="card-footer text-white bg-danger">
-                                Subscribed Users
+                                Subscribed Players
                             </div>
                         </div>
                     </div>
