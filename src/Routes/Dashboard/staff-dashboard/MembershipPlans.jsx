@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { Button, Row } from 'react-bootstrap';
 import { GrView } from "react-icons/gr";
 import { VscEdit, VscSave } from 'react-icons/vsc';
-import { Table, IconButton, Input, NumberInput, DatePicker, Toggle } from 'rsuite';
+import { Table, IconButton, Input, NumberInput, DatePicker } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
 import { useAuthUser } from '../../../app-context/user-context';
@@ -16,36 +16,7 @@ import useSubPlansController from '../../../api-controllers/sub-plans-controller
 import ToggleSwitch from '../../../Components/ToggleSwitch';
 import { CustomError } from '../../../Entities/CustomError';
 import ConfirmDialog from '../../../Components/DialogBoxes/ConfirmDialog';
-
-const columns = [
-    {
-        key: 'name',
-        label: 'Name',
-        fixed: true,
-        flexGrow: 2,
-        // width: 200
-    },
-    {
-        key: 'amount',
-        label: 'Amount',
-        flexGrow: 1,
-    },
-    {
-        key: 'duration_months',
-        label: 'Duration (Months)',
-        flexGrow: 1,
-    },
-    {
-        key: 'discount',
-        label: 'Discount',
-        flexGrow: 1,
-    },
-    {
-        key: 'popular',
-        label: 'Popular',
-        flexGrow: 1,
-    },
-];
+import PlanBenefitsDialog from '../../../Components/DialogBoxes/PlanBenefitsDialog';
 
 function toValueString(value, dataType) {
     return (dataType === 'date') ? value?.toLocaleDateString() : value;
@@ -102,7 +73,7 @@ const MembershipPlans = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { membershipPlans, changePopularPlan, updatePlan } = useSubPlansController();
+    const { membershipPlans, changePopularPlan, updatePlan, addPlanBenefit, removePlanBenefit, updatePlanBenefit } = useSubPlansController();
     const { authUser } = useAuthUser();
     const user = authUser();
 
@@ -110,6 +81,7 @@ const MembershipPlans = () => {
 	const [displayMsg, setDisplayMsg] = useState("");
     const [confirmDialogEvtName, setConfirmDialogEvtName] = useState(null);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [showBenefitsModal, setShowBenefitsModal] = useState(false);
     const [editedSub, setEditedSub] = useState(null);
     
     //  data for table presentation
@@ -198,6 +170,78 @@ const MembershipPlans = () => {
             throw new Error(null);
         }
     };
+
+    const addBenefit = async (benefit) => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            const response = await addPlanBenefit(controllerRef.current.signal, { plan_id: benefit.plan_id, desc: benefit.desc });
+            benefit.id = response.data.id;
+            // add benefit to selected plan
+            const find = subs.find(sub => sub.id === benefit.plan_id);
+            find.SubPlanBenefits.push(response.data);
+            setSubs(subs);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+            // prevent change in PlanBenefitDialog
+            throw new Error(null);
+        }
+    }
+
+    const updateBenefit = async (benefit) => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            await updatePlanBenefit(controllerRef.current.signal, benefit);
+            // update benefit in selected plan
+            const find = subs.find(sub => sub.id === benefit.plan_id);
+            find.SubPlanBenefits.find(b => b.id === benefit.id).desc = benefit.desc;
+            setSubs(subs);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+            // prevent change in PlanBenefitDialog
+            throw new Error(null);
+        }
+    }
+
+    const delBenefit = async (benefit) => {
+        try {
+            resetAbortController();
+            setNetworkRequest(true);
+            await removePlanBenefit(controllerRef.current.signal, benefit);
+            // remove benefit from selected plan
+            const find = subs.find(sub => sub.id === benefit.plan_id);
+            const filtered = find.SubPlanBenefits.filter(b => b.id !== benefit.id);
+            find.SubPlanBenefits = filtered;
+            setSubs(subs);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+            // prevent change in PlanBenefitDialog
+            throw new Error(null);
+        }
+        // const temp = [...benefits];
+        // temp.splice(selectedBenefit.idx - 1, 1);
+        // temp.forEach((t, idx) => t.idx = idx + 1);
+        // setBenefits(temp);
+    }
   
     const handleConfirm = async () => {
         setShowConfirmModal(false);
@@ -210,6 +254,7 @@ const MembershipPlans = () => {
 
 	const handleCloseModal = () => {
         setShowConfirmModal(false);
+        setShowBenefitsModal(false);
     };
 
     const handleChange = (id, key, value) => {
@@ -235,6 +280,9 @@ const MembershipPlans = () => {
     };
   
     const handleView = (sub) => {
+        setDisplayMsg(sub.name);
+        setEditedSub(sub);
+        setShowBenefitsModal(true);
     };
 
     const resetAbortController = () => {
@@ -320,16 +368,25 @@ const MembershipPlans = () => {
                     <Column flexGrow={1} key='popular'>
                         <HeaderCell className='fw-bold'> Popular </HeaderCell>
                         <Cell dataKey='popular'>{rowData => <ToggleSwitch size={'sm'} data={rowData} checkedTxt="ON" unCheckedTxt="OFF" ticked={rowData.popular === true ? true : false} onChangeFn={toggle} />}</Cell>
+                        </Column>
+                    <Column width={150} >
+                        <HeaderCell className='fw-bold'>Actions...</HeaderCell>
+                        <ActionCell dataKey="id"  onEdit={handleEdit} onSave={handleSave} onViewGame={handleView} />
                     </Column>
-                <Column width={150} >
-                    <HeaderCell className='fw-bold'>Actions...</HeaderCell>
-                    <ActionCell dataKey="id"  onEdit={handleEdit} onSave={handleSave} onViewGame={handleView} />
-                </Column>
             </Table>
 			<ConfirmDialog
 				show={showConfirmModal}
 				handleClose={handleCloseModal}
 				handleConfirm={handleConfirm}
+				message={displayMsg}
+			/>
+			<PlanBenefitsDialog
+				show={showBenefitsModal}
+				handleClose={handleCloseModal}
+                data={editedSub}
+                handleDeleteBenefit={delBenefit} 
+                handleBenefitUpdate={updateBenefit} 
+                handleBenefitAdd={addBenefit}
 				message={displayMsg}
 			/>
         </section>

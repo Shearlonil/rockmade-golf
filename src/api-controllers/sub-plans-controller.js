@@ -19,10 +19,25 @@ const useSubPlansController = () => {
         return await xhrAios.put('/subscriptions/membership/plans/update', data, {signal});
     }
 
+    const addPlanBenefit = async (signal, data) => {
+        return await xhrAios.post('/subscriptions/membership/plans/desc/add', data, {signal});
+    }
+
+    const removePlanBenefit = async (signal, data) => {
+        return await xhrAios.put('/subscriptions/membership/plans/desc/remove', data, {signal});
+    }
+
+    const updatePlanBenefit = async (signal, data) => {
+        return await xhrAios.put('/subscriptions/membership/plans/desc/update', data, {signal});
+    }
+
     return {
         membershipPlans,
         updatePlan,
         changePopularPlan,
+        addPlanBenefit,
+        removePlanBenefit,
+        updatePlanBenefit,
     }
 }
 
