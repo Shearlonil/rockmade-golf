@@ -201,6 +201,7 @@ const ClientDashboard = () => {
     useEffect(() => {
         if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
             logoutUnauthorized();
+            return;
         }
         setMostPlayedContestsData([{month: months[0], amount: 1000}]);
 

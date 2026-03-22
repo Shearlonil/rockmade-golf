@@ -35,6 +35,10 @@ const useUserController = () => {
         return await xhrAios.put(`/users/profile/pw/update`, data, {signal});
     }
     
+    const markEmailForUpdate = async (signal, data) => {
+        return await xhrAios.put(`/users/profile/email/update`, data, {signal});
+    }
+    
     const activeStaffPageInit = async (signal, pageSize) => {
         return await xhrAios.get(`/users/active/init/${pageSize}`, {signal});
     }
@@ -94,6 +98,10 @@ const useUserController = () => {
             }
         }, {signal});
     }
+    
+    const getAxios = () => {
+        return xhrAios;
+    }
 
     return {
         onboard,
@@ -101,6 +109,7 @@ const useUserController = () => {
         updateHomeClub,
         status,
         updatePassword,
+        markEmailForUpdate,
         activeStaffPageInit,
         playerInfo,
         dashboard,
@@ -109,6 +118,7 @@ const useUserController = () => {
         playerSearch,
         playerQryStrSearch,
         gameUserSearch,
+        getAxios,
     }
 }
 

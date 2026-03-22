@@ -25,6 +25,7 @@ import GameSummary from "./Routes/Dashboard/client-dashboard/game-history/GameSu
 import PlayerInfo from "./Routes/Dashboard/client-dashboard/game-history/PlayerInfo.jsx";
 import Players from "./Routes/Dashboard/client-dashboard/Players.jsx";
 import MembershipPlans from "./Routes/Dashboard/staff-dashboard/MembershipPlans.jsx";
+import ContinueEmailUpdate from "./Routes/ContinueEmailUpdate.jsx";
 
 function App() {
     return (
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/staff/login" element={<StaffLogin />} />
                 <Route path="/signup" element={<SignUpPage />} />
                 <Route path="/register"  element={<PlayerRegistrationPage />} />
+                <Route path="profile/:user_type/email/update/:nano_id"  element={<ContinueEmailUpdate />} />
 
                 <Route path="/dashboard" element={<ProtectedRoute />}>
                     <Route index path="game/create" element={<GameMode />} />

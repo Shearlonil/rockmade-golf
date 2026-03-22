@@ -33,7 +33,7 @@ const StaffProfilePage = () => {
     const location = useLocation();
 
     const { updateStaffPersonalInfo, updateStaffEmail } = useAuth();
-    const { updatePassword } = useStaffController();
+    const { updatePassword, markEmailForUpdate } = useStaffController();
     const { requestOTP } = useGenericController();
     const { authUser } = useAuthUser();
     const user = authUser();
@@ -71,6 +71,7 @@ const StaffProfilePage = () => {
         // cliet not allowed to view this page... clients have mode 1
         if(!user || cryptoHelper.decryptData(user.mode) === '1'){
             navigate("/");
+            return;
         }
 
         if(user){
@@ -193,9 +194,9 @@ const StaffProfilePage = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await updateStaffEmail(controllerRef.current.signal, {otp: emailDetails.otp, email: emailRef.current.value});
+            const response = await markEmailForUpdate(controllerRef.current.signal, {otp: emailDetails.otp, email: emailRef.current.value});
             setNetworkRequest(false);
-            toast.info("Email update successful");
+            toast.info(response.data.message);
             setEmailDetails(null);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {

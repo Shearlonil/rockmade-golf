@@ -40,9 +40,9 @@ const ClientProfilePage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { updatePersonalInfo, updateHCP, updateEmail, updateProfileImg } = useAuth();
+    const { updatePersonalInfo, updateHCP, updateProfileImg } = useAuth();
     const { onboardingCourseSearch } = useCourseController();
-    const { updateHomeClub, updatePassword } = useUserController();
+    const { updateHomeClub, updatePassword, markEmailForUpdate } = useUserController();
     const { userHomeClub, setUserHomeClub } = useActiveCourses();
     const homeClub = userHomeClub();
     const { requestOTP } = useGenericController();
@@ -99,6 +99,7 @@ const ClientProfilePage = () => {
     useEffect(() => {
         if(!user || cryptoHelper.decryptData(user.mode) === '0'){
             navigate("/");
+            return;
         }
 
         if(user){
@@ -312,9 +313,9 @@ const ClientProfilePage = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await updateEmail(controllerRef.current.signal, {otp: emailDetails.otp, email: emailRef.current.value});
+            const response = await markEmailForUpdate(controllerRef.current.signal, {otp: emailDetails.otp, email: emailRef.current.value});
             setNetworkRequest(false);
-            toast.info("Email update successful");
+            toast.info(response.data.message);
             setEmailDetails(null);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {

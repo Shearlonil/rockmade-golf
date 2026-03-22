@@ -12,6 +12,10 @@ const useStaffController = () => {
         return await xhrAios.put(`/staff/profile/pw/update`, data, {signal});
     }
     
+    const markEmailForUpdate = async (signal, data) => {
+        return await xhrAios.put(`/staff/profile/email/update`, data, {signal});
+    }
+    
     const dashboard = async (signal) => {
         return await xhrAios.get(`/staff/dashboard`, {signal});
     }
@@ -56,6 +60,7 @@ const useStaffController = () => {
     return {
         register,
         updatePassword,
+        markEmailForUpdate,
         dashboard,
         findByIdWithAuths,
         status,

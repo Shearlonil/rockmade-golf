@@ -79,7 +79,8 @@ export const AuthProvider = ({ children }) => {
     
     // updating client email
     const updateEmail = async (signal, data) => {
-        const response = await xhrAios.put(`/users/profile/email/update`, data, {signal});
+        // const response = await xhrAios.put(`/users/profile/email/update`, data, {signal});
+        const response = await xhrAios.get(`/users/profile/email/update/${data}`, {signal});
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -91,7 +92,8 @@ export const AuthProvider = ({ children }) => {
     
     // updating staff email
     const updateStaffEmail = async (signal, data) => {
-        const response = await xhrAios.put(`/staff/profile/email/update`, data, {signal});
+        // const response = await xhrAios.put(`/staff/profile/email/update`, data, {signal});
+        const response = await xhrAios.get(`/staff/profile/email/update/${data}`, {signal});
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);

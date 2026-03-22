@@ -79,6 +79,7 @@ const StaffDashboard = () => {
     useEffect(() => {
         if(!user || cryptoHelper.decryptData(user.mode) === '1'){
             navigate("/");
+            return;
         }
         setMonthlyRevenueData([{month: months[0], amount: 1000}]);
 

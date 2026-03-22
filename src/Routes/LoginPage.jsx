@@ -73,7 +73,7 @@ const LoginPage = () => {
     };
 
     return (
-        <section  className="position-relative min-vh-100 d-flex align-items-center justify-content-center" style={{ paddingTop: "80px" }} >
+        <section  className="position-relative min-vh-100 d-flex align-items-center justify-content-center" >
             <div className="position-absolute top-0 start-0 w-100 h-100"
                 style={{
                     backgroundImage: `url(${IMAGES.image1})`,
