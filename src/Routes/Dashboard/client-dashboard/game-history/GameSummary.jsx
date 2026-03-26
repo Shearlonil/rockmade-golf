@@ -112,7 +112,7 @@ const GameSummary = () => {
                 return;
             }
             if(error.response.status === 404){
-                navigate('/dashboard')
+                navigate('/dashboard');
             }
             setNetworkRequest(false);
             toast.error(handleErrMsg(error).msg);
@@ -133,6 +133,7 @@ const GameSummary = () => {
         game.users.forEach(user => {
             const userScore = new UserScore();
             userScore.id = user.id;
+            userScore.nano_id = user.nano_id;
             userScore.hcp = user.UserGameGroup.user_hcp;
             userScore.ProfileImgKeyhash = user.ProfileImgKeyhash;
             userScore.name = user.fname + ' ' + user.lname;
@@ -274,13 +275,13 @@ const GameSummary = () => {
             <Row className='mb-5'>
                 <div className="col-md-6 col-sm-12 mb-5">
                     <span className="h2 text-danger fw-bold d-flex justify-content-center">Leaderboards</span>
-                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll', minHeight: 300}}>
+                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll', minHeight: 400}}>
                         <LeaderBoards networkRequest={networkRequest} />
                     </div>
                 </div>
                 <div className="col-md-6 col-sm-12 mb-5">
                     <span className="h2 text-primary fw-bold d-flex justify-content-center">Players ({playerScores?.length})</span>
-                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll', minHeight: 300}}>
+                    <div className="border-1 shadow rounded-3 p-2" style={{maxHeight: 500, overflowY: 'scroll', minHeight: 400}}>
                         <PlayerList networkRequest={networkRequest} />
                     </div>
                 </div>

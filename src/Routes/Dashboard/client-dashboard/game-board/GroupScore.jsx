@@ -30,7 +30,7 @@ const GroupScore = ({columns = [], myGroup}) => {
     const { updateGroupScores, updateGroupContestScores } = useGameController();
     const { gamePlay, setGamePlay, scores, setScores, holeProps } = useGame();
     const game = gamePlay();
-    const game_id = game?.id;
+    const game_id = game?.nano_id;
     const playerScores = scores();
     const hp = holeProps();
 

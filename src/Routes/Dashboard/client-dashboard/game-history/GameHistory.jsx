@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Row } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { MdCancel } from "react-icons/md";
 import { format } from 'date-fns';
@@ -69,6 +69,7 @@ const buildTableData = (data) => {
         return {
             id: r.id,
             game_id: r.game_id,
+            nano_id: r.nano_id,
             name: r.name,
             date: format(r.date, "dd/MM/yyyy"),
             hole_mode,
@@ -100,12 +101,15 @@ const GameHistory = () => {
     
     const navigate = useNavigate();
     const location = useLocation();
+    const { user_nano_id } = useParams();
 
     const { authUser } = useAuthUser();
     const { player_id, setPlayerID } = useGame();
     const { userGameHistory, userGameHistorySearch } = useGameController();
     const user = authUser();
-    const playerID = player_id();
+    // TODO: delete comment
+    // const playerID = player_id();
+    const playerID = user_nano_id;
 
     const [networkRequest, setNetworkRequest] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState('');
@@ -124,10 +128,11 @@ const GameHistory = () => {
             return;
         }
 
+        // TODO: delete below code
         // in case no player id set prior to viewing this page, set it to logged in user
         if (!playerID) {
-            const decrypted_id = cryptoHelper.decryptData(user.id);
-            setPlayerID(decrypted_id);
+            // const decrypted_id = cryptoHelper.decryptData(user.nano_id);
+            // setPlayerID(decrypted_id);
             /*  AS player id has just been set and being part of dependency list for userEffect, it makes sense to prevent further execution of useEffect until new player id is returned
                 from context. Without return keyword, initialize will be called first without wating for the new player id set to be retrieved from game-context. Then later called again
                 when new player_id is retrieved from the context (since it's part of the dependency list)*/
@@ -139,7 +144,7 @@ const GameHistory = () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
             controllerRef.current.abort();
         };
-    }, [location.pathname, player_id]);
+    }, [location.pathname]);    //  , playerID
 
     const initialize = async () => {
         try {
@@ -226,7 +231,7 @@ const GameHistory = () => {
     };
 
     const handleTableRowClicked = (rowData) => {
-        useSessionStorage.setValue('recent_game_id', rowData.game_id.toString());
+        useSessionStorage.setValue('recent_game_id', rowData.nano_id.toString());
         const nameArr = rowData.name.split(' ');
         const strName = nameArr.join('+');
         navigate(`summary/${strName}`);

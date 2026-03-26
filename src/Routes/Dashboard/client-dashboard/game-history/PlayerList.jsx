@@ -76,7 +76,8 @@ const PlayerList = ({networkRequest}) => {
         }
         // update clicked player in game-context
         setPlayerID(rowData.id);
-        useSessionStorage.setValue('user_id', rowData.id.toString());
+        // method setValue also encrypt whatever you pass to it
+        useSessionStorage.setValue('user_id', rowData.nano_id.toString());
         const nameArr = rowData.name.split(' ');
         const strName = nameArr.join('+');
         /*  Ref: Gemini after searching => encrypt url slugs javascript

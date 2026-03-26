@@ -132,6 +132,7 @@ const PlayerSelection = () => {
                     // create UserScore for each added user for leaderboards
                     const userScore = new UserScore();
                     userScore.id = datum.id;
+                    userScore.nano_id = datum.nano_id;
                     userScore.hcp = datum.hcp;
                     userScore.ProfileImgKeyhash = datum.ProfileImgKeyhash;
                     userScore.name = datum.fname + ' ' + datum.lname;
@@ -139,7 +140,7 @@ const PlayerSelection = () => {
                     leaderboardScores.push(userScore);
                 }
                 const payload = {
-                    game_id: gameRound.id,
+                    game_id: gameRound.nano_id,
                     currentGroupSize: sizeOfGroup,
                     players: arr,
                     groupProp: {
@@ -262,7 +263,7 @@ const PlayerSelection = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            const response = await updateGroupSize(controllerRef.current.signal, gameRound.id, sizeOfGroup);
+            const response = await updateGroupSize(controllerRef.current.signal, gameRound.nano_id, sizeOfGroup);
             // remove excess player from group if new size is smaller than previous
             const groups = [...gameGroupArr];
             if(sizeOfGroup < gameRound.group_size){
@@ -301,7 +302,7 @@ const PlayerSelection = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            await removePlayer(controllerRef.current.signal, {game_id: gameRound.id, player_id: selectedGroupPlayer.id});
+            await removePlayer(controllerRef.current.signal, {game_id: gameRound.nano_id, player_id: selectedGroupPlayer.id});
             const temp = [...gameGroupArr];
             const group = temp.find(arr => arr.name === selectedGroupPlayer.group);
             // remove player from group
@@ -330,7 +331,7 @@ const PlayerSelection = () => {
             resetAbortController();
             const groupNo = changedPlayerGroupDetails.value.name;
             const payload = {
-                game_id: gameRound.id,
+                game_id: gameRound.nano_id,
                 currentGroupSize: sizeOfGroup,
                 player_id: selectedGroupPlayer.id,
                 groupProp: {
@@ -364,7 +365,7 @@ const PlayerSelection = () => {
             setNetworkRequest(true);
             resetAbortController();
             const payload = {
-                game_id: gameRound.id,
+                game_id: gameRound.nano_id,
                 playerOne: {
                     id: selectedGroupPlayer.id,
                     group_name: selectedGroupPlayer.group,

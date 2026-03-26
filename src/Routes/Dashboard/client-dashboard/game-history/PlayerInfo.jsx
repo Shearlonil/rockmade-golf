@@ -90,6 +90,7 @@ const buildTableData = (data) => {
         return {
             id: r.id,
             game_id: r.game_id,
+            nano_id: r.nano_id,
             name: r.name,
             date: format(r.date, "dd/MM/yyyy"),
             hole_mode,
@@ -232,7 +233,7 @@ const PlayerInfo = () => {
     const viewUserPlayedCourses = () => setShowCoursesPlayed(true);
 
     const handleTableRowClicked = (rowData) => {
-        useSessionStorage.setValue('recent_game_id', rowData.game_id.toString());
+        useSessionStorage.setValue('recent_game_id', rowData.nano_id.toString());
         const nameArr = rowData.name.split(' ');
         const strName = nameArr.join('+');
         navigate(`/dashboard/client/games/history/summary/${strName}`);

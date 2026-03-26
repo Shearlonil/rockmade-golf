@@ -56,7 +56,7 @@ function App() {
                     </Route>
                     <Route path="client" >
                         <Route path=":id/game/:name" element={<GameBoard />} />
-                        <Route path="games/history" element={<GameHistory />} />
+                        <Route path=":user_nano_id/games/history" element={<GameHistory />} />
                         <Route path="games/history/summary/:name" element={<GameSummary />} />
                         <Route path="games/player/:name" element={<PlayerInfo />} />
                         <Route path="players/list" element={<Players />} />

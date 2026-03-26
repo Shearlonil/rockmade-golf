@@ -295,9 +295,10 @@ const ClientDashboard = () => {
     };
 
     const navigateGameHistory = () => {
-        const decrypted_id = cryptoHelper.decryptData(user.id);
-        setPlayerID(decrypted_id);
-        navigate("client/games/history");
+        // TODO: delete comment
+        // const decrypted_id = cryptoHelper.decryptData(user.id);
+        // setPlayerID(decrypted_id);
+        navigate(`client/${user.nano_id}/games/history`);
     };
 
 	const handleCloseModal = () => {

@@ -118,12 +118,12 @@ const calcToParVal = (userHoleScores, holePars) => {
     let totalScores = 0;
     let totalPars = 0;
     for (let i = 1; i <= 18; i++) {
-        if(userHoleScores[i] && userHoleScores[i] > 0){
+        if(userHoleScores[i] && userHoleScores[i] > 0 && holePars[i] && holePars[i] > 0){
             totalScores += userHoleScores[i];
             totalPars += holePars[i];
         }
     }
-
+    
     userHoleScores.scoreLessHcp = totalScores - userHoleScores.hcp;
     userHoleScores.score = totalScores;
     return totalScores - totalPars;

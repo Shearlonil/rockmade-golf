@@ -80,6 +80,7 @@ const buildTableData = (data) => {
     return data.map(datum => {
         return {
             id: datum.id,
+            nano_id: datum.nano_id,
             fname: datum.fname,
             lname: datum.lname,
             hcp: datum.hcp,
@@ -180,7 +181,7 @@ const Players = () => {
         }
         // update clicked player in game-context
         setPlayerID(rowData.id);
-        useSessionStorage.setValue('user_id', rowData.id.toString());
+        useSessionStorage.setValue('user_id', rowData.nano_id.toString());
         const name = rowData.fname + " " + rowData.lname;
         const nameArr = name.split(' ');
         const strName = nameArr.join('+');

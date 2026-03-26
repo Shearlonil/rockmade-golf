@@ -35,6 +35,23 @@ const offcanvasMenuItems = [
     { label: "Share Game", onClickParams: {evtName: 'share'} },
 ];
 
+const cols = [
+    {
+        key: 'name',
+        label: 'Name',
+        fixed: true,
+        // flexGrow: 5,
+        width: 200,
+    },
+    {
+        key: 'toParVal',
+        label: '',
+        fixed: true,
+        // flexGrow: 1,
+        width: 80,
+    },
+];
+
 const GameBoard = () => {
     const controllerRef = useRef(new AbortController());
     
@@ -64,22 +81,7 @@ const GameBoard = () => {
     const [pageNumber, setPageNumber] = useState(1);
     const [gameMode, setGameMode] = useState(null);
     // column headers for table displayed in GroupScore component
-    const [columns, setColumns] = useState([
-        {
-            key: 'name',
-            label: 'Name',
-            fixed: true,
-            // flexGrow: 5,
-            width: 200,
-        },
-        {
-            key: 'toParVal',
-            label: '',
-            fixed: true,
-            // flexGrow: 1,
-            width: 80,
-        },
-    ]);
+    const [columns, setColumns] = useState(cols);
     
 	const [showGameCodesModal, setShowGameCodesModal] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -269,6 +271,7 @@ const GameBoard = () => {
         try {
             setNetworkRequest(true);
             setShowOrbitalLoader(true);
+            // setScores([]);
             resetAbortController();
             const data = {
                 game_id: id,
@@ -282,6 +285,8 @@ const GameBoard = () => {
                 const game = response.data.g;
                 game.Course = response.data.course;
                 setGamePlay(game);
+                const hp = buildHoleProps(game);
+                buildGameScores(game, hp);
             }
             setConfirmDialogEvtName(null);
             setNetworkRequest(false);
@@ -351,6 +356,7 @@ const GameBoard = () => {
             }
             const userScore = new UserScore();
             userScore.id = user.id;
+            userScore.nano_id = user.nano_id;
             userScore.hcp = user.UserGameGroup.user_hcp;
             userScore.ProfileImgKeyhash = user.ProfileImgKeyhash;
             userScore.name = user.fname + ' ' + user.lname;
@@ -419,7 +425,7 @@ const GameBoard = () => {
             });
             allScores.forEach(groupScore => groupScore.setHolePar(i, holeProps[i].par) );
         }
-        setColumns([...columns, ...arr]);
+        setColumns([...cols, ...arr]);
     };
 
     const buildCurrentRoundScores = (allScores, gameHoleRec) => {

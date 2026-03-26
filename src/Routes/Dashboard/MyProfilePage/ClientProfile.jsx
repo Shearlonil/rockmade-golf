@@ -205,7 +205,7 @@ const ClientProfilePage = () => {
 
     const handleEmailUpdate = async (data) => {
         setEmailDetails(data);
-        setDisplayMsg(`Update Email?`);
+        setDisplayMsg(`Update Email?. This will log you out from all other devices or browsers.`);
         setConfirmDialogEvtName('email');
         setShowConfirmModal(true);
     };

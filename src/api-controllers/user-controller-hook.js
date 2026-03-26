@@ -43,12 +43,12 @@ const useUserController = () => {
         return await xhrAios.get(`/users/active/init/${pageSize}`, {signal});
     }
     
-    const playerInfo = async (signal, id) => {
-        return await xhrAios.get(`/users/dashboard/games/player/${id}`, {signal});
+    const playerInfo = async (signal, nano_id) => {
+        return await xhrAios.get(`/users/dashboard/games/player/${nano_id}`, {signal});
     }
     
-    const playedCourses = async (signal, id) => {
-        return await xhrAios.get(`/users/courses/played/${id}`, {signal});
+    const playedCourses = async (signal, nano_id) => {
+        return await xhrAios.get(`/users/courses/played/${nano_id}`, {signal});
     }
     
     const dashboard = async (signal) => {
