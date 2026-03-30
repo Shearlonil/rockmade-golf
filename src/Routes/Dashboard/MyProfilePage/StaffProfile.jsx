@@ -15,7 +15,7 @@ import {
 } from "react-icons/ri";
 
 import { useAuth } from "../../../app-context/auth-context";
-import useStaffController from "../../../api-controllers/staff-controller";
+import useStaffController from "../../../api-controllers/staff-controller-hook";
 import { useAuthUser } from "../../../app-context/user-context";
 import useGenericController from "../../../api-controllers/generic-controller-hook";
 import cryptoHelper from "../../../Utils/crypto-helper";

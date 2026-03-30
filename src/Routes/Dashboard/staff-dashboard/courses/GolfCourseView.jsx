@@ -205,7 +205,7 @@ export default function GolfCourseView() {
             const response = await updateCourseHoleCount(controllerRef.current.signal, {course_id: course.id, holes: data});
             // update necessary fields in course
             const c = {...course};
-            c.Holes = response.data;
+            c.holes = response.data;
             c.no_of_holes = response.data.length;
             setCourse(c);
             setUpContests(contests, response.data);
@@ -223,7 +223,7 @@ export default function GolfCourseView() {
     };
 
     const editHole = (hole, val) => {
-        setHoleCredentials({ ...val, id: hole.CourseHoles.id, no: hole.CourseHoles.hole_no });
+        setHoleCredentials({ ...val, id: hole.CourseHoles.id, no: hole.hole_no });
         setShowHoleHcpParUpdate(true);
     };
 
@@ -236,9 +236,9 @@ export default function GolfCourseView() {
             setNetworkRequest(false);
             setShowHoleHcpParUpdate(false);
             const c = {...course}
-            const hole = c.Holes.find(c => c.id === holeCredentials.id);
-            hole.hcp_idx = data.hcp;
-            hole.par = data.par;
+            const hole = c.holes.find(h => h.CourseHoles.id === holeCredentials.id);
+            hole.CourseHoles.hcp_idx = data.hcp;
+            hole.CourseHoles.par = data.par;
             setCourse(c);
         } catch (error) {
             if (error.name === 'AbortError') {

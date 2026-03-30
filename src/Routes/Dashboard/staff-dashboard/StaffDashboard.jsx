@@ -12,7 +12,7 @@ import OffcanvasMenu from '../../../Components/OffcanvasMenu';
 import cryptoHelper from '../../../Utils/crypto-helper';
 import StaffCreationDialog from '../../../Components/DialogBoxes/StaffCreationDialog';
 import ConfirmDialog from '../../../Components/DialogBoxes/ConfirmDialog';
-import useStaffController from '../../../api-controllers/staff-controller';
+import useStaffController from '../../../api-controllers/staff-controller-hook';
 
 const StaffDashboard = () => {
     const controllerRef = useRef(new AbortController());

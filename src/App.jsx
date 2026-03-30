@@ -26,6 +26,7 @@ import PlayerInfo from "./Routes/Dashboard/client-dashboard/game-history/PlayerI
 import Players from "./Routes/Dashboard/client-dashboard/Players.jsx";
 import MembershipPlans from "./Routes/Dashboard/staff-dashboard/MembershipPlans.jsx";
 import ContinueEmailUpdate from "./Routes/ContinueEmailUpdate.jsx";
+import PaystackTransactionVerification from "./Routes/PaystackTransactionVerification.jsx";
 
 function App() {
     return (
@@ -60,6 +61,7 @@ function App() {
                         <Route path="games/history/summary/:name" element={<GameSummary />} />
                         <Route path="games/player/:name" element={<PlayerInfo />} />
                         <Route path="players/list" element={<Players />} />
+                        <Route path="profile/transactions/verify/:reference"  element={<PaystackTransactionVerification />} />
                     </Route>
 					<Route path={""} element={<Dashboard />} />
                 </Route>

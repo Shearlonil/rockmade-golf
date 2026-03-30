@@ -16,11 +16,12 @@ import {
     HiStar,
 } from "react-icons/hi";
 
-import useSubPlansController from "../api-controllers/sub-plans-controller";
 import IMAGES from "../assets/images";
 import handleErrMsg from "../Utils/error-handler";
 import Skeleton from "react-loading-skeleton";
 import { testimonials , features, ambassadors, galleryItems, stats} from "../Utils/data";
+import useTransactionController from "../api-controllers/transaction-controller-hook";
+import useSubPlansController from "../api-controllers/sub-plans-controller-hook";
 
 const Carousel = ({ children }) => {
     const [emblaRef] = useEmblaCarousel({ loop: true }, [
@@ -46,6 +47,7 @@ export default function MembershipPage() {
     const location = useLocation();
 
     const { membershipPlans } = useSubPlansController();
+    const { initializeMembershipSub } = useTransactionController();
 
     const [countersVisible, setCountersVisible] = useState(false);
     const statsRef = useRef(null);
@@ -82,6 +84,28 @@ export default function MembershipPage() {
 
             setNetworkRequest(false);
         } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
+    const initializeMembershipPayment = async (nano_id) => {
+        try {
+            controllerRef.current = new AbortController();
+            setNetworkRequest(true);
+            const response = await initializeMembershipSub(controllerRef.current.signal, nano_id);
+            window.location.href = response.data.data.authorization_url;
+            setNetworkRequest(false);
+        } catch (error) {
+            // 403 means Forbidden, which implies no Bearer token attached to reqeust or error occured while trying to verify token
+            if(error.status === 403){
+                navigate('/login');
+                return;
+            }
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;
@@ -137,7 +161,7 @@ export default function MembershipPage() {
                             <RiDiscountPercentFill color="red" size={40}/>
                             <span className="text-danger fw-bold fs-5"> {p.discount}% off </span>
                         </div> }
-                        <a href="#contact" className={`btn w-100 ${p.popular ? "donate-btn text-white" : "custom-btn" }`} >
+                        <a className={`btn w-100 ${p.popular ? "donate-btn text-white" : "custom-btn" }`} onClick={() => initializeMembershipPayment(p.nano_id)} >
                             Get Started{" "}
                             <HiArrowRight className="ms-1" style={{ width: 16, height: 16 }} />
                         </a>

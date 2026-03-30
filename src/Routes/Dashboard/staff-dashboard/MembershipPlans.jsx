@@ -12,7 +12,7 @@ import cryptoHelper from '../../../Utils/crypto-helper';
 import handleErrMsg from '../../../Utils/error-handler';
 import IMAGES from '../../../assets/images';
 import RsuiteTableSkeletonLoader from '../../../Components/RsuiteTableSkeletonLoader';
-import useSubPlansController from '../../../api-controllers/sub-plans-controller';
+import useSubPlansController from '../../../api-controllers/sub-plans-controller-hook';
 import ToggleSwitch from '../../../Components/ToggleSwitch';
 import { CustomError } from '../../../Entities/CustomError';
 import ConfirmDialog from '../../../Components/DialogBoxes/ConfirmDialog';

@@ -18,7 +18,7 @@ import PaginationLite from "../../../../Components/PaginationLite";
 import ConfirmDialog from "../../../../Components/DialogBoxes/ConfirmDialog";
 import { pageSizeOptions, statusOptions } from "../../../../Utils/data";
 import RsuiteTableSkeletonLoader from "../../../../Components/RsuiteTableSkeletonLoader";
-import useStaffController from "../../../../api-controllers/staff-controller";
+import useStaffController from "../../../../api-controllers/staff-controller-hook";
 import StaffCreationDialog from "../../../../Components/DialogBoxes/StaffCreationDialog";
 import StaffProfileViewDialog from "../../../../Components/DialogBoxes/StaffProfileViewDialog";
 

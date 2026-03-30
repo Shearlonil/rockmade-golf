@@ -111,6 +111,25 @@ export const AuthProvider = ({ children }) => {
         */
         setAxiosToken(jwt);
     }
+    
+    const verifySubTransaction = async (signal, reqQuery) => {
+        const response = await xhrAios.get(`/transactions/paystack/verification`, {
+            params: {
+                reqQuery
+            }
+        }, {signal});
+        // if token is present in header, then member subscription was made
+        if(response.headers[AppConstants.jwtStorageTitle]){
+            //  remove the token prefix from the token for jwtDecode to decode the token
+            const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
+            setJwtTokenValue(jwt);
+            /*  Update token in axios. A Bug detected on signin in, Axios won't attach bearer token to request after first login. Will only start attaching after page refresh.
+                This is a make shift to circumvent the bug
+            */
+            setAxiosToken(jwt);
+        }
+        return response.data;
+    }
 
     // call this function to sign out logged in user
     const logout = async (route) => {
@@ -137,6 +156,7 @@ export const AuthProvider = ({ children }) => {
             updateEmail,
             updateStaffEmail,
             updateProfileImg,
+            verifySubTransaction,
             logout,
             getCurrentYear,
         }),

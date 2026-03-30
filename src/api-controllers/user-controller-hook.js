@@ -99,9 +99,7 @@ const useUserController = () => {
         }, {signal});
     }
     
-    const getAxios = () => {
-        return xhrAios;
-    }
+    const getAxios = () => xhrAios;
 
     return {
         onboard,

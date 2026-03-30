@@ -15,7 +15,7 @@ import { ThreeDotLoading } from '../react-loading-indicators/Indicator';
 import { schema } from '../../Utils/yup-schema-validator/staff-schema';
 import { gender } from '../../Utils/data';
 import handleErrMsg from '../../Utils/error-handler';
-import useStaffController from '../../api-controllers/staff-controller';
+import useStaffController from '../../api-controllers/staff-controller-hook';
 
 const StaffCreationDialog = ({ show, handleClose, handleConfirm, message, networkRequest }) => {
     const controllerRef = useRef(new AbortController());

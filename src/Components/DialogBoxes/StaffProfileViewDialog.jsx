@@ -11,7 +11,7 @@ import { IoPhonePortraitOutline } from "react-icons/io5";
 
 import ErrorMessage from '../ErrorMessage';
 import { ThreeDotLoading } from '../react-loading-indicators/Indicator';
-import useStaffController from '../../api-controllers/staff-controller';
+import useStaffController from '../../api-controllers/staff-controller-hook';
 import handleErrMsg from '../../Utils/error-handler';
 
 const StaffProfileViewDialog = ({ show, handleClose, handleConfirm, message, networkRequest, staff }) => {
