@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import numeral from "numeral";
 
 const _userHoleScores = new WeakMap();
 const _holePars = new WeakMap();

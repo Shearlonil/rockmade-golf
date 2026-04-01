@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
 import AsyncSelect from 'react-select/async';
 import { yupResolver } from "@hookform/resolvers/yup";
+import { format, isPast, differenceInDays } from 'date-fns';
 import { IoShieldCheckmarkSharp } from "react-icons/io5";
 import { BiSolidEditAlt } from "react-icons/bi";
 import {
@@ -16,6 +17,8 @@ import {
     RiLockLine,
     RiEyeOffLine,
 } from "react-icons/ri";
+import { TbLogout } from "react-icons/tb";
+import { MdOutlineAutorenew } from "react-icons/md";
 
 import IMAGES from "../../../assets/images";
 import ImageComponent from "../../../Components/ImageComponent";
@@ -33,6 +36,19 @@ import { useActiveCourses } from "../../../app-context/active-courses-context";
 import useGenericController from "../../../api-controllers/generic-controller-hook";
 import useUserController from "../../../api-controllers/user-controller-hook";
 import ProfileImgDialog from "../../../Components/DialogBoxes/ProfileImgDialog";
+
+const evaluateStatus = (user) => {
+    if(user && user.sub){
+        if(isPast(new Date(cryptoHelper.decryptData(user.sub)).setHours(23, 59, 59, 0))){
+            return {color: 'red', text: 'Expired'};
+        }
+        if (differenceInDays(new Date(cryptoHelper.decryptData(user.sub)).setHours(23, 59, 59, 0), new Date()) <= 30) {
+            return {color: 'green', text: 'Soon To Expire'}
+        }
+        return {color: 'green', text: 'Active'}
+    }
+    return '';
+}
 
 const ClientProfilePage = () => {
     const controllerRef = useRef(new AbortController());
@@ -165,6 +181,9 @@ const ClientProfilePage = () => {
             case "dp":
                 updateDP();
                 break;
+            case "logout":
+                logoutAllDevices();
+                break;
         }
     };
 
@@ -200,6 +219,12 @@ const ClientProfilePage = () => {
         setPwDetails(data);
         setDisplayMsg(`Update Password?`);
         setConfirmDialogEvtName('pw');
+        setShowConfirmModal(true);
+    };
+
+    const handleLogoutAllDevices = () => {
+        setDisplayMsg(`Log account out from all devices?`);
+        setConfirmDialogEvtName('logout');
         setShowConfirmModal(true);
     };
 
@@ -348,6 +373,22 @@ const ClientProfilePage = () => {
         }
     };
 
+    const logoutAllDevices = async () => {
+        try {
+            setNetworkRequest(true);
+            resetAbortController();
+            // await updateProfileImg(controllerRef.current.signal, formData);
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
     const resetAbortController = () => {
         // Cancel previous request if it exists
         if (controllerRef.current) {
@@ -470,12 +511,14 @@ const ClientProfilePage = () => {
                 </Col>
             </Row>
 
-            <Row className="mt-4 shadow border-0 rounded-3 h-100 p-1 mb-5">
+            <Row className="mt-3 shadow border-0 rounded-3 h-100 p-1 mb-5">
                 <div className="d-flex justify-content-between p-3">
                     <h4 className="fw-bold">Account</h4>
+                    <span className="fw-bold h4 text-danger btn" onClick={() => handleLogoutAllDevices()}>
+                        <TbLogout color="red" /> Logout All Devices
+                    </span>
                 </div>
                 <Col xs={12} md={6} sm={12} className="mb-3">
-
                     <div className="d-flex flex-column mb-4">
                         <div className="row g-3">
                             <div className="col-md-8">
@@ -617,6 +660,38 @@ const ClientProfilePage = () => {
                             </div>
                         </div>
                         <ErrorMessage source={otp_errors.otp} />
+                    </div>
+                </Col>
+            </Row>
+            <Row className="mt-3 shadow border-0 rounded-3 p-1 mb-5">
+                <div className="d-flex justify-content-between p-3">
+                    <h4 className="fw-bold">Subscription</h4>
+                    <span className="fw-bold h4 text-success btn" onClick={() => navigate('/memberships')}>
+                        <MdOutlineAutorenew color="green" /> Renew
+                    </span>
+                </div>
+                <Col xs={12} md={3} sm={12} className="mb-2 my-2 g-3 ps-3">
+                    <label className="form-label">Plan</label>
+                    <div className="input-group d-flex gap-2 align-items-center">
+                        <label className="h5">{user?.lastSubPlan}</label>
+                    </div>
+                </Col>
+                <Col xs={12} md={3} sm={12} className="mb-2 my-2 g-3 ps-3">
+                    <label className="form-label">Last Subscribed</label>
+                    <div className="input-group d-flex gap-2 align-items-center">
+                        <label className="h5">{user && user.lastSubDate && format(user?.lastSubDate, "yyyy-MM-dd")}</label>
+                    </div>
+                </Col>
+                <Col xs={12} md={3} sm={12} className="mb-2 my-2 g-3 ps-3">
+                    <label className="form-label">Status</label>
+                    <div className="input-group d-flex gap-2 align-items-center">
+                        <label className="h5">{ evaluateStatus(user).text }</label>
+                    </div>
+                </Col>
+                <Col xs={12} md={3} sm={12} className="mb-2 my-2 g-3 ps-3">
+                    <label className="form-label">Expiry Date</label>
+                    <div className="input-group d-flex gap-2 align-items-center">
+                        <label className="h5">{user && cryptoHelper.decryptData(user.sub)}</label>
                     </div>
                 </Col>
             </Row>

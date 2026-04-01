@@ -40,11 +40,9 @@ const PaystackTransactionVerification = () => {
     
     const initialize = async () => {
         try {
-            console.log(reference);
             await verifySubTransaction(controllerRef.current.signal, reference);
-            // navigate('/dashboard');
+            navigate('/dashboard');
         } catch (error) {
-            console.log(error);
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was intentionally aborted, handle silently
                 return;

@@ -20,6 +20,8 @@ export default class User {
                 sub: whom.sub,
                 blur: whom.blur,
                 roles: whom.roles,
+                lastSubPlan: whom.last_sub_plan,
+                lastSubDate: whom.last_sub_date,
             });
         }
     }
@@ -65,6 +67,12 @@ export default class User {
 
     get regDate() { return _userProps.get(this).regDate }
     set regDate(regDate) { _userProps.get(this).regDate = regDate }
+
+    get lastSubPlan() { return _userProps.get(this).lastSubPlan }
+    set lastSubPlan(lastSubPlan) { _userProps.get(this).lastSubPlan = lastSubPlan }
+
+    get lastSubDate() { return _userProps.get(this).lastSubDate }
+    set lastSubDate(lastSubDate) { _userProps.get(this).lastSubDate = lastSubDate }
     
     get authorities() {
         return auths(_userProps.get(this));
