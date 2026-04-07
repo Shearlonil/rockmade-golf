@@ -12,6 +12,7 @@
     "dependencies": {
         "@hookform/resolvers": "^4.1.3",
         "@szhsin/react-menu": "^4.5.0",
+        "ajv": "^8.18.0",
         "axios": "^1.13.2",
         "bootstrap": "^5.3.7",
         "crypto-js": "^4.2.0",
@@ -23,6 +24,7 @@
         "jwt-decode": "^4.0.0",
         "lucide-react": "^0.552.0",
         "numeral": "^2.0.6",
+        "quill": "^2.0.3",
         "react": "^19.1.1",
         "react-bootstrap": "^2.10.10",
         "react-countup": "^6.5.3",

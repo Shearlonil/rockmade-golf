@@ -1,3 +1,11 @@
+@import 'quill/dist/quill.core.css';
+@import 'quill/dist/quill.bubble.css';
+@import 'quill/dist/quill.snow.css';
+
+.ql-editor {
+  font-size: 16px;
+}
+
 :root {
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.5;

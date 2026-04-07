@@ -57,6 +57,10 @@ const useStaffController = () => {
         return await xhrAios.get(`/staff/auths`, {signal});
     }
 
+    const updateTermsAndAgreement = async (signal, data) => {
+        return await xhrAios.post('/terms/update', data, {signal});
+    };
+
     return {
         register,
         updatePassword,
@@ -69,6 +73,7 @@ const useStaffController = () => {
         staffSearch,
         updateRoles,
         getAuths,
+        updateTermsAndAgreement,
     }
 }
 

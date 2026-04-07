@@ -237,10 +237,6 @@ const MembershipPlans = () => {
             // prevent change in PlanBenefitDialog
             throw new Error(null);
         }
-        // const temp = [...benefits];
-        // temp.splice(selectedBenefit.idx - 1, 1);
-        // temp.forEach((t, idx) => t.idx = idx + 1);
-        // setBenefits(temp);
     }
   
     const handleConfirm = async () => {

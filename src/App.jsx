@@ -27,6 +27,7 @@ import Players from "./Routes/Dashboard/client-dashboard/Players.jsx";
 import MembershipPlans from "./Routes/Dashboard/staff-dashboard/MembershipPlans.jsx";
 import ContinueEmailUpdate from "./Routes/ContinueEmailUpdate.jsx";
 import PaystackTransactionVerification from "./Routes/PaystackTransactionVerification.jsx";
+import TermsAndAgreementReview from "./Routes/Dashboard/staff-dashboard/TermsAndAgreementReview.jsx";
 
 function App() {
     return (
@@ -54,6 +55,7 @@ function App() {
 				            <Route path="" element={<Courses />} />
                         </Route>
                         <Route index path="membership/plans" element={<MembershipPlans />} />
+                        <Route index path="tc" element={<TermsAndAgreementReview />} />
                     </Route>
                     <Route path="client" >
                         <Route path=":id/game/:name" element={<GameBoard />} />

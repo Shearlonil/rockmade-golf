@@ -44,6 +44,7 @@ const StaffDashboard = () => {
         { label: "Contests", onClickParams: {evtName: 'contests'} },
         { label: "Users", onClickParams: {evtName: 'users'} },
         { label: "Membership Plans", onClickParams: {evtName: 'subPlans'} },
+        { label: "Review T&C", onClickParams: {evtName: 'tcReview'} },
     ];
     
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8a2be2"];
@@ -151,6 +152,9 @@ const StaffDashboard = () => {
                 break;
             case 'subPlans':
                 navigate('/dashboard/staff/membership/plans');
+                break;
+            case 'tcReview':
+                navigate('/dashboard/staff/tc');
                 break;
         }
 	}

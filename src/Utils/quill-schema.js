@@ -9,6 +9,7 @@ const schema = {
                 type: "object",
                 properties: {
                     color: { type: "string" },
+                    background: { type: "string" },
                     link: { type: "string"},
                     list: { type: "string" },
                     header: { type: "number" },
@@ -32,4 +33,4 @@ const schema = {
     https://github.com/ajv-validator/ajv
 */
 
-module.exports = schema;
+export default schema;
