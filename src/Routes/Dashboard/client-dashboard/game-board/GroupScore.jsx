@@ -10,7 +10,7 @@ import handleErrMsg from '../../../../Utils/error-handler';
 import { useGame } from '../../../../app-context/game-context';
 
 const CustomHeader = ({ title, par }) => (
-    <div className='d-flex flex-column justify-content-center align-items-center fw-bold text-dark'>
+    <div className='d-flex flex-column justify-content-center align-items-center fw-bold text-dark w-100'>
         <label className='fs-5'>{title}</label>
         <label>Par {par}</label>
     </div>
@@ -158,13 +158,13 @@ const GroupScore = ({columns = [], myGroup}) => {
                     }
                     if(idx > 1){
                         return (
-                            <Column {...rest} key={key} >
-                                <HeaderCell>
+                            <Column {...rest} key={key} className='d-flex flex-column align-items-center' >
+                                <HeaderCell style={{ textAlign: 'center', width: '100%' }}>
                                     <CustomHeader title={label} par={hp[key]?.par} />
                                 </HeaderCell>
                                 <Cell
                                     dataKey={key}
-                                    style={{ padding: 6 }}
+                                    style={{ padding: 6, textAlign: 'center' }}
                                     onClick={() => columnClicked(column, hp[key])}
                                 />
                             </Column>
@@ -173,7 +173,7 @@ const GroupScore = ({columns = [], myGroup}) => {
                     return (
                         <Column {...rest} key={key} fullText>
                             <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
-                            <Cell dataKey={key} style={{ padding: 6, fontWeight: 'bold' }} />
+                            <Cell dataKey={key} style={{ padding: 6, fontWeight: 'bold', textAlign: 'center' }} />
                         </Column>
                     );
                 })}

@@ -27,6 +27,7 @@ import PlayerSelection from '../../../../Components/PlayerSelection';
 import GameCodesViewDialog from '../../../../Components/DialogBoxes/GameCodesViewDialog';
 import { UserScore } from '../../../../Entities/UserScore';
 import { useGame } from '../../../../app-context/game-context';
+import useSessionStorage from '../../../../app-context/useSessionStorage';
 
 const offcanvasMenuItems = [
     { label: "Enter Score", onClickParams: {evtName: 'enterScore'} },
@@ -41,14 +42,14 @@ const cols = [
         label: 'Name',
         fixed: true,
         // flexGrow: 5,
-        width: 200,
+        width: 180,
     },
     {
         key: 'toParVal',
         label: '',
         fixed: true,
         // flexGrow: 1,
-        width: 80,
+        width: 60,
     },
 ];
 
@@ -63,8 +64,8 @@ const GameBoard = () => {
     const { logout } = useAuth();
     const { gameCourseSearch,  } = useCourseController();
     const { performGetRequests } = useGenericController();
-    const { updateGameSpices, updateGame } = useGameController();
-    const { gamePlay, setGamePlay, setScores, setGroups, setHoleProps } = useGame();
+    const { updateGameSpices, updateGame, endOngoingGame } = useGameController();
+    const { gamePlay, setGamePlay, setScores, setGroups, setHoleProps, setPlayerID } = useGame();
     const { authUser } = useAuthUser();
     const ongoingRound = gamePlay();
     const user = authUser();
@@ -189,6 +190,10 @@ const GameBoard = () => {
                 setShowGameCodesModal(true);
                 break;
             case 'endGame':
+                // ask to end game
+                setConfirmDialogEvtName('endGame');
+                setDisplayMsg('End Game? Ending an unfinished round will close the game for all players. Action cannot be undone!!');
+                setShowConfirmModal(true);
                 setActiveMenuItem(menus.label);
                 break;
         }
@@ -219,7 +224,7 @@ const GameBoard = () => {
     };
 
     const handleSaveCourseSetting = (data) => {
-        setConfirmDialogEvtName('save')
+        setConfirmDialogEvtName('save');
         setDisplayMsg('Update Course for the ongoing game?');
         setShowConfirmModal(true);
         setUpdatedCoureData(data);
@@ -255,6 +260,9 @@ const GameBoard = () => {
                 break;
             case 'updateHoleContests':
                 saveUpdatedHolesContests();
+                break;
+            case 'endGame':
+                endGame();
                 break;
         }
     };
@@ -324,6 +332,29 @@ const GameBoard = () => {
             setNetworkRequest(false);
             setShowOrbitalLoader(false);
             toast.info('Update successful');
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            setShowOrbitalLoader(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
+    const endGame = async () => {
+        try {
+            resetAbortController();
+            setNetworkRequest(true);
+            setShowOrbitalLoader(true);
+            await endOngoingGame(controllerRef.current.signal, id);
+            const decrypted_id = cryptoHelper.decryptData(user.id);
+            useSessionStorage.setValue('recent_game_id', id.toString());
+            setPlayerID(decrypted_id);
+            const nameArr = ongoingRound?.name.split(' ');
+            const strName = nameArr.join('+');
+            navigate(`/dashboard/client/games/history/summary/${strName}`);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // Request was aborted, handle silently

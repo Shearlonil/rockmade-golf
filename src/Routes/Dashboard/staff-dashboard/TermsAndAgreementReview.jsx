@@ -100,6 +100,7 @@ const TermsAndAgreementReview = () => {
                 toast.error("Please enter/edit Terms and Conditions");
             }else {
 			    await updateTermsAndAgreement(controllerRef.current.signal, ops);
+                toast.info('T&C update successful');
             }
             setNetworkRequest(false);
 		} catch (error) {

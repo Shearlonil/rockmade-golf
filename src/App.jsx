@@ -28,6 +28,7 @@ import MembershipPlans from "./Routes/Dashboard/staff-dashboard/MembershipPlans.
 import ContinueEmailUpdate from "./Routes/ContinueEmailUpdate.jsx";
 import PaystackTransactionVerification from "./Routes/PaystackTransactionVerification.jsx";
 import TermsAndAgreementReview from "./Routes/Dashboard/staff-dashboard/TermsAndAgreementReview.jsx";
+import TermsAndAgreement from "./Routes/TermsAndAgreement.jsx";
 
 function App() {
     return (
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/staff/login" element={<StaffLogin />} />
                 <Route path="/signup" element={<SignUpPage />} />
                 <Route path="/register"  element={<PlayerRegistrationPage />} />
+                <Route path="/terms-and-policy"  element={<TermsAndAgreement />} />
                 <Route path="profile/:user_type/email/update/:nano_id"  element={<ContinueEmailUpdate />} />
 
                 <Route path="/dashboard" element={<ProtectedRoute />}>

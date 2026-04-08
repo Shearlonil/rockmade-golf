@@ -13,6 +13,7 @@ export const schema = yup.object().shape({
     country: yup.object().typeError("Select a country from the list").required("Select a country"),
     home_club: yup.object().typeError("Select your Home Club from the list").required("Home Club is required"),
     hcp: yup.number().typeError("HCP can only be a number").min(0, 'HCP cannot be less than 0').required('HCP is required'),
+	accept: yup.boolean().required('You must accept Terms And Policy to continue'),
     // otp sent to mail for registration
     otp: yup.string().required('otp is required for email verfication'),
 });

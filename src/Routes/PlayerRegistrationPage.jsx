@@ -10,8 +10,8 @@ import {
     RiEyeOffLine,
 } from "react-icons/ri";
 import { IoShieldCheckmarkSharp } from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
-import { Button, Form } from "react-bootstrap";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Button, Form, Nav } from "react-bootstrap";
 import AsyncSelect from 'react-select/async';
 import Select from "react-select";
 import Datetime from "react-datetime";
@@ -443,7 +443,7 @@ const PlayerRegistrationPage = () => {
                                         </div>
                                     </div>
 
-                                    <div className="mb-4">
+                                    <div className="mb-3">
                                         <label className="form-label fw-bold">Home Club</label>
                                         <Controller
                                             name="home_club"
@@ -471,6 +471,28 @@ const PlayerRegistrationPage = () => {
                                             )}
                                         />
                                         <ErrorMessage source={errors.home_club} />
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <Nav.Link as={NavLink} to="/terms-and-policy" className="d-flex gap-1 fw-bold text-primary">
+                                            <Controller
+                                                name="accept"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        label="I agree"
+                                                        className="text-dark"
+                                                        checked={field.value}
+                                                        onChange={(e) => {
+                                                            field.onChange(e.target.checked);
+                                                        }}
+                                                    />
+                                                )}
+                                            />
+                                            to terms and policy
+                                        </Nav.Link>
+                                        <ErrorMessage source={errors.accept} />
                                     </div>
 
                                     <Button type="submit" className="btn custom-btn w-100 mb-3" onClick={handleSubmit(onSubmit)}>

@@ -24,6 +24,10 @@ const useGameController = () => {
         return await xhrAios.post(`/games/${id}/remove`, {signal});
     }
 
+    const endOngoingGame = async (signal, nano_id) => {
+        return await xhrAios.post(`/games/rounds/ongoing/${nano_id}/end`, {signal});
+    }
+
     const updateGameSpices = async (signal, data) => {
         return await xhrAios.post(`/games/spices/update`, data, {signal});
     }
@@ -83,6 +87,7 @@ const useGameController = () => {
         updateGroupScores,
         updateGroupContestScores,
         removegame,
+        endOngoingGame,
         updateGameSpices,
         findOngoingRoundById,
         findGameHistoryById,
