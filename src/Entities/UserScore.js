@@ -15,6 +15,12 @@ export class UserScore {
             hcp: '',
             group: '',
             position: null,
+            /*  hole_modes
+                1   => full 18
+                2   => front 9
+                3   => back 9
+            */
+            hole_mode: 0,
         });
         _holePars.set(this, {});
         _holeContests.set(this, {});
@@ -41,6 +47,9 @@ export class UserScore {
     // position of player in leaderboards
     get position() { return _userHoleScores.get(this).position }
     set position(position) { _userHoleScores.get(this).position = position }
+
+    get hole_mode() { return _userHoleScores.get(this).hole_mode }
+    set hole_mode(hole_mode) { _userHoleScores.get(this).hole_mode = hole_mode }
 
     // for leaderboards ranking
     get lbParVal() { return _userHoleScores.get(this).lbParVal }
@@ -88,6 +97,32 @@ export class UserScore {
 
     get 18() { return _userHoleScores.get(this)[18]; }
 
+    get thru() { 
+        let counter = 0;
+        let totalHoles = 0;
+        for (let i = 1; i <= 18; i++) {
+            if(_userHoleScores.get(this)[i] && _userHoleScores.get(this)[i] > 0 &&  _holePars.get(this)[i] &&  _holePars.get(this)[i] > 0){
+                counter += 1;
+            }
+        }
+        switch (_userHoleScores.get(this).hole_mode) {
+            case 1:
+                totalHoles = 18;
+                break;
+            case 2:
+            case 3:
+                totalHoles = 9;
+                break;
+        }
+        if(counter === 0){
+            return "-";
+        }
+        if(counter === totalHoles){
+            return "F";
+        }
+        return counter; 
+    }
+
     setHoleScore(hole_no, score){
         _userHoleScores.get(this)[hole_no] = score > 0 ? score : null;
         const toPar = calcToParVal(_userHoleScores.get(this), _holePars.get(this));
@@ -112,7 +147,7 @@ export class UserScore {
     }
 }
 
-//  private helper function to calculate purchase amount
+//  private helper function to calculate toParVal
 const calcToParVal = (userHoleScores, holePars) => {
     let totalScores = 0;
     let totalPars = 0;

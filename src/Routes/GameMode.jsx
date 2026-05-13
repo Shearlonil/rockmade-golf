@@ -233,7 +233,7 @@ const GameMode = () => {
                         <h2 className="mb-4">Choose Game Mode</h2>
                         <Row>
                             {gameModes.map((mode, index) => (
-                                <Col key={index} md={4} className="mb-4"
+                                <Col key={index} md={4} className={mode.availability === true ? "mb-4" : "mb-4 disabledDiv"}
                                     onClick={() => {
                                         setGameMode(mode);
                                         setStep(2); // move immediately to next step

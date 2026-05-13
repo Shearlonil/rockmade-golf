@@ -392,6 +392,7 @@ const GameBoard = () => {
             userScore.ProfileImgKeyhash = user.ProfileImgKeyhash;
             userScore.name = user.fname + ' ' + user.lname;
             userScore.group = user.UserGameGroup.name;
+            userScore.hole_mode = game.hole_mode;
             allScores.push(userScore);
         });
         switch (game.hole_mode) {

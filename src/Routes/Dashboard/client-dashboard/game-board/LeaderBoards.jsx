@@ -28,6 +28,11 @@ const columns = [
     {
         key: 'toParVal',
         label: 'TO PAR',
+        width: 100,
+    },
+    {
+        key: 'thru',
+        label: 'THRU',
         flexGrow: 1,
     },
 ];

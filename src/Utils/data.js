@@ -10,47 +10,6 @@ import {
     HiUsers,
 } from "react-icons/hi";
 
-const pricing = {
-	bronze: {
-		monthly: 79,
-		yearly: 79 * 12 * 0.85,
-		features: [
-			"50+ premium courses",
-			"7-day advance tee times",
-			"Monthly group coaching",
-			"Member events",
-			"Basic insurance",
-		],
-	},
-	silver: {
-		monthly: 149,
-		yearly: 149 * 12 * 0.83,
-		popular: true,
-		features: [
-			"150+ premium courses",
-			"14-day advance tee times",
-			"Weekly pro coaching",
-			"Priority tournament entry",
-			"Premium insurance",
-			"VIP event access",
-		],
-	},
-	gold: {
-		monthly: 299,
-		yearly: 299 * 12 * 0.8,
-		features: [
-			"Unlimited worldwide access",
-			"30-day advance tee times",
-			"Unlimited 1-on-1 coaching",
-			"Guaranteed tournament spots",
-			"Complete insurance",
-			"All VIP experiences",
-			"Concierge",
-			"Pro shop discounts",
-		],
-	},
-};
-
 const features = [
 	{
 		Icon: HiOutlineTrophy,
@@ -188,19 +147,22 @@ const gameModes = [
     {
         id: 2,
         name: "Member Game",
+        availability: true,
         desc: "Perfect for casual play or practice. Invite friends or join a friendly round at registered golf courses near you.",
         image: IMAGES.image3,
     },
     {
         id: 1,
         name: "Tournament Game",
+        availability: true,
         desc: "Compete in structured competitions and climb the leaderboard.",
         image: IMAGES.image5,
     },
     {
         id: 3,
         name: "Versus Game",
-        desc: "Perfect for casual play or practice. Invite friends or join a friendly round at registered golf courses near you.",
+        availability: false,
+        desc: "Set up two teams/groups to battle against each other. COMING SOON",
         image: IMAGES.image2,
     },
 ];

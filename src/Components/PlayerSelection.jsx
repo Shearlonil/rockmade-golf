@@ -137,6 +137,7 @@ const PlayerSelection = () => {
                     userScore.ProfileImgKeyhash = datum.ProfileImgKeyhash;
                     userScore.name = datum.fname + ' ' + datum.lname;
                     userScore.group = activeGroup.name;
+                    userScore.hole_mode = gameRound.hole_mode;
                     leaderboardScores.push(userScore);
                 }
                 const payload = {
