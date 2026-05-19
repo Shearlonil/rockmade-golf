@@ -153,7 +153,7 @@ const About = () => {
                             </div>
                         </Col>
                         <Col className="px-0" md={"6"}>
-                          <img src={IMAGES.image1} className="img-fluid" alt="" />
+                          <img src={IMAGES.agc_6} className="img-fluid" alt="" />
                         </Col>
                     </Row>
                 </Container>
@@ -166,13 +166,13 @@ const About = () => {
                 transition={{ duration: 0.8 }}
                 className="my-3 mb-5"
             >
-                <Container className="px-0">
+                <Container className="px-0 fs-5">
                     <Row>
                         <Col md={6}>
-                            <img src={IMAGES.image3} className="img-fluid" alt="Vision" style={{ objectFit: "cover" }} />
+                            <img src={IMAGES.agc_8} className="img-fluid" alt="Vision" style={{ objectFit: "cover" }} />
                         </Col>
                         <Col md={6} className="text-center">
-                            <div className="h-100 d-flex flex-column justify-content-center align-items-center p-4 rounded-3">
+                            <div className="h-100 d-flex flex-column justify-content-center align-items-center p-4">
                                 <h3 className="display-6 fw-bold mb-3 text-danger">Our Vision</h3>
                                 <p>
                                     We envision a global golfing community where every game,
@@ -213,7 +213,7 @@ const About = () => {
 
                         <div className="col-lg-6 col-12">
                             <div className="about-text-wrap">
-                                <img src={IMAGES.image1} alt="golf course" className="about-image img-fluid" />
+                                <img src={IMAGES.agc_9} alt="golf course" className="about-image img-fluid" />
                                 <div className="about-text-info d-flex">
                                     <div className="d-flex">
                                         <i className="about-text-icon bi-person"></i>

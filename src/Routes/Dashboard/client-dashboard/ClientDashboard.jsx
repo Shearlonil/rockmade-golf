@@ -271,7 +271,7 @@ const ClientDashboard = () => {
     };
 
     const handleViewgame = (data) => {
-        const nameArr = data.name.split(' ');
+        const nameArr = data.name.trim().split(' ');
         const strName = nameArr.join('+');
         navigate(`/dashboard/client/${data.id}/game/${strName}`);
     };

@@ -4,8 +4,10 @@ export const Wrapper = styled.div`
   .volunteer-card {
     background-color: white;
     border-radius: 12px;
-    /* border: 1px solid var(--background-dark); */
-    /* padding: 20px; */
+    min-height: 230px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1); /* Slight shadow to lift the div */
     transition: transform 0.3s ease-in-out; /* Smooth hover effect */
     text-align: center;

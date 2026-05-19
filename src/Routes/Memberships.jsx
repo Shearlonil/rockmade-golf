@@ -11,6 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
 import { toast } from "react-toastify";
 import numeral from "numeral";
+import Skeleton from "react-loading-skeleton";
 import {
     HiCheck,
     HiStar,
@@ -18,7 +19,6 @@ import {
 
 import IMAGES from "../assets/images";
 import handleErrMsg from "../Utils/error-handler";
-import Skeleton from "react-loading-skeleton";
 import { testimonials , features, ambassadors, galleryItems, stats} from "../Utils/data";
 import useTransactionController from "../api-controllers/transaction-controller-hook";
 import useSubPlansController from "../api-controllers/sub-plans-controller-hook";
@@ -234,11 +234,11 @@ export default function MembershipPage() {
                             premium courses, pro coaching, and unforgettable experiences.
                         </p>
                         <div>
-                          <a href="#pricing" className="btn donate-btn btn-lg me-3 text-white"  >
-                              Join Now{" "}
+                          <a href="#features" className="btn donate-btn btn-lg me-3 text-white"  >
+                              Benefits{" "}
                               <HiArrowRight className="ms-1" style={{ width: 20, height: 20 }} />
                           </a>
-                          <a href="#features" className="btn custom-btn btn-lg">
+                          <a href="#pricing" className="btn custom-btn btn-lg">
                               View Plans
                           </a>
                         </div>

@@ -42,7 +42,7 @@ const cols = [
         label: 'Name',
         fixed: true,
         // flexGrow: 5,
-        width: 180,
+        width: 160,
     },
     {
         key: 'toParVal',

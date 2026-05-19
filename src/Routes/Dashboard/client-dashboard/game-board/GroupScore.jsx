@@ -150,7 +150,7 @@ const GroupScore = ({columns = [], myGroup}) => {
                     const { key, label, ...rest } = column;
                     if(idx === 0){
                         return (
-                            <Column {...rest} key={key} >
+                            <Column {...rest} key={key} fullText>
                                 <HeaderCell className='fw-bold text-dark'>{label}</HeaderCell>
                                 <CustomNameCell dataKey={key} />
                             </Column>

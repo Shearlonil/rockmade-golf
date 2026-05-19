@@ -1,14 +1,28 @@
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { BiArrowToRight } from "react-icons/bi";
-import IMAGES from "../assets/images";
+import { toast } from "react-toastify";
+import Skeleton from "react-loading-skeleton";
 import { Button, Card, Col, Container, Row } from "react-bootstrap";
+
+import IMAGES from "../assets/images";
 import AnimatedCard from "../Components/AnimatedCard";
 import { capitalizeFirstLetter } from "../Components/Utils/helpers";
 import { GameModeCard, Wrapper } from "../Styles/HomeStyle";
+import handleErrMsg from "../Utils/error-handler";
+import useGenericController from "../api-controllers/generic-controller-hook";
+import ImageComponent from "../Components/ImageComponent";
 
 const Home = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const [networkRequest, setNetworkRequest] = useState(true);
+    const controllerRef = useRef(new AbortController());
+    const [topPlayers, setTopPlayers] = useState([]);
+    const [upcomingGames, setUpcomingGames] = useState([]);
+    const { performGetRequests } = useGenericController();
 
     const tournaments = [
         {
@@ -40,26 +54,162 @@ const Home = () => {
         },
     ];
 
-    const topPlayers = [
-        {
-            player_name: "Debby D. McLean",
-            handicapIndex: "5",
-            country: "United States",
-            image: IMAGES.player1,
-        },
-        {
-            player_name: "Kyong W. Woodward",
-            handicapIndex: "4",
-            country: "China",
-            image: IMAGES.player2,
-        },
-        {
-            player_name: "Norma C. Knapp",
-            handicapIndex: "8",
-            country: "Mexico",
-            image: IMAGES.player3,
-        },
-    ];
+    useEffect(() => {
+        initialize();
+
+        return () => {
+            // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
+            controllerRef.current.abort();
+        };
+    }, [location.pathname]);
+
+    const initialize = async () => {
+        try {
+            controllerRef.current = new AbortController();
+            setNetworkRequest(true);
+            const urls = [ `/users/top-players`, `/games/tournaments/upcoming` ];//    , 
+            const response = await performGetRequests(urls, controllerRef.current.signal);
+            const { 0: players, 1: upcoming } = response;
+
+            //	check if the request to fetch top players
+            if(players && players.data){
+                setTopPlayers(players.data);
+            }
+            if(upcoming && upcoming.data){
+                setUpcomingGames(upcoming.data);
+            }
+
+            setNetworkRequest(false);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+        }
+    };
+
+    const buildUpcomingGames = () => {
+        return <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="my-5"
+            id="section_4"
+        >
+            <div className="container-fluid">
+                <div className="text-center mb-4">
+                    <h2 className="display-5 fw-bold">Upcoming Tournaments</h2>
+                </div>
+                <Row>
+                    {upcomingGames.map(({ title, image, details }, index) => (
+                        <Col key={index} md={4} className="mb-4">
+                            <Card className="h-100 shadow border-0 rounded-3">
+                                <Card.Img variant="top" src={image} style={{ height: "200px", objectFit: "cover" }} />
+                                <Card.Body className="d-flex flex-column">
+                                    <Card.Title className="fw-bold">{title}</Card.Title>
+                                    <Card.Text className="flex-grow-1 small">
+                                        {/* {Object.entries(details).map(([key, value]) => (
+                                            <span key={key} className="d-block">
+                                                <strong>{capitalizeFirstLetter(key)}:</strong> {value}
+                                            </span>
+                                        ))} */}
+                                    </Card.Text>
+
+                                    {/* <Button variant="outline-primary rounded-3 px-4" onClick={() => navigate("/tournaments")} >
+                                        Explore <BiArrowToRight />
+                                    </Button> */}
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+            </div>
+        </motion.section>
+    }
+    
+    const buildTopPlayers = () => {
+        return <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="my-5"
+            id="section_6"
+        >
+            <Container>
+                <div className="text-center mb-4">
+                    <h2 className="display-5 fw-bold">Top Players</h2>
+                </div>
+                <Row>
+                    {topPlayers.map(
+                        ({ fname, lname, hcp, country, key_hash }, index) => (
+                            <Col key={index} md={3} className="mb-3">
+                                <AnimatedCard>
+                                    <div className="text-center py-2">
+                                        {key_hash && <ImageComponent image={{key_hash}} key_id={key_hash} width={'70px'} height={'70px'} round={true} />}
+                                        {!key_hash && <img src={IMAGES.svg_user} width={'70px'} height={'70px'} className='rounded-circle' />}
+                                        <h5 className="fw-bold mt-3">{fname} {lname}</h5>
+                                        <div className="d-flex flex-column justify-content-center mb-2">
+                                            <p className="mb-0 small">
+                                                <strong>Handicap:</strong> {hcp}
+                                            </p>
+                                            <p className="mb-0 small">
+                                                <strong>Country:</strong> {country}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </AnimatedCard>
+                            </Col>
+                        )
+                    )}
+                </Row>
+            </Container>
+        </motion.section>
+    };
+    
+    const buildUpcomingGamesSkeletons = () => {
+        return new Array(3).fill(1).map((val, idx) => (
+            <div className="col-md-4" key={idx}>
+                <Card className="h-100 shadow border-0 rounded-3">
+                    <Skeleton height={300} />
+                    <Card.Body className="d-flex flex-column">
+                        <Skeleton />
+                        <Skeleton count={2} />
+
+                        {/* <Button variant="outline-primary rounded-3 px-4" onClick={() => navigate("/tournaments")} >
+                            Explore <BiArrowToRight />
+                        </Button> */}
+                    </Card.Body>
+                </Card>
+            </div>
+        ));
+    };
+    
+    const buildTopPlayersSkeletons = () => {
+        return new Array(4).fill(1).map((val, idx) => (
+            <div className="col-md-3" key={idx}>
+                <AnimatedCard>
+                    <div className="text-center p-2 w-100">
+                        <img
+                            className="rounded-circle mb-3 volunteer-img"
+                            style={{
+                                width: "80px",
+                                height: "80px",
+                                objectFit: "cover",
+                            }}
+                        />
+                        <Skeleton />
+                        <div className="d-flex flex-column justify-content-center gap-3 mb-2">
+                            <Skeleton count={2}/>
+                        </div>
+                    </div>
+                </AnimatedCard>
+            </div>
+        ));
+    };
 
     return (
         <Wrapper>
@@ -237,43 +387,10 @@ const Home = () => {
             </motion.section>
 
             {/* SECTION 4 – Upcoming Tournaments */}
-            <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-                className="my-5"
-                id="section_4"
-            >
-                <Container>
-                    <div className="text-center mb-4">
-                        <h2 className="display-5 fw-bold">Upcoming Tournaments</h2>
-                    </div>
-                    <Row>
-                        {tournaments.map(({ title, image, details }, index) => (
-                            <Col key={index} md={4} className="mb-4">
-                                <Card className="h-100 shadow border-0 rounded-3">
-                                    <Card.Img variant="top" src={image} style={{ height: "200px", objectFit: "cover" }} />
-                                    <Card.Body className="d-flex flex-column">
-                                        <Card.Title className="fw-bold">{title}</Card.Title>
-                                        <Card.Text className="flex-grow-1 small">
-                                            {Object.entries(details).map(([key, value]) => (
-                                                <span key={key} className="d-block">
-                                                    <strong>{capitalizeFirstLetter(key)}:</strong> {value}
-                                                </span>
-                                            ))}
-                                        </Card.Text>
-
-                                        <Button variant="outline-primary rounded-3 px-4" onClick={() => navigate("/tournaments")} >
-                                            Explore <BiArrowToRight />
-                                        </Button>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
-                    </Row>
-                </Container>
-            </motion.section>
+            <div className="row g-4 container mx-auto">
+                {!networkRequest && upcomingGames.length > 0 && buildUpcomingGames()}
+                {networkRequest && buildUpcomingGamesSkeletons()}
+            </div>
 
             {/* SECTION 5 – How It Works */}
             <motion.section
@@ -281,18 +398,17 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
-                className="my-5"
-                id="section_5"
+                className="my-3"
                 style={{ backgroundColor: "var(--tertiary-color)" }}
             >
                 <Container>
-                    <div className="text-center mb-5">
+                    <div className="text-center mb-5 pt-3">
                         <h2 className="display-5 fw-bold">How It Works</h2>
                         <p className="lead col-md-8 mx-auto">
                             Get started in three simple steps.
                         </p>
                     </div>
-                    <Row className="g-4 pb-3">
+                    <Row className="g-4 pb-5">
                         <Col md={4}>
                           <div className="text-center p-4 rounded-3 colorful-border" style={{ height: "100%" }}>
                               <h4 className="fw-bold mb-3" style={{ color: "var(--primary-color)" }} >
@@ -325,51 +441,10 @@ const Home = () => {
             </motion.section>
 
             {/* SECTION 6 – Top Players */}
-            <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-                className="my-5"
-                id="section_6"
-            >
-                <Container>
-                    <div className="text-center mb-4">
-                        <h2 className="display-5 fw-bold">Top Players</h2>
-                    </div>
-                    <Row>
-                        {topPlayers.map(
-                            ({ player_name, handicapIndex, country, image }, index) => (
-                                <Col key={index} md={4} className="mb-4">
-                                    <AnimatedCard>
-                                        <div className="text-center py-2">
-                                            <img
-                                                src={image}
-                                                alt={player_name}
-                                                className="rounded-circle mb-3 volunteer-img"
-                                                style={{
-                                                  width: "80px",
-                                                  height: "80px",
-                                                  objectFit: "cover",
-                                                }}
-                                            />
-                                            <h5 className="fw-bold">{player_name}</h5>
-                                            <div className="d-flex justify-content-center gap-3 mb-2">
-                                                <p className="mb-0 small">
-                                                    <strong>Handicap:</strong> {handicapIndex}
-                                                </p>
-                                                <p className="mb-0 small">
-                                                    <strong>Country:</strong> {country}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </AnimatedCard>
-                                </Col>
-                            )
-                        )}
-                    </Row>
-                </Container>
-            </motion.section>
+            <div className="row g-4 container mx-auto">
+                {!networkRequest && topPlayers.length > 0 && buildTopPlayers()}
+                {networkRequest && buildTopPlayersSkeletons()}
+            </div>
 
             {/* SECTION 7 */}
             <motion.section
@@ -377,18 +452,18 @@ const Home = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
-                className="my-5"
+                className="my-4"
                 id="section_7"
             >
                 <div className="container-fluid p-0">
                     <div className="row g-0">
                         <Col md={6}>
-                            <img src={IMAGES.image1} className="img-fluid h-100 w-100" alt="About us" style={{ objectFit: "cover" }} />
+                            <img src={IMAGES.agc_3} className="img-fluid h-100 w-100" alt="About us" style={{ objectFit: "cover" }} />
                         </Col>
                         <Col md={6} className="d-flex align-items-center p-5" style={{ backgroundColor: "var(--secondary-color)" }} >
                             <div>
                                 <h3 className="display-5 fw-bold mb-3 text-white">
-                                    A Very Lovely Welcome <br /> to Our Company
+                                    A Very Lovely Welcome <br /> to Our Family
                                 </h3>
                                 <p className="lead mb-4 text-white">
                                     Join us for a comprehensive support program designed

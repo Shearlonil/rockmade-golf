@@ -1,6 +1,15 @@
 const IMAGES = {
     // Home page
     logo: new URL("./Img/logo.jpg", import.meta.url).href,
+    agc_1: new URL("./Img/AGC_1.jpg", import.meta.url).href,
+    agc_2: new URL("./Img/AGC_2.jpg", import.meta.url).href,
+    agc_3: new URL("./Img/AGC_3.jpg", import.meta.url).href,
+    agc_4: new URL("./Img/AGC_4.jpg", import.meta.url).href,
+    agc_5: new URL("./Img/AGC_5.jpg", import.meta.url).href,
+    agc_6: new URL("./Img/AGC_6.jpg", import.meta.url).href,
+    agc_7: new URL("./Img/AGC_7.jpg", import.meta.url).href,
+    agc_8: new URL("./Img/AGC_8.jpg", import.meta.url).href,
+    agc_9: new URL("./Img/AGC_9.jpg", import.meta.url).href,
     image1: new URL("./Img/image1.jpg", import.meta.url).href,
     image2: new URL("./Img/image2.jpg", import.meta.url).href,
     image3: new URL("./Img/image3.jpg", import.meta.url).href,
