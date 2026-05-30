@@ -40,6 +40,10 @@ const useGameController = () => {
         return await xhrAios.get(`/games/rounds/ongoing/${id}`, {signal});
     }
 
+    const verifyViewCode = async (signal, view_code) => {
+        return await xhrAios.get(`/games/rounds/ongoing/view-code/verify/${view_code}`, {signal});
+    }
+
     const addPlayers = async (signal, data) => {
         return await xhrAios.post(`/games/rounds/ongoing/${data.game_id}/players/add`, data, {signal});
     }
@@ -90,6 +94,7 @@ const useGameController = () => {
         endOngoingGame,
         updateGameSpices,
         findOngoingRoundById,
+        verifyViewCode,
         findGameHistoryById,
         addPlayers,
         updatePlayerGroup,

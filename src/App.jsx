@@ -29,6 +29,7 @@ import ContinueEmailUpdate from "./Routes/ContinueEmailUpdate.jsx";
 import PaystackTransactionVerification from "./Routes/PaystackTransactionVerification.jsx";
 import TermsAndAgreementReview from "./Routes/Dashboard/staff-dashboard/TermsAndAgreementReview.jsx";
 import TermsAndAgreement from "./Routes/TermsAndAgreement.jsx";
+import ViewGame from "./Routes/Dashboard/client-dashboard/ViewGame.jsx";
 
 function App() {
     return (
@@ -59,7 +60,7 @@ function App() {
                         <Route index path="tc" element={<TermsAndAgreementReview />} />
                     </Route>
                     <Route path="client" >
-                        <Route path=":nano_id/game/view/:name" element={<GameBoard />} />
+                        <Route path=":nano_id/game/view/:name" element={<ViewGame />} />
                         <Route path=":nano_id/game/:name" element={<GameBoard />} />
                         <Route path=":user_nano_id/games/history" element={<GameHistory />} />
                         <Route path="games/history/summary/:name" element={<GameSummary />} />

@@ -142,7 +142,7 @@ const GroupScore = ({columns = [], myGroup}) => {
     };
     
     return (
-        <section>
+        <section className='mb-3'>
             <Table loading={networkRequest} rowKey="id" data={myGroupScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
                 renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} >
                     

@@ -107,7 +107,7 @@ const LeaderBoards = ({networkRequest}) => {
     };
     
     return (
-        <span>
+        <span className='mb-3'>
             <Table loading={networkRequest} rowKey={rowKey} data={leaderboardsScores} affixHeader affixHorizontalScrollbar autoHeight={true} hover={true} headerHeight={80}
                 renderLoading={() => <RsuiteTableSkeletonLoader withPlaceholder={true} rows={10} cols={5} />} onRowClick={data => handleTableRowClicked(data) } >
                     

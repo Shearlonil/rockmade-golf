@@ -143,7 +143,7 @@ const ClientDashboard = () => {
     
     const { logout, updateHCP } = useAuth();
     const { setUserHomeClub } =  useActiveCourses();
-    const { removegame } = useGameController();
+    const { removegame, verifyViewCode } = useGameController();
     const { gameCourseSearch  } = useCourseController();
     const { dashboard, updateHomeClub } = useUserController();
     const { setPlayerID } = useGame();
@@ -327,6 +327,7 @@ const ClientDashboard = () => {
                 }
                 break;
             case 'viewCode':
+                viewCodeVerification(val);
                 break;
         }
     }
@@ -359,6 +360,28 @@ const ClientDashboard = () => {
 	        await updateHCP(controllerRef.current.signal, { hcp: val });
             setShowInputModal(false);
             toast.info('HCP updated successfully');
+			setNetworkRequest(false);
+		} catch (error) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was intentionally aborted, handle silently
+                return;
+            }
+            setNetworkRequest(false);
+            toast.error(handleErrMsg(error).msg);
+		}
+	}
+
+	const viewCodeVerification = async (val) => {
+		try {
+			setNetworkRequest(true);
+			resetAbortController();
+	        const response = await verifyViewCode(controllerRef.current.signal, val);
+            if(response && response.data){
+                const nameArr = response.data.Game.name.trim().split(' ');
+                const strName = nameArr.join('+');
+                navigate(`/dashboard/client/${response.data.Game.nano_id}/game/view/${strName}`);
+            }
+            setShowInputModal(false);
 			setNetworkRequest(false);
 		} catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {

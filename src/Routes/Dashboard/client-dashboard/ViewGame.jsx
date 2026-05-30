@@ -1,4 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { toast } from 'react-toastify';
+import { Row } from 'react-bootstrap';
+import { format } from 'date-fns';
+import { IoSettings } from "react-icons/io5";
+import { IoMdRefreshCircle } from "react-icons/io";
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { useAuth } from '../../../app-context/auth-context';
@@ -6,6 +11,29 @@ import useGenericController from '../../../api-controllers/generic-controller-ho
 import useGameController from '../../../api-controllers/game-controller-hook';
 import { useGame } from '../../../app-context/game-context';
 import { useAuthUser } from '../../../app-context/user-context';
+import handleErrMsg from '../../../Utils/error-handler';
+import { buildGameScores, buildHoleProps } from '../../../Utils/game-builder';
+import LeaderBoards from './game-board/LeaderBoards';
+import cryptoHelper from '../../../Utils/crypto-helper';
+import IMAGES from '../../../assets/images';
+import { OrbitalLoading } from '../../../Components/react-loading-indicators/Indicator';
+
+const cols = [
+    {
+        key: 'name',
+        label: 'Name',
+        fixed: true,
+        // flexGrow: 5,
+        width: 160,
+    },
+    {
+        key: 'toParVal',
+        label: '',
+        fixed: true,
+        // flexGrow: 1,
+        width: 60,
+    },
+];
 
 const ViewGame = () => {
     const controllerRef = useRef(new AbortController());
@@ -24,8 +52,18 @@ const ViewGame = () => {
     
     const [networkRequest, setNetworkRequest] = useState(false);
     const [showOrbitalLoader, setShowOrbitalLoader] = useState(false);
+
+    // variable to note the group of user
+    const [myGroup, setMyGroup] = useState(null);
+    const [gameMode, setGameMode] = useState(null);
+    // column headers for table displayed in GroupScore component
+    const [columns, setColumns] = useState(cols);
     
     useEffect(() => {
+        if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
+            logoutUnauthorized();
+        }
+        
         initialize();
         return () => {
             // This cleanup function runs when the component unmounts or when the dependencies of useEffect change (e.g., route change)
@@ -49,7 +87,6 @@ const ViewGame = () => {
                 const game = ongoingRoundsReq.data.game;
                 game.Course = ongoingRoundsReq.data.course;
                 setGamePlay(game);
-                setCourseId(game.course_id);
                 switch (game.mode) {
                     case 1:
                         setGameMode('Tournament');
@@ -64,8 +101,14 @@ const ViewGame = () => {
                         break;
                 }
                 
+                const decrypted_id = cryptoHelper.decryptData(user.id);
                 const hp = buildHoleProps(game);
-                buildGameScores(game, hp);
+                setHoleProps(hp);
+                const gameScoresObj = buildGameScores(game, hp, decrypted_id);
+                setGroups(gameScoresObj.groupsArr);
+                setScores(gameScoresObj.allScores);
+                setMyGroup(gameScoresObj.myGroup);
+                setColumns([...cols, ...gameScoresObj.colsArr]);
             }
             setNetworkRequest(false);
             setShowOrbitalLoader(false);
@@ -74,7 +117,7 @@ const ViewGame = () => {
                 // Request was intentionally aborted, handle silently
                 return;
             }
-            if(error.response.status === 404){
+            if(error.response?.status === 404){
                 navigate('/dashboard')
             }
             setNetworkRequest(false);
@@ -82,79 +125,8 @@ const ViewGame = () => {
             toast.error(handleErrMsg(error).msg);
         }
     }
-    
-    const buildGameScores = (game, holeProps) => {
-        const decrypted_id = cryptoHelper.decryptData(user.id);
-        const allScores = [];
-        const arr = [];
-        game.users.forEach(user => {
-            if(user.id == decrypted_id){
-                setMyGroup(user.UserGameGroup.name);
-            }
-            if(user.UserGameGroup.round_no === game.current_round){
-                const group = arr.find(g => g.name === user.UserGameGroup.name);
-                if(group){
-                    group.members.push(user);
-                }else {
-                    arr.push({
-                        name: user.UserGameGroup.name,
-                        members: [user]
-                    });
-                }
-            }
-            const userScore = new UserScore();
-            userScore.id = user.id;
-            userScore.nano_id = user.nano_id;
-            userScore.hcp = user.UserGameGroup.user_hcp;
-            userScore.ProfileImgKeyhash = user.ProfileImgKeyhash;
-            userScore.name = user.fname + ' ' + user.lname;
-            userScore.group = user.UserGameGroup.name;
-            userScore.hole_mode = game.hole_mode;
-            allScores.push(userScore);
-        });
-        switch (game.hole_mode) {
-            case 1:
-                buildGroupScoreTableColumns(1, 18, allScores, holeProps);
-                break;
-            case 2:
-                buildGroupScoreTableColumns(1, 9, allScores, holeProps);
-                break;
-            case 3:
-                buildGroupScoreTableColumns(10, 18, allScores, holeProps);
-                break;
-        }
 
-        const currentRoundScores = game.GameHoleRecords.filter(ghc => ghc.round_no === game.current_round);
-        buildCurrentRoundScores(allScores, currentRoundScores);
-        setGroups(arr);
-        setScores(allScores);
-    };
-
-    const buildHoleProps = (game) => {
-        const obj = {};
-        game.Course.holes.forEach(hole => {
-            const hole_no = hole.hole_no;
-            obj[hole_no] = {
-                hcp_idx: hole.CourseHoles.hcp_idx,
-                par: hole.CourseHoles.par,
-            }
-            // is contest attached to this hole for game play during game setup?
-            const ghc = game.GameHoleContests.find(holeContest => holeContest.hole_id === hole.id);
-            // if contest found
-            if(ghc) {
-                // get the contest (with details including the name) from course hole
-                const contest = hole.contests.find(contest => contest.id === ghc.contest_id);
-                if(contest){
-                    obj[hole_no].contest = {
-                        id: contest.id,
-                        name: contest.name,
-                    }
-                }
-            }
-        });
-        setHoleProps(obj);
-        return obj;
-    };
+    const refreshClicked = () => { initialize(); };
 
     const resetAbortController = () => {
         // Cancel previous request if it exists
@@ -165,7 +137,35 @@ const ViewGame = () => {
     };
 
     return (
-        <div>ViewGame</div>
+        <section className='container d-flex flex-column gap-4' style={{minHeight: '80vh'}}>
+            <Row className="card shadow border-0 rounded-3 mt-5">
+                <div className="card-body row ms-0 me-0 d-flex justify-content-between">
+                    <div className="d-flex gap-3 align-items-center justify-content-center col-12 col-md-4 mb-3">
+                        <img src={IMAGES.golf_course} alt ="Avatar" className="rounded-circle" width={50} height={50} />
+                        <div className="d-flex flex-column gap-1">
+                            <span className="text-danger fw-bold h2"> {ongoingRound?.name} </span>
+                            <span className="text-success fw-bold">{ongoingRound && ongoingRound.createdAt && format(ongoingRound.createdAt, "dd/MM/yyyy")}</span>
+                        </div>
+                    </div>
+
+                    <div className="d-flex flex-column gap-1 align-items-center justify-content-center col-12 col-md-4">
+                        <span className="fw-bold h6">Location</span>
+                        <span className="fw-bold text-success h4">{ongoingRound?.Course?.name}</span>
+                    </div>
+
+                    <div className='d-flex col-12 col-md-4 gap-4 align-items-center justify-content-center'>
+                        <div className="d-flex flex-column gap-1 align-items-center">
+                            <IoMdRefreshCircle size={35} style={{ color: 'red' }} onClick={ refreshClicked } />
+                            <span className="fw-bold h6">Refresh</span>
+                        </div>
+                    </div>
+                </div>
+            </Row>
+            <div className="justify-content-center d-flex">
+                {showOrbitalLoader && <OrbitalLoading color='red' />}
+            </div>
+            <LeaderBoards networkRequest={networkRequest} />
+        </section>
     )
 }
 
