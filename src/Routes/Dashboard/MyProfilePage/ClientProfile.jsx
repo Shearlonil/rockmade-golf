@@ -56,7 +56,7 @@ const ClientProfilePage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { updatePersonalInfo, updateHCP, updateProfileImg } = useAuth();
+    const { updatePersonalInfo, updateHCP, updateProfileImg, logoutAll } = useAuth();
     const { onboardingCourseSearch } = useCourseController();
     const { updateHomeClub, updatePassword, markEmailForUpdate } = useUserController();
     const { userHomeClub, setUserHomeClub } = useActiveCourses();
@@ -377,7 +377,7 @@ const ClientProfilePage = () => {
         try {
             setNetworkRequest(true);
             resetAbortController();
-            // await updateProfileImg(controllerRef.current.signal, formData);
+            await logoutAll();
             setNetworkRequest(false);
         } catch (error) {
             if (error.name === 'AbortError' || error.name === 'CanceledError') {

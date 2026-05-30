@@ -58,7 +58,7 @@ const GameBoard = () => {
     
     const navigate = useNavigate();
     const location = useLocation();
-    const { id } = useParams();
+    const { nano_id } = useParams();
 
     const { setCourses, setLoading } = useActiveCourses();
     const { logout } = useAuth();
@@ -119,7 +119,7 @@ const GameBoard = () => {
             setNetworkRequest(true);
             setShowOrbitalLoader(true);
             resetAbortController();
-            const urls = [ `/games/rounds/ongoing/${id}`, `/courses/games/init/10` ];
+            const urls = [ `/games/rounds/ongoing/${nano_id}`, `/courses/games/init/10` ];
             const response = await performGetRequests(urls, controllerRef.current.signal);
             const { 0: ongoingRoundsReq, 1: coursesReq } = response;
 
@@ -282,7 +282,7 @@ const GameBoard = () => {
             // setScores([]);
             resetAbortController();
             const data = {
-                game_id: id,
+                game_id: nano_id,
                 startDate: updatedCourseData.startDate,
                 course_id: updatedCourseData.course.value.id,
                 hole_mode: updatedCourseData.hole_mode.value,
@@ -317,7 +317,7 @@ const GameBoard = () => {
             setNetworkRequest(true);
             setShowOrbitalLoader(true);
             const data = {
-                game_id: id,
+                game_id: nano_id,
                 course_id: courseId,
                 contests: gameContests,
                 rounds

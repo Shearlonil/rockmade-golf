@@ -107,8 +107,6 @@ const GameHistory = () => {
     const { player_id, setPlayerID } = useGame();
     const { userGameHistory, userGameHistorySearch } = useGameController();
     const user = authUser();
-    // TODO: delete comment
-    // const playerID = player_id();
     const playerID = user_nano_id;
 
     const [networkRequest, setNetworkRequest] = useState(false);
@@ -125,17 +123,6 @@ const GameHistory = () => {
     useEffect(() => {
         if(!user || cryptoHelper.decryptData(user.mode) !== '1'){
             navigate("/");
-            return;
-        }
-
-        // TODO: delete below code
-        // in case no player id set prior to viewing this page, set it to logged in user
-        if (!playerID) {
-            // const decrypted_id = cryptoHelper.decryptData(user.nano_id);
-            // setPlayerID(decrypted_id);
-            /*  AS player id has just been set and being part of dependency list for userEffect, it makes sense to prevent further execution of useEffect until new player id is returned
-                from context. Without return keyword, initialize will be called first without wating for the new player id set to be retrieved from game-context. Then later called again
-                when new player_id is retrieved from the context (since it's part of the dependency list)*/
             return;
         }
 
@@ -234,7 +221,7 @@ const GameHistory = () => {
         useSessionStorage.setValue('recent_game_id', rowData.nano_id.toString());
         const nameArr = rowData.name.split(' ');
         const strName = nameArr.join('+');
-        navigate(`summary/${strName}`);
+        navigate(`/dashboard/client/games/history/summary/${strName}`);
     };
 
     const cancelNameSearch = () => {

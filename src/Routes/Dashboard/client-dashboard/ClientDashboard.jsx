@@ -27,6 +27,7 @@ import useCourseController from '../../../api-controllers/course-controller-hook
 import { useGame } from '../../../app-context/game-context';
 import Skeleton from 'react-loading-skeleton';
 import useSessionStorage from '../../../app-context/useSessionStorage';
+import { zeroOrGtParamSchema } from '../../../Utils/yup-schema-validator/input-validator';
 
 const gamesColumns = [
     {
@@ -167,6 +168,7 @@ const ClientDashboard = () => {
     const [showAsyncSearchModal, setShowAsyncSearcModal] = useState(false);
     //	for input dialog
     const [showInputModal, setShowInputModal] = useState(false);
+    const [inputValType, setInputValType] = useState("");
     
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8a2be2"];
     const months = ['Jan', 'Feb', 'Mar', 'April', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -295,9 +297,6 @@ const ClientDashboard = () => {
     };
 
     const navigateGameHistory = () => {
-        // TODO: delete comment
-        // const decrypted_id = cryptoHelper.decryptData(user.id);
-        // setPlayerID(decrypted_id);
         navigate(`client/${user.nano_id}/games/history`);
     };
 
@@ -315,6 +314,22 @@ const ClientDashboard = () => {
                 break;
         }
     };
+
+    const inputConfirm = (val) => {
+        switch (inputValType) {
+            case 'hcp':
+                try {
+                    zeroOrGtParamSchema.validateSync(val);
+                    hcpUpdate(val);
+                } catch (error) {
+                    toast.error(error.message);
+                    return;
+                }
+                break;
+            case 'viewCode':
+                break;
+        }
+    }
 
 	const delgame = async () => {
         try {
@@ -339,14 +354,6 @@ const ClientDashboard = () => {
 
 	const hcpUpdate = async (val) => {
 		try {
-			/*	text returned from input dialog is always a string but we can use a couple of techniques to convert it to a valid number
-				Technique 1: use the unary plus operator which is what i've adopted below
-				Technique 2: multiply by a number. 
-				etc	*/
-			if(!+val){
-				toast.error('Please enter a valid number');
-				return;
-			}
 			setNetworkRequest(true);
 			resetAbortController();
 	        await updateHCP(controllerRef.current.signal, { hcp: val });
@@ -440,6 +447,7 @@ const ClientDashboard = () => {
                                         <IoSettings size={30} className='text-warning' onClick={() => {
                                             setDisplayMsg('Enter new HCP');
                                             setShowInputModal(true);
+                                            setInputValType('hcp');
                                         }} />
                                     </span>
                                     <span className='h1 text-warning fw-bold' style={{fontSize: '50px'}}>{user?.hcp}</span>
@@ -610,7 +618,13 @@ const ClientDashboard = () => {
                 </div>
                 <div className="col-12 col-sm-3"> 
                     <div className="p-2">
-                        <Button variant='danger' className='w-100 fw-bold'>Join Game</Button> 
+                        <Button variant='danger' className='w-100 fw-bold' onClick={() => {
+                            setDisplayMsg('Enter View Code');
+                            setShowInputModal(true);
+                            setInputValType('viewCode');
+                        }}>
+                            Join Game
+                        </Button> 
                     </div>
                 </div>
                 <div className="col-12 col-sm-3"> 
@@ -633,7 +647,7 @@ const ClientDashboard = () => {
             <InputDialog
                 show={showInputModal}
                 handleClose={handleCloseModal}
-                handleConfirm={hcpUpdate}
+                handleConfirm={inputConfirm}
                 message={displayMsg}
                 networkRequest={networkRequest}
             />

@@ -169,7 +169,7 @@ const About = () => {
                 <Container className="px-0 fs-5">
                     <Row>
                         <Col md={6}>
-                            <img src={IMAGES.agc_8} className="img-fluid" alt="Vision" style={{ objectFit: "cover" }} />
+                            <img src={IMAGES.agc_11} className="img-fluid" alt="Vision" style={{ objectFit: "cover" }} />
                         </Col>
                         <Col md={6} className="text-center">
                             <div className="h-100 d-flex flex-column justify-content-center align-items-center p-4">

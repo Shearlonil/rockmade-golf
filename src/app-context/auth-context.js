@@ -141,9 +141,16 @@ export const AuthProvider = ({ children }) => {
             navigate("/", { replace: true });
         }
     };
-
-    const getCurrentYear = () => {
-        return getYear(new Date());
+    
+    // call this function to sign out logged in user from all devices
+    const logoutAll = async (route) => {
+        await xhrAios.get("/auth/logout/all");
+        setJwtTokenValue(null);
+        if (route) {
+            navigate(route, { replace: true });
+        } else {
+            navigate("/", { replace: true });
+        }
     };
 
     const value = useMemo(
@@ -158,7 +165,7 @@ export const AuthProvider = ({ children }) => {
             updateProfileImg,
             verifySubTransaction,
             logout,
-            getCurrentYear,
+            logoutAll,
         }),
         [accessToken]
     );

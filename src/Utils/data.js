@@ -100,13 +100,13 @@ const ambassadors = [
 const galleryItems = [
 	{
 		id: 1,
-		src: IMAGES.image1,
+		src: IMAGES.agc_10,
 		title: "Championship Tournament",
 		caption: "Annual Masters Qualifier",
 	},
 	{
 		id: 2,
-		src: IMAGES.image2,
+		src: IMAGES.agc_13,
 		title: "Pro-Am Event",
 		caption: "Playing with PGA Pros",
 	},
@@ -124,7 +124,7 @@ const galleryItems = [
 	},
 	{
 		id: 5,
-		src: IMAGES.image5,
+		src: IMAGES.agc_14,
 		title: "Coaching Clinic",
 		caption: "Swing Analysis Session",
 	},

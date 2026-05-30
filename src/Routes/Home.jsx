@@ -24,35 +24,7 @@ const Home = () => {
     const [upcomingGames, setUpcomingGames] = useState([]);
     const { performGetRequests } = useGenericController();
 
-    const tournaments = [
-        {
-            title: "Spring Invitational",
-            image: IMAGES.image3,
-            details: {
-                date: "March 20, 2025",
-                location: "Palm Valley Golf Club",
-                entry: "Free",
-            },
-        },
-        {
-            title: "Summer Cup",
-            image: IMAGES.image2,
-            details: {
-                date: "July 15, 2025",
-                location: "Palm Valley Golf Club",
-                entry: "$25",
-            },
-        },
-        {
-            title: "Championship Series",
-            image: IMAGES.image1,
-            details: {
-                date: "September 10, 2025",
-                location: "Royal Pines Golf Course",
-                entry: "$50",
-            },
-        },
-    ];
+    const upcomingGamesImgs = [IMAGES.agc_9, IMAGES.agc_2, IMAGES.agc_14];
 
     useEffect(() => {
         initialize();
@@ -101,16 +73,25 @@ const Home = () => {
         >
             <div className="container-fluid">
                 <div className="text-center mb-4">
-                    <h2 className="display-5 fw-bold">Upcoming Tournaments</h2>
+                    <h2 className="display-5 fw-bold">Upcoming Games</h2>
                 </div>
                 <Row>
-                    {upcomingGames.map(({ title, image, details }, index) => (
+                    {upcomingGames.map(({ game_name, course_name, date, mode, location }, index) => (
                         <Col key={index} md={4} className="mb-4">
                             <Card className="h-100 shadow border-0 rounded-3">
-                                <Card.Img variant="top" src={image} style={{ height: "200px", objectFit: "cover" }} />
+                                <Card.Img variant="top" src={upcomingGamesImgs[index]} style={{ height: "200px", objectFit: "cover" }} />
                                 <Card.Body className="d-flex flex-column">
-                                    <Card.Title className="fw-bold">{title}</Card.Title>
-                                    <Card.Text className="flex-grow-1 small">
+                                    <Card.Title className="fw-bold">{game_name}</Card.Title>
+                                    <Card.Text className="flex-grow-1 small d-flex flex-column gap-2">
+                                        <span className="d-block">
+                                            <strong>{capitalizeFirstLetter('Course')}:</strong> {course_name}
+                                        </span>
+                                        <span className="d-block">
+                                            <strong>{capitalizeFirstLetter('Location')}:</strong> {location}
+                                        </span>
+                                        <span className="d-block">
+                                            <strong>{capitalizeFirstLetter('Date')}:</strong> {date}
+                                        </span>
                                         {/* {Object.entries(details).map(([key, value]) => (
                                             <span key={key} className="d-block">
                                                 <strong>{capitalizeFirstLetter(key)}:</strong> {value}

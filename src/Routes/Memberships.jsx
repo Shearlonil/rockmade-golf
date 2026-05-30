@@ -212,7 +212,7 @@ export default function MembershipPage() {
                 <div className="position-absolute top-0 start-0 w-100 h-100"
                     style={{
                       backgroundImage: `url(${
-                        IMAGES.image1 ||
+                        IMAGES.agc_12 ||
                         "https://images.unsplash.com/photo-1587174484923-2d0ace49f1a9?q=80&w=2070"
                       })`,
                       backgroundSize: "cover",
@@ -286,7 +286,7 @@ export default function MembershipPage() {
               </div>
           </section>
 
-          {/* GALLERY */}
+          {/* Member Lifestyle */}
           <section id="gallery" className="py-5">
               <div className="container">
                   <div className="text-center mb-5">

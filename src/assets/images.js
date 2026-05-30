@@ -10,6 +10,11 @@ const IMAGES = {
     agc_7: new URL("./Img/AGC_7.jpg", import.meta.url).href,
     agc_8: new URL("./Img/AGC_8.jpg", import.meta.url).href,
     agc_9: new URL("./Img/AGC_9.jpg", import.meta.url).href,
+    agc_10: new URL("./Img/AGC_10.jpg", import.meta.url).href,
+    agc_11: new URL("./Img/AGC_11.jpg", import.meta.url).href,
+    agc_12: new URL("./Img/AGC_12.jpg", import.meta.url).href,
+    agc_13: new URL("./Img/AGC_13.jpg", import.meta.url).href,
+    agc_14: new URL("./Img/AGC_14.jpg", import.meta.url).href,
     image1: new URL("./Img/image1.jpg", import.meta.url).href,
     image2: new URL("./Img/image2.jpg", import.meta.url).href,
     image3: new URL("./Img/image3.jpg", import.meta.url).href,
@@ -31,6 +36,7 @@ const IMAGES = {
     golf_course: new URL("./Img/golf_course.png", import.meta.url).href,
     cup: new URL("./Img/cup.png", import.meta.url).href,
     staff_management: new URL("./Img/management.png", import.meta.url).href,
+    gct_logo: new URL("./Img/gct-logo-no-text.png", import.meta.url).href,
 
     ////////////// SVGs
     svg_fans_SECONDARY: new URL("./Svg/undraw_fans_SECONDARY.svg", import.meta.url).href,

@@ -40,7 +40,6 @@ function App() {
 
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/staff/login" element={<StaffLogin />} />
-                <Route path="/signup" element={<SignUpPage />} />
                 <Route path="/register"  element={<PlayerRegistrationPage />} />
                 <Route path="/terms-and-policy"  element={<TermsAndAgreement />} />
                 <Route path="profile/:user_type/email/update/:nano_id"  element={<ContinueEmailUpdate />} />
@@ -60,7 +59,8 @@ function App() {
                         <Route index path="tc" element={<TermsAndAgreementReview />} />
                     </Route>
                     <Route path="client" >
-                        <Route path=":id/game/:name" element={<GameBoard />} />
+                        <Route path=":nano_id/game/view/:name" element={<GameBoard />} />
+                        <Route path=":nano_id/game/:name" element={<GameBoard />} />
                         <Route path=":user_nano_id/games/history" element={<GameHistory />} />
                         <Route path="games/history/summary/:name" element={<GameSummary />} />
                         <Route path="games/player/:name" element={<PlayerInfo />} />

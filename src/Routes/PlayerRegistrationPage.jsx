@@ -474,7 +474,7 @@ const PlayerRegistrationPage = () => {
                                     </div>
 
                                     <div className="mb-3">
-                                        <Nav.Link as={NavLink} to="/terms-and-policy" className="d-flex gap-1 fw-bold text-primary">
+                                        <span className="d-flex gap-2">
                                             <Controller
                                                 name="accept"
                                                 control={control}
@@ -490,8 +490,10 @@ const PlayerRegistrationPage = () => {
                                                     />
                                                 )}
                                             />
-                                            to terms and policy
-                                        </Nav.Link>
+                                            <Nav.Link as={NavLink} to="/terms-and-policy" className="d-flex gap-1 fw-bold text-primary">
+                                                to terms and policy
+                                            </Nav.Link>
+                                        </span>
                                         <ErrorMessage source={errors.accept} />
                                     </div>
 
