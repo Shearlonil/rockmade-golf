@@ -218,9 +218,11 @@ const GameHistory = () => {
     };
 
     const handleTableRowClicked = (rowData) => {
+        const decrypted_id = cryptoHelper.decryptData(user.id);
         useSessionStorage.setValue('recent_game_id', rowData.nano_id.toString());
         const nameArr = rowData.name.split(' ');
         const strName = nameArr.join('+');
+        setPlayerID(decrypted_id);
         navigate(`/dashboard/client/games/history/summary/${strName}`);
     };
 

@@ -227,7 +227,7 @@ export default function MembershipPage() {
                         transition={{ duration: 0.8 }}
                     >
                         <h1 className="display-3 fw-bold mb-4">
-                            Elevate Your <span className="word-span">Golf Game</span>
+                            Elevate Your <span className="word-span text-warning">Golf Game</span>
                         </h1>
                         <p className="lead mb-5 col-lg-8 mx-auto">
                             Join an exclusive community of passionate golfers and unlock
@@ -296,32 +296,33 @@ export default function MembershipPage() {
                       </p>
                   </div>
                   <div className="row g-4">
-                      {galleryItems.map((item) => (
-                          <motion.div key={item.id} className="col-md-6 col-lg-4" whileHover={{ scale: 1.05 }} >
-                              <div className="gallery-item position-relative overflow-hidden rounded shadow-sm h-100">
-                                  <img
-                                      src={item.src}
-                                      className="img-fluid w-100 h-100"
-                                      alt={item.title}
-                                      style={{
-                                        objectFit: "cover",
-                                        transition: "transform 0.5s ease",
-                                      }}
-                                  />
-                                  <div className="caption position-absolute bottom-0 start-0 end-0 text-white p-4"
-                                      style={{
-                                        background:
-                                          "linear-gradient(transparent, rgba(0,0,0,0.8))",
-                                        opacity: 0,
-                                        transition: "opacity 0.3s ease",
-                                      }}
-                                  >
-                                      <h5 className="mb-1">{item.title}</h5>
-                                      <p className="mb-0 small">{item.caption}</p>
+                        {galleryItems.map((item) => (
+                            <motion.div key={item.id} className="col-md-6 col-lg-4" whileHover={{ scale: 1.05 }} >
+                                <div className="gallery-item position-relative overflow-hidden rounded shadow-sm h-100">
+                                    <img
+                                        src={item.src}
+                                        className="img-fluid w-100"
+                                        alt={item.title}
+                                        style={{
+                                            objectFit: "cover",
+                                            transition: "transform 0.5s ease",
+                                            height: "330px"
+                                        }}
+                                    />
+                                    <div className="caption position-absolute bottom-0 start-0 end-0 text-white p-4"
+                                        style={{
+                                            background:
+                                            "linear-gradient(transparent, rgba(0,0,0,0.8))",
+                                            opacity: 0,
+                                            transition: "opacity 0.3s ease",
+                                        }}
+                                    >
+                                        <h5 className="mb-1">{item.title}</h5>
+                                        <p className="mb-0 small">{item.caption}</p>
+                                    </div>
                                 </div>
-                              </div>
-                          </motion.div>
-                      ))}
+                            </motion.div>
+                        ))}
                   </div>
               </div>
           </section>

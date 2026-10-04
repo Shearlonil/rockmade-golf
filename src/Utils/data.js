@@ -124,7 +124,7 @@ const galleryItems = [
 	},
 	{
 		id: 5,
-		src: IMAGES.agc_14,
+		src: IMAGES.image11,
 		title: "Coaching Clinic",
 		caption: "Swing Analysis Session",
 	},
@@ -149,7 +149,7 @@ const gameModes = [
         name: "Member Game",
         availability: true,
         desc: "Perfect for casual play or practice. Invite friends or join a friendly round at registered golf courses near you.",
-        image: IMAGES.image3,
+        image: IMAGES.member_game,
     },
     {
         id: 1,
@@ -163,7 +163,7 @@ const gameModes = [
         name: "Versus Game",
         availability: false,
         desc: "Set up two teams/groups to battle against each other. COMING SOON",
-        image: IMAGES.image2,
+        image: IMAGES.agc_13,
     },
 ];
 

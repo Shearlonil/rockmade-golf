@@ -322,7 +322,7 @@ const Home = () => {
                     </div>
                     <Row>
                         <Col md={4} className="mb-4">
-                            <GameModeCard bg={IMAGES.image3}>
+                            <GameModeCard bg={IMAGES.member_game}>
                                 <div className="overlay d-flex flex-column justify-content-center align-items-center">
                                     <h3 className="fw-bold mb-3">Member Game</h3>
                                     <p className="mb-4">
@@ -350,7 +350,7 @@ const Home = () => {
                             </GameModeCard>
                         </Col>
                         <Col md={4} className="mb-4">
-                            <GameModeCard bg={IMAGES.image2}>
+                            <GameModeCard bg={IMAGES.agc_13}>
                                 <div className="overlay d-flex flex-column justify-content-center align-items-center">
                                     <h3 className="fw-bold mb-3">Versus Game</h3>
                                     <p className="mb-4">

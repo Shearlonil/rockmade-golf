@@ -137,7 +137,7 @@ const About = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
-                className="my-3"
+                className="my-3 mb-5"
             >
                 <Container className="fs-5">
                     <Row>
@@ -152,8 +152,8 @@ const About = () => {
                                 </p>
                             </div>
                         </Col>
-                        <Col className="px-0" md={"6"}>
-                          <img src={IMAGES.agc_6} className="img-fluid" alt="" />
+                        <Col className="px-0 card shadow border-0 rounded" md={"6"}>
+                          <img src={IMAGES.member_game} className="img-fluid" alt="" />
                         </Col>
                     </Row>
                 </Container>
@@ -168,7 +168,7 @@ const About = () => {
             >
                 <Container className="px-0 fs-5">
                     <Row>
-                        <Col md={6}>
+                        <Col className="px-0 card shadow border-0 rounded" md={6}>
                             <img src={IMAGES.agc_11} className="img-fluid" alt="Vision" style={{ objectFit: "cover" }} />
                         </Col>
                         <Col md={6} className="text-center">
@@ -302,7 +302,7 @@ const About = () => {
                         </Col>
                         <Col md={4} className="mb-4">
                             <Card className="p-3 shadow border-0 rounded-3 text-center">
-                                <img src={IMAGES.player4} alt="Team Member" className="rounded-circle mx-auto mb-3"
+                                <img src={IMAGES.bora} alt="Team Member" className="rounded-circle mx-auto mb-3"
                                     style={{
                                         width: "100px",
                                         height: "100px",
