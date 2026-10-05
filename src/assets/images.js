@@ -21,7 +21,7 @@ const IMAGES = {
     image4: new URL("./Img/image4.jpg", import.meta.url).href,
     image5: new URL("./Img/image5.jpg", import.meta.url).href,
     image6: new URL("./Img/image6.jpg", import.meta.url).href,
-    image7: new URL("./Img/image7.jpg", import.meta.url).href,
+    image7: new URL("./Img/outdoor_portrait_dark_grey_trousers.jpg", import.meta.url).href,
     image8: new URL("./Img/image8.jpg", import.meta.url).href,
     image9: new URL("./Img/image9.jpg", import.meta.url).href,
     image10: new URL("./Img/image10.jpg", import.meta.url).href,

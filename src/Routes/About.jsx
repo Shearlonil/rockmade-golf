@@ -8,10 +8,10 @@ import { motion } from "framer-motion";
 const About = () => {
     return (
         <div>
-            <HeroComp $heroImage={IMAGES.image1} height={"30vh"}>
+            <HeroComp $heroImage={IMAGES.agc_9} height={"30vh"}>
                 <div>
                     <h3 className="display-5 fw-bold">
-                        About <span className="word-span">Us</span>
+                        About <span className="word-span text-danger">Us</span>
                     </h3>
                 </div>
             </HeroComp>
@@ -213,7 +213,7 @@ const About = () => {
 
                         <div className="col-lg-6 col-12">
                             <div className="about-text-wrap">
-                                <img src={IMAGES.agc_9} alt="golf course" className="about-image img-fluid" />
+                                <img src={IMAGES.image5} alt="golf course" className="about-image img-fluid" />
                                 <div className="about-text-info d-flex">
                                     <div className="d-flex">
                                         <i className="about-text-icon bi-person"></i>

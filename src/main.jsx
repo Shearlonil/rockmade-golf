@@ -12,6 +12,7 @@ import 'react-lazy-load-image-component/src/effects/blur.css'
 import 'react-loading-skeleton/dist/skeleton.css';
 
 import { BrowserRouter } from "react-router-dom";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import GlobalStyle from "./Styles/GlobalStyles.js";
 import { AuthProvider } from './app-context/auth-context';
 import Footer from "./Components/Footer.jsx";

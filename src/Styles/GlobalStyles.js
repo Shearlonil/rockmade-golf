@@ -83,10 +83,12 @@ const GlobalStyle = createGlobalStyle`
     .gallery-item:hover .caption { opacity: 1; }
     .caption { opacity: 0; transition: opacity 0.3s ease; }
 
-    /* ABOUT SECTION */
+    /* ABOUT SECTION 
+    background-color: #704010;
+
+    */
     .about-section { 
-        background-image: url(${IMAGES.image1});
-        background-color: #704010;
+        background-image: url(${IMAGES.image2});
         background-repeat: no-repeat;
         background-size: cover;
         background-position: center;

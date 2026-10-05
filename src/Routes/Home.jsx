@@ -24,7 +24,7 @@ const Home = () => {
     const [upcomingGames, setUpcomingGames] = useState([]);
     const { performGetRequests } = useGenericController();
 
-    const upcomingGamesImgs = [IMAGES.agc_9, IMAGES.agc_2, IMAGES.agc_14];
+    const upcomingGamesImgs = [IMAGES.image5, IMAGES.agc_2, IMAGES.agc_14];
 
     useEffect(() => {
         initialize();
@@ -244,7 +244,7 @@ const Home = () => {
                                         </div>
                                     </div>
                                     <div className="carousel-image-wrap">
-                                        <img src={IMAGES.image3} className="img-fluid carousel-image" alt="Competition" />
+                                        <img src={IMAGES.agc_13} className="img-fluid carousel-image" alt="Competition" />
                                     </div>
                                 </div>
 
