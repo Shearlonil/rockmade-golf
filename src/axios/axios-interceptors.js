@@ -98,5 +98,5 @@ export const useAxiosInterceptor = () => {
         }
     }, [token]);
 
-    return { xhrAios: axiosInstance, setAxiosToken, getBaseURL };
+    return { xhrAxios: axiosInstance, setAxiosToken, getBaseURL };
 }

@@ -13,14 +13,14 @@ const AuthContext = createContext();
 */
 export const AuthProvider = ({ children }) => {
     // const [jwtToken, setJwtToken] = useLocalStorage(AppConstants.jwtStorageTitle, null);
-    const { xhrAios, setAxiosToken } = useAxiosInterceptor();
+    const { xhrAxios, setAxiosToken } = useAxiosInterceptor();
     const { getJwtToken, setJwtTokenValue } = useToken();
     const accessToken = getJwtToken();
     const navigate = useNavigate();
 
     // call this function when you want to authenticate the user
     const clientLogin = async (loginDetails) => {
-        const response = await xhrAios.post('/auth/client', loginDetails);
+        const response = await xhrAxios.post('/auth/client', loginDetails);
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
     // call this function when you want to authenticate the user
     const staffLogin = async (loginDetails) => {
-        const response = await xhrAios.post('/auth/staff', loginDetails);
+        const response = await xhrAxios.post('/auth/staff', loginDetails);
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
     // call this function when clients want to update personal info
     const updatePersonalInfo = async (signal, data) => {
-        const response = await xhrAios.put(`/users/profile/info/update`, data, {signal});
+        const response = await xhrAxios.put(`/users/profile/info/update`, data, {signal});
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
 
     // call this function when staff want to update personal info
     const updateStaffPersonalInfo = async (signal, data) => {
-        const response = await xhrAios.put(`/staff/profile/info/update`, data, {signal});
+        const response = await xhrAxios.put(`/staff/profile/info/update`, data, {signal});
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     }
     
     const updateHCP = async (signal, data) => {
-        const response = await xhrAios.put(`/users/profile/hcp/update`, data, {signal});
+        const response = await xhrAxios.put(`/users/profile/hcp/update`, data, {signal});
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
     
     // updating client email
     const updateEmail = async (signal, nano_id) => {
-        const response = await xhrAios.get(`/users/profile/email/update/${nano_id}`, {signal});
+        const response = await xhrAxios.get(`/users/profile/email/update/${nano_id}`, {signal});
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
     
     // updating staff email
     const updateStaffEmail = async (signal, nano_id) => {
-        const response = await xhrAios.get(`/staff/profile/email/update/${nano_id}`, {signal});
+        const response = await xhrAxios.get(`/staff/profile/email/update/${nano_id}`, {signal});
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
     }
     
     const updateProfileImg = async (signal, data) => {
-        const response = await xhrAios.post(`/users/profile/dp/update`, data, {signal});
+        const response = await xhrAxios.post(`/users/profile/dp/update`, data, {signal});
         //  remove the token prefix from the token for jwtDecode to decode the token
         const jwt = response.headers[AppConstants.jwtStorageTitle].replace(AppConstants.TOKEN_PREFIX, "");
         setJwtTokenValue(jwt);
@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }) => {
     }
     
     const verifySubTransaction = async (signal, reqQuery) => {
-        const response = await xhrAios.get(`/transactions/paystack/verification`, {
+        const response = await xhrAxios.get(`/transactions/paystack/verification`, {
             params: {
                 reqQuery
             }
@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }) => {
 
     // call this function to sign out logged in user
     const logout = async (route) => {
-        await xhrAios.get("/auth/logout");
+        await xhrAxios.get("/auth/logout");
         setJwtTokenValue(null);
         if (route) {
             navigate(route, { replace: true });
@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }) => {
     
     // call this function to sign out logged in user from all devices
     const logoutAll = async (route) => {
-        await xhrAios.get("/auth/logout/all");
+        await xhrAxios.get("/auth/logout/all");
         setJwtTokenValue(null);
         if (route) {
             navigate(route, { replace: true });

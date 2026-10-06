@@ -2,59 +2,59 @@ import { useAxiosInterceptor } from '../axios/axios-interceptors';
 
 // https://stackoverflow.com/questions/75319009/how-to-use-hooks-within-function-in-react-js
 const useGameController = () => {
-    const { xhrAios } = useAxiosInterceptor();
+    const { xhrAxios } = useAxiosInterceptor();
 
     const createGame = async (signal, data) => {
-        return await xhrAios.post(`/games/create`, data, {signal});
+        return await xhrAxios.post(`/games/create`, data, {signal});
     }
 
     const updateGame = async (signal, data) => {
-        return await xhrAios.post(`/games/update`, data, {signal});
+        return await xhrAxios.post(`/games/update`, data, {signal});
     }
 
     const updateGroupScores = async (signal, id, data) => {
-        return await xhrAios.post(`/games/rounds/ongoing/${id}/players/group/scores`, data, {signal});
+        return await xhrAxios.post(`/games/rounds/ongoing/${id}/players/group/scores`, data, {signal});
     }
 
     const updateGroupContestScores = async (signal, id, data) => {
-        return await xhrAios.post(`/games/rounds/ongoing/${id}/players/group/contest/scores`, data, {signal});
+        return await xhrAxios.post(`/games/rounds/ongoing/${id}/players/group/contest/scores`, data, {signal});
     }
 
     const removegame = async (signal, id) => {
-        return await xhrAios.post(`/games/${id}/remove`, {signal});
+        return await xhrAxios.post(`/games/${id}/remove`, {signal});
     }
 
     const endOngoingGame = async (signal, nano_id) => {
-        return await xhrAios.post(`/games/rounds/ongoing/${nano_id}/end`, {signal});
+        return await xhrAxios.post(`/games/rounds/ongoing/${nano_id}/end`, {signal});
     }
 
     const updateGameSpices = async (signal, data) => {
-        return await xhrAios.post(`/games/spices/update`, data, {signal});
+        return await xhrAxios.post(`/games/spices/update`, data, {signal});
     }
 
     const findGameHistoryById = async (signal, id) => {
-        return await xhrAios.get(`/games/rounds/history/${id}`, {signal});
+        return await xhrAxios.get(`/games/rounds/history/${id}`, {signal});
     }
 
     const findOngoingRoundById = async (signal, id) => {
-        return await xhrAios.get(`/games/rounds/ongoing/${id}`, {signal});
+        return await xhrAxios.get(`/games/rounds/ongoing/${id}`, {signal});
     }
 
     const verifyViewCode = async (signal, view_code) => {
-        return await xhrAios.get(`/games/rounds/ongoing/view-code/verify/${view_code}`, {signal});
+        return await xhrAxios.get(`/games/rounds/ongoing/view-code/verify/${view_code}`, {signal});
     }
 
     const addPlayers = async (signal, data) => {
-        return await xhrAios.post(`/games/rounds/ongoing/${data.game_id}/players/add`, data, {signal});
+        return await xhrAxios.post(`/games/rounds/ongoing/${data.game_id}/players/add`, data, {signal});
     }
 
     // changing a gruop a player belongs to
     const updatePlayerGroup = async (signal, data) => {
-        return await xhrAios.put(`/games/rounds/ongoing/player/group/change`, data, {signal});
+        return await xhrAxios.put(`/games/rounds/ongoing/player/group/change`, data, {signal});
     }
     
     const updateGroupSize = async (signal, game_id, group_size) => {
-        return await xhrAios.put(`/games/groups/update-size`, 
+        return await xhrAxios.put(`/games/groups/update-size`, 
         {
             game_id, group_size
         }, 
@@ -62,15 +62,15 @@ const useGameController = () => {
     }
     
     const exchangeGroupPlayers = async (signal, data) => {
-        return await xhrAios.put(`/games/groups/players/swap`, data, {signal});
+        return await xhrAxios.put(`/games/groups/players/swap`, data, {signal});
     }
 
     const removePlayer = async (signal, data) => {
-        return await xhrAios.put(`/games/rounds/ongoing/player/remove`, data, {signal});
+        return await xhrAxios.put(`/games/rounds/ongoing/player/remove`, data, {signal});
     }
     
     const userGameHistory = async (signal, data) => {
-        return await xhrAios.get(`/games/users/rounds/history`, {
+        return await xhrAxios.get(`/games/users/rounds/history`, {
             params: {
                 page_size: data.pageSize, cursor: data.game_group_id, player_id: data.player_id
             }
@@ -78,7 +78,7 @@ const useGameController = () => {
     }
     
     const userGameHistorySearch = async (signal, data) => {
-        return await xhrAios.get(`/games/users/rounds/history/query`, {
+        return await xhrAxios.get(`/games/users/rounds/history/query`, {
             params: {
                 page_size: data.pageSize, cursor: data.game_group_id, queryStr: data.queryStr, player_id: data.player_id
             }

@@ -200,7 +200,7 @@ const PlayerRegistrationPage = () => {
         <section className="position-relative min-vh-100 d-flex align-items-center justify-content-center" style={{ paddingTop: "80px" }} >
             <div className="position-absolute top-0 start-0 w-100 h-100"
                 style={{
-                    backgroundImage: `url(${IMAGES.image1 || "https://images.unsplash.com/photo-1587174484923-2d0ace49f1a9?q=80&w=2070"})`,
+                    backgroundImage: `url(${IMAGES.image9})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     filter: "brightness(0.6)",
