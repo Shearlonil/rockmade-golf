@@ -65,7 +65,7 @@ function NavBar() {
                             handleNavSelect();
                         }}
                     >
-                        <img src={IMAGES.logo} width={"130px"} height={"50px"} alt="logo" />
+                        <img src={IMAGES.logo} width={"100px"} height={"50px"} alt="logo" />
                     </Navbar.Brand>
 
                     {/* Toggle + mobile donate */}
