@@ -1,6 +1,6 @@
 const IMAGES = {
     // Home page
-    logo: new URL("./Img/logo.jpg", import.meta.url).href,
+    logo: new URL("./Img/logo.png", import.meta.url).href,
     agc_1: new URL("./Img/AGC_1.jpg", import.meta.url).href,
     agc_2: new URL("./Img/AGC_2.jpg", import.meta.url).href,
     agc_3: new URL("./Img/AGC_3.jpg", import.meta.url).href,
